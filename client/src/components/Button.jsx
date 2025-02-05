@@ -1,8 +1,8 @@
 import style from '../css/Button.module.css';
 
-function Button () {
+function Button({ label }) {
   return (
-    <button className={style['button-design']}>Click me</button>
+    <button className={style['button-design']}>{label}</button>
   );
 }
 

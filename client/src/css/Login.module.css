@@ -41,9 +41,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin: auto;
 }
 
-.username, .password {
-    margin-bottom: 10px;
+.small-text {
+    font-size: 12px;
+    font-weight: 300;
 }
 
+.small-text-container {
+    display: flex;
+    justify-content: start;
+    width: 100%;
+
+}
