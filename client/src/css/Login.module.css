@@ -1,0 +1,49 @@
+/* Login page layout */
+.container {
+    width: 100%;
+    min-height: 100%;
+}
+
+.left-container {
+    width: 30%;
+    min-height: 100vh;
+    background-color: lightgray;
+    float: left;
+
+}
+
+.right-container {
+    width: 70%;
+    min-height: 100vh;
+    background-color: red;
+    float: right;
+}
+
+.clearfix::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+.heading {
+    width: 100%;
+    background-color: white;
+    margin-bottom: 30vh;
+}
+
+.heading h1 {
+    margin-left: 50px;
+}
+
+.login-container {
+    background-color: tomato;
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.username, .password {
+    margin-bottom: 10px;
+}
+
