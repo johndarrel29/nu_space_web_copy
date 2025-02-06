@@ -7,14 +7,13 @@
 .left-container {
     width: 30%;
     min-height: 100vh;
-    background-color: lightgray;
     float: left;
 
 }
 
 .right-container {
     width: 70%;
-    min-height: 100vh;
+    height: 100vh;
     background-color: red;
     float: right;
 }
@@ -27,7 +26,6 @@
 
 .heading {
     width: 100%;
-    background-color: white;
     margin-bottom: 30vh;
 }
 
@@ -36,7 +34,6 @@
 }
 
 .login-container {
-    background-color: tomato;
     width: 70%;
     display: flex;
     flex-direction: column;
@@ -53,5 +50,6 @@
     display: flex;
     justify-content: start;
     width: 100%;
+    margin-top: 10px;
 
 }

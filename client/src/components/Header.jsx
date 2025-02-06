@@ -1,9 +1,9 @@
+import logo from "../assets/images/nu-space.png";
+
 
 function Header () {
   return (
-    <header>
-      <h1>My App</h1>
-    </header>
+    <img src={logo} alt="Logo" className="h-4 ml-12 mt-6 object-contain"/>
   );
 }
 
