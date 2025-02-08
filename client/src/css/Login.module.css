@@ -53,3 +53,31 @@
     margin-top: 10px;
 
 }
+
+
+@media (max-width: 768px) { 
+
+
+    .left-container {
+        width: 50%;
+
+
+    }
+
+    .right-container {
+        width: 50%;
+    }
+
+
+ }
+
+ /* Small (sm) */
+@media (max-width: 640px) {
+    .left-container {
+        width: 100%;
+    }
+
+    .right-container {
+        display: none;
+    }
+ }
