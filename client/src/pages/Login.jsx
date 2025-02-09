@@ -21,7 +21,7 @@ export default function Login () {
     <div className={classNames(style.container, style.clearfix)}>
     <div className={`${style["left-container"]} w-full md:w-1/3 pt-6`}>
         <div className={style.heading}>
-            <Header />
+            <Header theme="dark" />
         </div>
 
         <div className={style['login-container']}>

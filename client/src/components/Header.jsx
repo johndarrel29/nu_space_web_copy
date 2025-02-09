@@ -1,9 +1,13 @@
 import logo from "../assets/images/nu-space.png";
+import whiteLogo from "../assets/images/white-nu-space.png";
 
-
-function Header () {
+function Header ({theme}) {
   return (
-    <img src={logo} alt="Logo" className="h-4  ml-12  object-contain" draggable="false"/>
+    <img 
+      src={theme === "dark" ? logo :  whiteLogo} 
+      alt="Logo" className="h-4  ml-12  object-contain"
+      draggable="false"
+    />
   );
 }
 
