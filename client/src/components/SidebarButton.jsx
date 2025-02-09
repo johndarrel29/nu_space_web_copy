@@ -17,10 +17,10 @@ function SidebarButton({ icon, text, onClick }) {
 
 <div 
     className={classNames(style.hoverDiv, 'relative flex items-center gap-2', {
-        [style.active]: isActive // Apply active class if clicked
+        // [style.active]: isActive // Apply active class if clicked
     })}  
     onClick={handleClick}>
-        <img src={icon} alt="Dashboard" className='h-5 w-5'/>
+        <img src={icon} alt="Dashboard" className={style.icon}/>
             <h1 className={style.sidebarText}>{text}</h1>
 </div>
   );

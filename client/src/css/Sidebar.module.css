@@ -6,7 +6,6 @@
 }
 
 
-
 .sidebarContainer {
     width: 90%;
     margin-left: 12px;
@@ -38,4 +37,17 @@
     height: 1px;
     background-color: #ffffff; /* White color for the separator line */
     margin-top: 20px; /* Adjust the margin as needed */
+  }
+
+  @media (max-width: 1000px) { 
+    .container {
+        width: 80px;
+    }
+    .sidebarContainer {
+        width: 100%;
+        margin-left: 0;
+
+    }
+
+
   }
