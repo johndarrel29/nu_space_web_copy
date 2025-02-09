@@ -5,12 +5,15 @@ import userIcon from "../assets/icons/users-solid.svg"
 import documentIcon from "../assets/icons/file-solid.svg"
 import classNames from 'classnames';
 import SidebarButton from '../components/SidebarButton';
+import logo from "../assets/images/tab-logo.png";
+import SidebarLogo from '../components/SidebarLogo';
 
 function Sidebar() {
   return (
     <div className={sidebar.container}>
       <div className="pt-6">
-      <Header theme="light"/>
+      <SidebarLogo/>
+
       </div>
       
       {/* The contents of the sidebar */}

@@ -1,0 +1,29 @@
+.imageStyle {
+    height: 1rem;  /* Equivalent to h-4 */
+    margin-left: 3rem;  /* Equivalent to ml-12 */
+    object-fit: contain;  /* Equivalent to object-contain */
+}
+
+.iconContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon {
+    height: 2rem;  /* Equivalent to h-4 */
+    margin-left: 3rem;  /* Equivalent to ml-12 */
+    object-fit: contain;  /* Equivalent to object-contain */
+    display: none;
+}
+
+@media (max-width: 1000px) {
+    .imageStyle {
+        display: none;
+    }
+
+    .icon {
+        display: block;
+        margin-left: 0;
+    }
+}
