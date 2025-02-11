@@ -2,12 +2,12 @@ import Sidebar from "../components/Sidebar";
 import MainLayout from "../components/MainLayout";
 
 
-export default function Dashboard() {
+export default function AdminAccount() {
     return (
         <div>
             <MainLayout
-            tabName="Dashboard"
-            headingTitle="See previous updates"
+            tabName="Admin Account"
+            headingTitle="Admin Full Name"
             > 
                 <h1>Test</h1>
             </MainLayout>

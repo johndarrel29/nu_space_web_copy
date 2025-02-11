@@ -2,12 +2,12 @@ import Sidebar from "../components/Sidebar";
 import MainLayout from "../components/MainLayout";
 
 
-export default function Dashboard() {
+export default function UserManagement() {
     return (
         <div>
             <MainLayout
-            tabName="Dashboard"
-            headingTitle="See previous updates"
+            tabName="User Management"
+            headingTitle="Monitor RSO and Student accounts"
             > 
                 <h1>Test</h1>
             </MainLayout>
