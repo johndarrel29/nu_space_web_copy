@@ -1,7 +1,9 @@
 .imageStyle {
-    height: 1rem;  /* Equivalent to h-4 */
-    margin-left: 3rem;  /* Equivalent to ml-12 */
-    object-fit: contain;  /* Equivalent to object-contain */
+    height: 1rem;  
+    margin-left: 3rem; 
+    object-fit: contain; 
+    opacity: 1; /* Initially fully visible */
+    transition: opacity 0.1s ease-out;
 }
 
 .iconContainer {
@@ -11,19 +13,21 @@
 }
 
 .icon {
-    height: 2rem;  /* Equivalent to h-4 */
-    margin-left: 3rem;  /* Equivalent to ml-12 */
-    object-fit: contain;  /* Equivalent to object-contain */
-    display: none;
+    height: 2rem;  
+    margin-left: 3rem;  
+    object-fit: contain;  
+    opacity: 0; 
+    
 }
 
 @media (max-width: 1000px) {
     .imageStyle {
-        display: none;
+        opacity: 0; 
     }
 
     .icon {
-        display: block;
+        opacity: 1; 
         margin-left: 0;
+        transition: opacity 0.3s ease-in;
     }
 }
