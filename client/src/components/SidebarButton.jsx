@@ -16,7 +16,8 @@ function SidebarButton({ icon, text, onClick, active }) {
 
   return (
 
-<div 
+<div
+    title={text}
     className={classNames(style.hoverDiv, 'relative flex items-center gap-2', sidebar.button,{
       [sidebar.activeButton]: active
     })}  
