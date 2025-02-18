@@ -2,6 +2,7 @@ import Sidebar from "../components/Sidebar";
 import MainLayout from "../components/MainLayout";
 
 
+
 export default function Documents() {
     return (
         <div>
@@ -11,6 +12,7 @@ export default function Documents() {
             > 
                 <h1>Test</h1>
             </MainLayout>
+
 
         </div>
     );

@@ -5,12 +5,14 @@ import iconLogo from "../assets/images/tab-logo.png";
 function SidebarLogo () {
   return (
     <div>
+    
         <img 
         src={whiteLogo} 
         alt="Logo" className={style.imageStyle}
         draggable="false"
         />
-        <div className={style.iconContainer}>
+ 
+      <div className={style.iconContainer}>
             <img 
             src={iconLogo} 
             alt="Logo" className={style.icon}

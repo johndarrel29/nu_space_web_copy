@@ -7,10 +7,11 @@ import Dashboard from './pages/Dashboard';
 import UserManagement from './pages/UserManagement';
 import Documents from './pages/Documents';
 import AdminAccount from './pages/AdminAccount';
+import { ThemeProvider } from '@material-tailwind/react';
 
 function App() {
   return (
-
+<ThemeProvider>
     <BrowserRouter>
       <Routes>
         <Route index element={<Login />} />
@@ -21,7 +22,7 @@ function App() {
         <Route path="/admin-account" element={<AdminAccount />} />
       </Routes>
     </BrowserRouter>
-    
+    </ThemeProvider>
   );
 }
 

@@ -2,9 +2,10 @@
     height: 1rem;  
     margin-left: 3rem; 
     object-fit: contain; 
-    opacity: 1; /* Initially fully visible */
+    opacity: 1; 
     transition: opacity 0.1s ease-out;
 }
+
 
 .iconContainer {
     display: flex;
@@ -17,6 +18,7 @@
     margin-left: 3rem;  
     object-fit: contain;  
     opacity: 0; 
+
     
 }
 

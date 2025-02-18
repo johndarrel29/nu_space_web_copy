@@ -1,7 +1,8 @@
-import Sidebar from "../components/Sidebar";
 import MainLayout from "../components/MainLayout";
 import Table from "../components/Table";
 import Searchbar from "../components/Searchbar";
+import PreviewPane from "../components/PreviewPane";
+
 
 export default function UserManagement() {
     return (
@@ -10,9 +11,9 @@ export default function UserManagement() {
             tabName="User Management"
             headingTitle="Monitor RSO and Student accounts"
             > 
-                <h1>Test</h1>
                 <Searchbar/>
                 <Table/>
+
             </MainLayout>
 
         </div>
