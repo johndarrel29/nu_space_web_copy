@@ -11,7 +11,6 @@ export default function UserManagement() {
             tabName="User Management"
             headingTitle="Monitor RSO and Student accounts"
             > 
-                <Searchbar/>
                 <Table/>
 
             </MainLayout>

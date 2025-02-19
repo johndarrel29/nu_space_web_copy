@@ -1,83 +1,70 @@
 [
+
     {
       "id": 1,
       "name": "Mariangela Assis",
       "email": "mariangela@santacasabh.org.br",
-      "avatar": "https://i.pravatar.cc/150?img=1",
-      "product": { "name": "Fresubin Energy 1000ML", "brand": "Fresenius" },
-      "type": "Entrada",
-      "batch": "2AGAAA001D",
-      "quantity": "16 UN"
+      "date": "19/02/2025",
+      "type": "Student"
+    
+
     },
     {
       "id": 2,
       "name": "Julia Lima",
       "email": "julia@santacasabh.org.br",
-      "avatar": "https://i.pravatar.cc/150?img=1",
-      "product": { "name": "Novasource Senior 1000ML", "brand": "Nestle" },
-      "type": "Saída",
-      "batch": "3596SPZA70",
-      "quantity": "2 UN"
+      "date": "19/02/2025",
+      "type": "Student"
+   
+      
     },
     {
       "id": 3,
       "name": "Miriam Alves",
       "email": "miriam@santacasabh.org.br",
-      "avatar": "https://i.pravatar.cc/150?img=1",
-      "product": { "name": "Nutren Control Chocolate 380G", "brand": "Nestle" },
-      "type": "Entrada",
-      "batch": "2AGAAA001E",
-      "quantity": "100 UN"
+      "date": "19/02/2025",
+      "type": "Student"
+      
     },
     {
       "id": 4,
       "name": "Isabel Gonçalves",
       "email": "isabel@santacasabh.org.br",
-      "avatar": "https://i.pravatar.cc/150?img=1",
-      "product": { "name": "Diben 1.5 1000ML", "brand": "Fresenius" },
-      "type": "Saída",
-      "batch": "SEPUAB009A",
-      "quantity": "5 UN"
+      "date": "19/02/2025",
+      "type": "Student"
+      
     },
     {
       "id": 5,
       "name": "Benito Mussolini",
       "email": "mariangela@santacasabh.org.br",
-      "avatar": "https://i.pravatar.cc/150?img=1",
-      "product": { "name": "Fresubin Energy 1000ML", "brand": "Fresenius" },
-      "type": "Entrada",
-      "batch": "2AGAAA001D",
-      "quantity": "16 UN"
+      "date": "19/02/2025",
+      "type": "Student"
+
     },
     {
       "id": 6,
       "name": "Dwight Eisenhower",
       "email": "julia@santacasabh.org.br",
-      "avatar": "https://i.pravatar.cc/150?img=1",
-      "product": { "name": "Novasource Senior 1000ML", "brand": "Nestle" },
-      "type": "Saída",
-      "batch": "3596SPZA70",
-      "quantity": "2 UN"
+      "date": "19/02/2025",
+      "type": "Student"
+      
     },
     {
       "id": 7,
       "name": "Joseph Stalin",
       "email": "miriam@santacasabh.org.br",
-      "avatar": "https://i.pravatar.cc/150?img=1",
-      "product": { "name": "Nutren Control Chocolate 380G", "brand": "Nestle" },
-      "type": "Entrada",
-      "batch": "2AGAAA001E",
-      "quantity": "100 UN"
+      "date": "19/02/2025",
+      "type": "Student"
+      
     },
     {
       "id": 8,
       "name": "George Washington",
       "email": "isabel@santacasabh.org.br",
-      "avatar": "https://i.pravatar.cc/150?img=1",
-      "product": { "name": "Diben 1.5 1000ML", "brand": "Fresenius" },
-      "type": "Saída",
-      "batch": "SEPUAB009A",
-      "quantity": "5 UN"
+      "date": "19/02/2025 ",
+      "type": "Student"
+      
     }
   ]
   
