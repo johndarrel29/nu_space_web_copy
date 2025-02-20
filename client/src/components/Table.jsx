@@ -55,7 +55,7 @@ const TableRow = ({ user }) => (
 // Table Component
 const Table = ({ searchQuery }) => {
   const [search, setSearch] = useState('');
-  console.log(search);
+
 
   //Fetches data from data.json
   const [data, setData] = useState([]);
@@ -65,24 +65,34 @@ const Table = ({ searchQuery }) => {
       .then((json) => setData(json))
       .catch((error) => console.error('Error loading data:', error));
   }, []);
-  
+
 
   
+
+  const filteredRecords = data.filter((user) =>
+    search.toLowerCase() === '' ||
+    user.first_name.toLowerCase().includes(search.toLowerCase()) ||
+    user.last_name.toLowerCase().includes(search.toLowerCase()) ||
+    user.email.toLowerCase().includes(search.toLowerCase())
+  );
 
     //Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(5);
     const indexOfLastPost = currentPage * postsPerPage;
     const indexOfFirstPost = indexOfLastPost - postsPerPage;
-    const records = data.slice(indexOfFirstPost, indexOfLastPost);
+    const records = filteredRecords.slice(indexOfFirstPost, indexOfLastPost);
 
-    const npage = Math.ceil(data.length / postsPerPage); //tells number of pages
+    const npage = Math.ceil(filteredRecords.length / postsPerPage); //tells number of pages
     const numbers = [...Array(npage + 1).keys()].slice(1); //creates an array of page numbers
+
+    useEffect(() => {
+      setCurrentPage(1);
+    }, [search, filteredRecords.length ]);
   
     function prePage() {
-      if(currentPage !== 1) {
+      if (currentPage > 1) {
         setCurrentPage(currentPage - 1);
-        
       }
     }
     
@@ -91,9 +101,10 @@ const Table = ({ searchQuery }) => {
     }
     
     function nextPage() {
-      if(currentPage !== npage) {
+      if (currentPage < npage) {
         setCurrentPage(currentPage + 1);
-  
+      } else {
+        setCurrentPage(npage);
       }
     }
     
@@ -136,10 +147,32 @@ const Table = ({ searchQuery }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {records.filter((user) => {
-              return search.toLowerCase() === '' || user.first_name.toLowerCase().includes(search.toLowerCase()) || user.last_name.toLowerCase().includes(search.toLowerCase()) || user.email.toLowerCase().includes(search.toLowerCase());
-            }).map((user) => (
+              return (
+                search.toLowerCase() === '' ||
+                user.first_name.toLowerCase().includes(search.toLowerCase()) ||
+                user.last_name.toLowerCase().includes(search.toLowerCase()) ||
+                user.email.toLowerCase().includes(search.toLowerCase())
+              );
+            }).length > 0 ? (
+              records.filter((user) => {
+                return (
+                  search.toLowerCase() === '' ||
+                  user.first_name.toLowerCase().includes(search.toLowerCase()) ||
+                  user.last_name.toLowerCase().includes(search.toLowerCase()) ||
+                  user.email.toLowerCase().includes(search.toLowerCase())
+                  
+                );
+              })
+              .map((user) => (
               <TableRow key={user.id} user={user} />
-            ))}
+              ))
+            ) : (
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={6}>
+                  No records found
+                </td>
+              </tr>
+            )}
             
           </tbody>
         </table>
@@ -147,31 +180,31 @@ const Table = ({ searchQuery }) => {
           ) : (
             <LoadingAnimation />
           )}
-            <nav>
-            <ul className="flex justify-center">
-              <li className="page-item mx-1 px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded">
-                  <a href="#" className='page-link' 
-                  onClick={prePage}>Prev</a>
-              </li>
-              {
-                numbers.map((n, i) => (
-                  <button className={`px-4 py-2 rounded-md font-semibold transition duration-200 hover:bg-blue-500
-                   ${currentPage === n ? 'bg-blue-500' : ''}`} key={i}
-                    onClick={() => paginate(n)}>{n}
-                    
-                  </button>
-                  
-                ))
-              }
-              <li className="page-item mx-1 px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded">
-                  <a href="#" className='page-link'
-                  onClick={nextPage}>Next</a>
-              </li>
 
+          {/* make tab bar consistent position on the page  */}
+          <div className='bg-red  w-full fixed bottom-20'>
+            <nav>
+              <ul className="flex justify-center">
+                <li className="page-item mx-1 px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded">
+                    <a href="#" className='page-link' 
+                    onClick={prePage}>Prev</a>
+                </li>
+
+                <div className="px-4 py-2 font-semibold">
+                {npage > 0 ? `${currentPage} of ${npage}` : "0 of 0"}
+                </div>
+                                
+                <li className="page-item mx-1 px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded">
+                    <a href="#" className='page-link'
+                    onClick={nextPage}>Next</a>
+                </li>
+
+                
+              </ul>
               
-            </ul>
+            </nav>  
+          </div>
             
-          </nav>
   </div>
 
   );
