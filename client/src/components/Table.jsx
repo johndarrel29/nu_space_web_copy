@@ -82,6 +82,7 @@ const Table = ({ searchQuery }) => {
     function prePage() {
       if(currentPage !== 1) {
         setCurrentPage(currentPage - 1);
+        
       }
     }
     
@@ -92,6 +93,7 @@ const Table = ({ searchQuery }) => {
     function nextPage() {
       if(currentPage !== npage) {
         setCurrentPage(currentPage + 1);
+  
       }
     }
     
@@ -148,7 +150,7 @@ const Table = ({ searchQuery }) => {
             <nav>
             <ul className="flex justify-center">
               <li className="page-item mx-1 px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded">
-                  <a href="#" className='page-link'
+                  <a href="#" className='page-link' 
                   onClick={prePage}>Prev</a>
               </li>
               {
@@ -156,14 +158,19 @@ const Table = ({ searchQuery }) => {
                   <button className={`px-4 py-2 rounded-md font-semibold transition duration-200 hover:bg-blue-500
                    ${currentPage === n ? 'bg-blue-500' : ''}`} key={i}
                     onClick={() => paginate(n)}>{n}
+                    
                   </button>
+                  
                 ))
               }
               <li className="page-item mx-1 px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded">
                   <a href="#" className='page-link'
                   onClick={nextPage}>Next</a>
               </li>
+
+              
             </ul>
+            
           </nav>
   </div>
 
