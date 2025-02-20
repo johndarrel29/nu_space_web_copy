@@ -90,8 +90,9 @@ const Table = ({ searchQuery }) => {
       setCurrentPage(1);
     }, [search, filteredRecords.length ]);
   
+    
     function prePage() {
-      if (currentPage > 1) {
+      if (currentPage !== 1) {
         setCurrentPage(currentPage - 1);
       }
     }
@@ -101,7 +102,7 @@ const Table = ({ searchQuery }) => {
     }
     
     function nextPage() {
-      if (currentPage < npage) {
+      if (currentPage !== npage) {
         setCurrentPage(currentPage + 1);
       } else {
         setCurrentPage(npage);
@@ -148,6 +149,7 @@ const Table = ({ searchQuery }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {records.filter((user) => {
               return (
+                console.log(user.first_name.toLowerCase().includes(search.toLowerCase())) ||
                 search.toLowerCase() === '' ||
                 user.first_name.toLowerCase().includes(search.toLowerCase()) ||
                 user.last_name.toLowerCase().includes(search.toLowerCase()) ||
