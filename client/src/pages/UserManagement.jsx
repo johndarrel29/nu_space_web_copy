@@ -1,7 +1,6 @@
 import MainLayout from "../components/MainLayout";
 import Table from "../components/Table";
-import Searchbar from "../components/Searchbar";
-import PreviewPane from "../components/PreviewPane";
+import DeleteModal from "../components/DeleteModal";
 
 
 export default function UserManagement() {
@@ -12,7 +11,7 @@ export default function UserManagement() {
             headingTitle="Monitor RSO and Student accounts"
             > 
                 <Table/>
-
+                
             </MainLayout>
 
         </div>
