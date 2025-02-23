@@ -61,7 +61,7 @@ const TableRow = ({ user, onOpenModal }) => {
 };
 
 // Table Component
-const Table = ({ searchQuery }) => {
+const Table = ({ searchQuery, data }) => {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
 
@@ -75,26 +75,14 @@ const Table = ({ searchQuery }) => {
     setShowModal(false);
   }
 
-
-
-  //Fetches data from data.json
-  const [data, setData] = useState([]);
-  useEffect(() => {
-    fetch('/data/MOCK_DATA.json') 
-      .then((response) => response.json())
-      .then((json) => setData(json))
-      .catch((error) => console.error('Error loading data:', error));
-  }, []);
-
-
-  
-
+  //Filtering
   const filteredRecords = data.filter((user) =>
     search.toLowerCase() === '' ||
     user.first_name.toLowerCase().includes(search.toLowerCase()) ||
     user.last_name.toLowerCase().includes(search.toLowerCase()) ||
     user.email.toLowerCase().includes(search.toLowerCase())
   );
+
 
     //Pagination
     const [currentPage, setCurrentPage] = useState(1);
