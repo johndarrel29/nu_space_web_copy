@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LoadingAnimation from './LoadingAnimation';
-import DeleteModal from './DeleteModal';
+import ActionModal from './ActionModal';
 
 
 // TableRow Component
@@ -44,13 +44,12 @@ const TableRow = ({ user, onOpenModal }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         {user.quantity}
-        <button  onClick={() => console.log("Modal open")} className="text-indigo-600 hover:text-indigo-900">
+        <button  onClick={() => onOpenModal("edit")} className="text-indigo-600 hover:text-indigo-900">
           Edit
         </button>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <button onClick={
-          onOpenModal}
+        <button onClick={() => onOpenModal("delete")}
            className="text-indigo-600 hover:text-indigo-900">
           Delete
         </button>
@@ -64,10 +63,13 @@ const TableRow = ({ user, onOpenModal }) => {
 const Table = ({ searchQuery, data }) => {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [mode, setMode] = useState('delete');
 
-  const handleOpenModal = () => {
+
+  const handleOpenModal = (mode) => {
     console.log("Modal open");
     setShowModal(true);
+    setMode(mode)
   };
 
   const handleCloseModal = () => {
@@ -92,7 +94,6 @@ const Table = ({ searchQuery, data }) => {
     const records = filteredRecords.slice(indexOfFirstPost, indexOfLastPost);
 
     const npage = Math.ceil(filteredRecords.length / postsPerPage); //tells number of pages
-    const numbers = [...Array(npage + 1).keys()].slice(1); //creates an array of page numbers
 
     useEffect(() => {
       setCurrentPage(1);
@@ -103,10 +104,6 @@ const Table = ({ searchQuery, data }) => {
       if (currentPage !== 1) {
         setCurrentPage(currentPage - 1);
       }
-    }
-    
-    function paginate(id) {
-      setCurrentPage(id);
     }
     
     function nextPage() {
@@ -130,7 +127,8 @@ const Table = ({ searchQuery, data }) => {
       className="border p-2 rounded w-full"
     />
     {/* Rendering of modal  */}
-    {showModal && <DeleteModal onClose={handleCloseModal} />}
+    {showModal && <ActionModal onClose={handleCloseModal} mode={mode}/>}
+
 
       {data.length > 0 ? (
         <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
