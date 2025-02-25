@@ -66,6 +66,7 @@ const Table = ({ searchQuery, data }) => {
   const [mode, setMode] = useState('delete');
 
 
+
   const handleOpenModal = (mode) => {
     console.log("Modal open");
     setShowModal(true);
@@ -119,7 +120,7 @@ const Table = ({ searchQuery, data }) => {
   return (
     
     
-   <div>
+    <div className="overflow-y-auto max-h-[500px]">
     <input
       type="text"
       placeholder="Search..."
@@ -155,27 +156,17 @@ const Table = ({ searchQuery, data }) => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
+
+          {/* conditional to assess if there are records to display*/}
             {records.filter((user) => {
-              return (
-                
+              return (  
                 search.toLowerCase() === '' ||
                 user.first_name.toLowerCase().includes(search.toLowerCase()) ||
                 user.last_name.toLowerCase().includes(search.toLowerCase()) ||
                 user.email.toLowerCase().includes(search.toLowerCase())
               );
             }).length > 0 ? (
-              records.filter((user) => {
-                return (
-                  search.toLowerCase() === '' ||
-                  user.first_name.toLowerCase().includes(search.toLowerCase()) ||
-                  user.last_name.toLowerCase().includes(search.toLowerCase()) ||
-                  user.email.toLowerCase().includes(search.toLowerCase())
-                  
-                );
-              })
-              .map((user) => (
-              <TableRow key={user.id} user={user} onOpenModal={handleOpenModal} />
-              ))
+              records.map((user) => <TableRow key={user.id} user={user} onOpenModal={handleOpenModal} />)
             ) : (
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={6}>
