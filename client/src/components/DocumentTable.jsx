@@ -2,39 +2,50 @@
 import React, { useState, useEffect } from "react";
 
 
-export default function DocumentTable({category}) {
+export default function DocumentTable({category, searchQuery}) {
     const [data, setData] = useState([]);
+    console.log(searchQuery);
 
         //Pagination
+        //Removed pagination 
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage] = useState(5);
     const indexOfLastPost = currentPage * postsPerPage;
     const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    const safeSearchQuery = searchQuery || ''; 
+
 
         // Filter data based on category
         const filteredData = category === "All" 
         ? data 
         : data.filter(item => item.category === category);
 
-    const records = filteredData.slice(indexOfFirstPost, indexOfLastPost);
+        const searchedData = filteredData.filter(item => 
+          item.org_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
+          item.college.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
+          item.category.toLowerCase().includes(safeSearchQuery.toLowerCase())
+      );
+          
+  //filtering data
+    const records = searchedData;
 
 
     const npage = Math.ceil(filteredData.length / postsPerPage);
 
 
-    function prePage() {
-        if (currentPage !== 1) {
-          setCurrentPage(currentPage - 1);
-        }
-      }
+    // function prePage() {
+    //     if (currentPage !== 1) {
+    //       setCurrentPage(currentPage - 1);
+    //     }
+    //   }
       
-      function nextPage() {
-        if (currentPage !== npage) {
-          setCurrentPage(currentPage + 1);
-        } else {
-          setCurrentPage(npage);
-        }
-      }
+    //   function nextPage() {
+    //     if (currentPage !== npage) {
+    //       setCurrentPage(currentPage + 1);
+    //     } else {
+    //       setCurrentPage(npage);
+    //     }
+    //   }
 
    useEffect(() => {
        fetch("/data/RSO_DATA.json")
@@ -47,7 +58,7 @@ export default function DocumentTable({category}) {
 
     return (
       //table
-        <div className="overflow-x-auto p-10  ">
+        <div className="overflow-x-auto p-10  max-h-[400px]">
             <table className="table-auto w-full pr-50 border-collapse ">
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700   cursor-pointer">
                     {records.map((data, index) => (
@@ -75,7 +86,7 @@ export default function DocumentTable({category}) {
             </table>
             
             {/* Pagination */}
-            <div className='bg-red  w-full fixed bottom-10'>
+            {/* <div className='bg-red  w-full fixed bottom-10'>
             <nav>
               <ul className="flex justify-center">
                 <li className={ `page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${ currentPage === 1 || npage === 0  ? "text-gray-400" : " text-gray-800 "}`}>
@@ -96,7 +107,7 @@ export default function DocumentTable({category}) {
               </ul>
               
             </nav>  
-          </div>
+          </div> */}
         </div>
     );
 }

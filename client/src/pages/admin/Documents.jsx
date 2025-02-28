@@ -6,6 +6,7 @@ import DocumentTable from "../../components/DocumentTable";
 
 export default function Documents() {
     const [toggle, setToggle] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleToggle = (index) => {
         setToggle(index);
@@ -18,10 +19,13 @@ export default function Documents() {
             headingTitle="Manage document approval"
             > 
                 <h1>List of RSOs</h1>
-                <Searchbar placeholder="Search an Organization"/>
+                <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
                 
                     {/* Tab content*/}
                     <div className="mt-6">
+
+                        
+
                         <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400 cursor-pointer">
                             <li className="me-2">
                                 <a  onClick={() => handleToggle(1)} className={toggle === 1 ? "inline-flex items-center justify-center p-4 text-blue-600 border-b-2 border-blue-600 rounded-t-lg active dark:text-blue-500 dark:border-blue-500 group" : "inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"}>
@@ -63,11 +67,11 @@ export default function Documents() {
                     
                     {/* Matches the tab content with the selected tab */}
                     <div className="border border-gray-300 rounded-lg">
-                            {toggle === 1 &&   <DocumentTable category="All" />}
-                            {toggle === 2 &&   <DocumentTable category="Probationary" />}
-                            {toggle === 3 &&  <DocumentTable category="Professional" />}
-                            {toggle === 4 &&  <DocumentTable category="Professional & Affiliates" />}
-                            {toggle === 5 &&  <DocumentTable category="Special Interest" />}
+                            {toggle === 1 &&   <DocumentTable category="All" searchQuery={searchQuery}/>}
+                            {toggle === 2 &&   <DocumentTable category="Probationary" searchQuery={searchQuery}/>}
+                            {toggle === 3 &&  <DocumentTable category="Professional" searchQuery={searchQuery}/>}
+                            {toggle === 4 &&  <DocumentTable category="Professional & Affiliates"searchQuery={searchQuery} />}
+                            {toggle === 5 &&  <DocumentTable category="Special Interest" searchQuery={searchQuery}/>}
                         </div>
 
             </MainLayout>

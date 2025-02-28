@@ -1,7 +1,7 @@
 import searchIcon from "../assets/icons/magnifying-glass-solid.svg";
 
 
-function Searchbar({placeholder}) {
+function Searchbar({placeholder, searchQuery, setSearchQuery}) {
   return (
     <div className="relative w-full">
       <img src={searchIcon} 
@@ -12,7 +12,9 @@ function Searchbar({placeholder}) {
         <input
           type="text"
           placeholder={placeholder}
+          value={searchQuery}
           className="border p-2 rounded w-full border-black pl-10"
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
 
     </div>
