@@ -1,7 +1,7 @@
-import Sidebar from "../components/Sidebar";
-import MainLayout from "../components/MainLayout";
-import NumberPane from "../components/NumberPane"
-import style from "../css/Dashboard.module.css"
+
+import MainLayout from "../../components/MainLayout";
+import NumberPane from "../../components/NumberPane"
+
 
 
 export default function Dashboard() {

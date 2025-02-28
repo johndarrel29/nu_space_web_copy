@@ -6,8 +6,8 @@ import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import Dropdown from './Dropdown'
 import DropdownSearch from './DropdownSearch'
 
-export default function ActionModal({onClose, mode}) {
-  const [selectedRole, setSelectedRole] = useState("Student");
+export default function ActionModal({onClose, mode, name, date, email, role}) {
+  const [selectedRole, setSelectedRole] = useState(role || "Student");
 
   return (
     <Dialog open={true} onClose={onClose} className="relative z-10">
@@ -34,18 +34,18 @@ export default function ActionModal({onClose, mode}) {
                 </div>
                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                   <DialogTitle as="h3" className="text-base font-semibold text-gray-900">
-                    Deactivate account
+                    Delete account
                   </DialogTitle>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
-                      Are you sure you want to deactivate your account? All of your data will be permanently removed.
+                      Are you sure you want to delete your account? All of your data will be permanently removed.
                       This action cannot be undone.
                     </p>
                   </div>
                 </div>
               </div>
               ) : (                
-              <div class="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className='flex items-center'>
                 <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:size-10">
                   <ExclamationTriangleIcon aria-hidden="true" className="size-6 text-red-600" />
@@ -59,21 +59,20 @@ export default function ActionModal({onClose, mode}) {
                 <h1 className='text-blue-600'>
                 Name: 
                 </h1>
-                <h1>test</h1>
+                <h1>{name}</h1>
               </div>
-              <div className='flex'>Role: 
+              <div className='grid grid-cols-1'>Role: 
                 <Dropdown
-                options="Role"
-                item1="Admin"
-                item2="User"
-                selectedRole={selectedRole} setSelectedRole={setSelectedRole}
+                
+                setSelectedRole={setSelectedRole}
+                selectedRole={selectedRole} 
                 />       
               </div>
               <div >
                 <h1 className='text-blue-600'>
                 Date Created: 
                 </h1>
-                <h1>test</h1>
+                <h1>{date}</h1>
               </div>       
               <div >Category: 
                 <DropdownSearch isDisabled={selectedRole === "Student"}/>
@@ -82,7 +81,7 @@ export default function ActionModal({onClose, mode}) {
                 <h1 className='text-blue-600'>
                 Email: 
                 </h1>
-                <h1>test</h1>
+                <h1>{email}</h1>
               </div>
 
               </div>
@@ -95,7 +94,7 @@ export default function ActionModal({onClose, mode}) {
                 onClick={onClose}
                 className={mode === 'delete' ? "inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-red-500 sm:ml-3 sm:w-auto" : "inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-500 sm:ml-3 sm:w-auto"}
               >
-                {mode === 'delete' ? 'Deactivate' : 'Save'}
+                {mode === 'delete' ? 'Delete' : 'Save'}
                 
               </button>
               <button

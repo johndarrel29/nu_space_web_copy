@@ -1,5 +1,5 @@
-import Sidebar from "../components/Sidebar";
-import MainLayout from "../components/MainLayout";
+import Sidebar from "../../components/Sidebar";
+import MainLayout from "../../components/MainLayout";
 
 
 

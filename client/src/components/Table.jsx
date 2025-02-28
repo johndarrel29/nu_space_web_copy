@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import LoadingAnimation from './LoadingAnimation';
 import ActionModal from './ActionModal';
+import searchIcon from "../assets/icons/magnifying-glass-solid.svg";
+
 
 
 // TableRow Component
 const TableRow = ({ user, onOpenModal }) => {
+  const handleEditClick = () => {
+    onOpenModal("edit", user); 
+  };
 
+  const handleDeleteClick = () => {
+    onOpenModal("delete", user); 
+  };
   
 
   return (
-    <tr>
+    <tr className='hover:bg-gray-100'>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <div className="text-sm font-medium text-gray-900">{user.id}</div>
@@ -44,12 +52,12 @@ const TableRow = ({ user, onOpenModal }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         {user.quantity}
-        <button  onClick={() => onOpenModal("edit")} className="text-indigo-600 hover:text-indigo-900">
+        <button  onClick={handleEditClick} className="text-indigo-600 hover:text-indigo-900">
           Edit
         </button>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <button onClick={() => onOpenModal("delete")}
+        <button onClick={handleDeleteClick}
            className="text-indigo-600 hover:text-indigo-900">
           Delete
         </button>
@@ -64,18 +72,20 @@ const Table = ({ searchQuery, data }) => {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [mode, setMode] = useState('delete');
+  const [selectedUser, setSelectedUser] = useState(null); 
 
 
-
-  const handleOpenModal = (mode) => {
+  const handleOpenModal = (mode, user) => {
     console.log("Modal open");
     setShowModal(true);
-    setMode(mode)
+    setMode(mode);
+    setSelectedUser(user);
   };
 
   const handleCloseModal = () => {
     console.log("Modal close");
     setShowModal(false);
+    setSelectedUser(null);
   }
 
   //Filtering
@@ -89,7 +99,7 @@ const Table = ({ searchQuery, data }) => {
 
     //Pagination
     const [currentPage, setCurrentPage] = useState(1);
-    const [postsPerPage] = useState(5);
+    const [postsPerPage] = useState(10);
     const indexOfLastPost = currentPage * postsPerPage;
     const indexOfFirstPost = indexOfLastPost - postsPerPage;
     const records = filteredRecords.slice(indexOfFirstPost, indexOfLastPost);
@@ -120,20 +130,37 @@ const Table = ({ searchQuery, data }) => {
   return (
     
     
-    <div className="overflow-y-auto max-h-[500px]">
-    <input
-      type="text"
-      placeholder="Search..."
-      onChange={(e) => setSearch(e.target.value)}
-      className="border p-2 rounded w-full"
-    />
-    {/* Rendering of modal  */}
-    {showModal && <ActionModal onClose={handleCloseModal} mode={mode}/>}
-
+    <div >
+      <div className='relative w-full'> 
+        <img src={searchIcon} 
+        alt="Search Icon" 
+        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
+        draggable="false"
+        />    
+      <input
+        type="text"
+        placeholder="Search..."
+        onChange={(e) => setSearch(e.target.value)}
+        className="border p-2 rounded w-full  border-black pl-10"
+      />
+    </div>
+    <div className="overflow-y-auto max-h-[400px] ">
+    
+          {/* Rendering of modal */}
+          {showModal && (
+        <ActionModal
+          onClose={handleCloseModal}
+          mode={mode}
+          name={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : ''}
+          date={selectedUser ? selectedUser.date : ''}
+          email={selectedUser ? selectedUser.email : ''}
+          role={selectedUser ? selectedUser.type : ''}
+        />
+      )}
 
       {data.length > 0 ? (
-        <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 overflow-x-auto max-h-[400px]">
+          <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Name
@@ -182,11 +209,11 @@ const Table = ({ searchQuery, data }) => {
             <LoadingAnimation />
           )}
 
-          {/* make tab bar consistent position on the page  */}
+          {/* Pagination */}
           <div className='bg-red  w-full fixed bottom-20'>
             <nav>
               <ul className="flex justify-center">
-                <li className="page-item mx-1 px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded">
+                <li className={ `page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${ currentPage === 1 || npage === 0  ? "text-gray-400" : " text-gray-800 "}`}>
                     <button className='page-link' 
                     onClick={prePage}>Prev</button>
                 </li>
@@ -195,8 +222,8 @@ const Table = ({ searchQuery, data }) => {
                 {npage > 0 ? `${currentPage} of ${npage}` : "0 of 0"}
                 </div>
                                 
-                <li className="page-item mx-1 px-3 py-2 bg-gray-200 text-gray-800 font-semibold rounded">
-                    <button className='page-link'
+                <li className={ `page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${ currentPage === npage || npage === 0  ? "text-gray-400" : " text-gray-800"}`}>
+                    <button className='page-link '
                     onClick={nextPage}>Next</button>
                 </li>
 
@@ -205,6 +232,8 @@ const Table = ({ searchQuery, data }) => {
               
             </nav>  
           </div>
+    </div>
+    
             
   </div>
 

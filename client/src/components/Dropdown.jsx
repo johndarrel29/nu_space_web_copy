@@ -1,11 +1,11 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import Select from 'react-select'
-import { useState } from 'react'
 
 
 export default function Dropdown({ selectedRole, setSelectedRole}) {
-
+  const handleMenuItemClick = (item) => {
+    setSelectedRole(item);
+  };
 
   return (
     
@@ -26,7 +26,7 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
           <MenuItem>
             <a
               
-              onClick={() => setSelectedRole("Student")}
+              onClick={() => handleMenuItemClick("Student")}
               className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
             >
               Student
@@ -34,7 +34,7 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
           </MenuItem>
           <MenuItem>
             <a
-              onClick={() => setSelectedRole("Student/RSO")}
+              onClick={() => handleMenuItemClick("Student/RSO")}
               className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
             >
               Student/RSO

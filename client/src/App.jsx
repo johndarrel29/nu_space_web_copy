@@ -3,10 +3,10 @@ import './App.css';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import UserManagement from './pages/UserManagement';
-import Documents from './pages/Documents';
-import AdminAccount from './pages/AdminAccount';
+import Dashboard from './pages/admin/Dashboard';
+import UserManagement from './pages/admin/UserManagement';
+import Documents from './pages/admin/Documents';
+import AdminAccount from './pages/admin/AdminAccount';
 import { ThemeProvider } from '@material-tailwind/react';
 
 function App() {
