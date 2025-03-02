@@ -9,6 +9,7 @@ import classNames from 'classnames';
 import SidebarButton from '../components/SidebarButton';
 import logo from "../assets/images/tab-logo.png";
 import SidebarLogo from '../components/SidebarLogo';
+import rsoIcon from "../assets/icons/user-plus-solid.svg"
 
 function Sidebar() {
   const navigate = useNavigate();
@@ -26,7 +27,8 @@ function Sidebar() {
         <div className={sidebar.sidebarContainer}>
           <SidebarButton icon={dashboardIcon} text="Dashboard" active={location.pathname === "/dashboard"} onClick={() => navigate("/dashboard")}/>
           <SidebarButton icon={usersIcon} text="User Management" active={location.pathname === "/user-management"} onClick={() => navigate("/user-management")}/>
-          <SidebarButton icon={documentIcon} text="Documents" active={location.pathname === "/documents"} onClick={() => navigate("/documents")}/>
+          <SidebarButton icon={rsoIcon} text="RSO Management" active={location.pathname === "/rso-management"} onClick={() => navigate("/rso-management")}/>
+          <SidebarButton icon={documentIcon} text="Documents" active={location.pathname.startsWith("/documents")} onClick={() => navigate("/documents")}/>
         
 
         <div className={sidebar.separator}></div> {/* Separator line */}

@@ -7,7 +7,11 @@ import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Documents from './pages/admin/Documents';
 import AdminAccount from './pages/admin/AdminAccount';
+import Activities from './pages/admin/Activities';
+import MainDocuments from './pages/admin/MainDocuments';
+import RSOManagement from './pages/admin/RSOManagement';
 import { ThemeProvider } from '@material-tailwind/react';
+import MainRSO from './pages/admin/MainRSO';
 
 function App() {
   return (
@@ -18,8 +22,15 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/user-management" element={<UserManagement />} />
-        <Route path="/documents" element={<Documents />} />
+        <Route path="/documents" element={<Documents />} >
+          <Route index element={<MainDocuments />} />
+          <Route path="activities" element={<Activities />} />
+        </Route>
         <Route path="/admin-account" element={<AdminAccount />} />
+        
+        <Route path="/rso-management" element={<RSOManagement />} >
+          <Route index element={<MainRSO />} />
+        </Route>
       </Routes>
     </BrowserRouter>
     </ThemeProvider>

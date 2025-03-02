@@ -6,6 +6,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@material-tailwind/react": "^2.1.10",
+    "@preline/overlay": "^2.5.2",
     "classnames": "^2.5.1",
     "cra-template": "1.2.0",
     "framer-motion": "^12.3.0",

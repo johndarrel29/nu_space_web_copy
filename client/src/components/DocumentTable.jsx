@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from "react";
+import { Navigate, useNavigate } from 'react-router-dom';
 
 
 export default function DocumentTable({category, searchQuery}) {
     const [data, setData] = useState([]);
-    console.log(searchQuery);
+    const navigate = useNavigate();
+
 
         //Pagination
         //Removed pagination 
@@ -22,8 +24,7 @@ export default function DocumentTable({category, searchQuery}) {
 
         const searchedData = filteredData.filter(item => 
           item.org_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
-          item.college.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
-          item.category.toLowerCase().includes(safeSearchQuery.toLowerCase())
+          item.college.toLowerCase().includes(safeSearchQuery.toLowerCase()) 
       );
           
   //filtering data
@@ -32,20 +33,6 @@ export default function DocumentTable({category, searchQuery}) {
 
     const npage = Math.ceil(filteredData.length / postsPerPage);
 
-
-    // function prePage() {
-    //     if (currentPage !== 1) {
-    //       setCurrentPage(currentPage - 1);
-    //     }
-    //   }
-      
-    //   function nextPage() {
-    //     if (currentPage !== npage) {
-    //       setCurrentPage(currentPage + 1);
-    //     } else {
-    //       setCurrentPage(npage);
-    //     }
-    //   }
 
    useEffect(() => {
        fetch("/data/RSO_DATA.json")
@@ -60,14 +47,14 @@ export default function DocumentTable({category, searchQuery}) {
       //table
         <div className="overflow-x-auto p-10  max-h-[400px]">
             <table className="table-auto w-full pr-50 border-collapse ">
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700   cursor-pointer">
+                <tbody className="overflow-hidden bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700   cursor-pointer ">
                     {records.map((data, index) => (
-
-                        <tr key={index} className=" rounded-lg hover:bg-gray-100 ">
+                            //console.log(data) shows the data
+                        <tr key={index} className=" rounded-lg hover:bg-gray-100 rounded-lg" onClick={() => navigate("activities")}>
                             <td className="px-4 py-3 "> 
                             <div className="flex items-center">
                             <div className="relative w-8 h-8 mr-3 rounded-full md:block">
-                              <img class="object-cover w-full h-full rounded-full" src="https://images.pexels.com/photos/5212324/pexels-photo-5212324.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260" alt="" loading="lazy" />
+                              <img class="object-cover w-full h-full rounded-full" src={data.image} alt="" loading="lazy" />
                             </div>             
                                 <div>
                                   <div >{data.org_name}</div>
@@ -84,30 +71,7 @@ export default function DocumentTable({category, searchQuery}) {
 
                 </tbody>
             </table>
-            
-            {/* Pagination */}
-            {/* <div className='bg-red  w-full fixed bottom-10'>
-            <nav>
-              <ul className="flex justify-center">
-                <li className={ `page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${ currentPage === 1 || npage === 0  ? "text-gray-400" : " text-gray-800 "}`}>
-                    <button className='page-link' 
-                    onClick={prePage}>Prev</button>
-                </li>
 
-                <div className="px-4 py-2 font-semibold">
-                {npage > 0 ? `${currentPage} of ${npage}` : "0 of 0"}
-                </div>
-                                
-                <li className={ `page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${ currentPage === npage || npage === 0  ? "text-gray-400" : " text-gray-800"}`}>
-                    <button className='page-link '
-                    onClick={nextPage}>Next</button>
-                </li>
-
-                
-              </ul>
-              
-            </nav>  
-          </div> */}
         </div>
     );
 }

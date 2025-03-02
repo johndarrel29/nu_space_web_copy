@@ -1,7 +1,12 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import LoadingAnimation from './LoadingAnimation';
 import ActionModal from './ActionModal';
-import searchIcon from "../assets/icons/magnifying-glass-solid.svg";
+import editIcon from "../assets/icons/pen-solid.svg";
+import deleteIcon from "../assets/icons/trash-solid (3).svg";
+
+ 
 
 
 
@@ -52,16 +57,24 @@ const TableRow = ({ user, onOpenModal }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         {user.quantity}
-        <button  onClick={handleEditClick} className="text-indigo-600 hover:text-indigo-900">
-          Edit
-        </button>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <button onClick={handleDeleteClick}
-           className="text-indigo-600 hover:text-indigo-900">
-          Delete
-        </button>
-        
+        <div className='space-x-2 h-8 w-8 flex justify-center items-center'>
+
+         <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 hover:bg-gray-300 transition duration-300 cursor-pointer"
+         onClick={handleEditClick}
+         
+         >          
+            <img src={editIcon} alt="edit" className="size-4"/>
+         </div>
+         <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 hover:bg-gray-300 transition duration-300 cursor-pointer"
+         onClick={handleDeleteClick}
+         >          
+            <img src={deleteIcon} alt="edit" className="size-4"/>
+         </div>
+       
+          
+
+        </div>
+
       </td>
     </tr>
   );
@@ -69,10 +82,10 @@ const TableRow = ({ user, onOpenModal }) => {
 
 // Table Component
 const Table = ({ searchQuery, data }) => {
-  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [mode, setMode] = useState('delete');
   const [selectedUser, setSelectedUser] = useState(null); 
+  const safeSearchQuery = searchQuery || ''; 
 
 
   const handleOpenModal = (mode, user) => {
@@ -90,10 +103,9 @@ const Table = ({ searchQuery, data }) => {
 
   //Filtering
   const filteredRecords = data.filter((user) =>
-    search.toLowerCase() === '' ||
-    user.first_name.toLowerCase().includes(search.toLowerCase()) ||
-    user.last_name.toLowerCase().includes(search.toLowerCase()) ||
-    user.email.toLowerCase().includes(search.toLowerCase())
+    user.first_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
+    user.last_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(safeSearchQuery.toLowerCase())
   );
 
 
@@ -108,7 +120,7 @@ const Table = ({ searchQuery, data }) => {
 
     useEffect(() => {
       setCurrentPage(1);
-    }, [search, filteredRecords.length ]);
+    }, [safeSearchQuery, filteredRecords.length ]);
   
     
     function prePage() {
@@ -127,26 +139,11 @@ const Table = ({ searchQuery, data }) => {
     
 
 
-  return (
-    
-    
-    <div >
-      <div className='relative w-full'> 
-        <img src={searchIcon} 
-        alt="Search Icon" 
-        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4"
-        draggable="false"
-        />    
-      <input
-        type="text"
-        placeholder="Search..."
-        onChange={(e) => setSearch(e.target.value)}
-        className="border p-2 rounded w-full  border-black pl-10"
-      />
-    </div>
+  return ( 
+  <div >
     <div className="overflow-y-auto max-h-[400px] ">
     
-          {/* Rendering of modal */}
+      {/* Rendering of modal */}
           {showModal && (
         <ActionModal
           onClose={handleCloseModal}
@@ -174,9 +171,9 @@ const Table = ({ searchQuery, data }) => {
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Category
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Edit
-              </th>
+              </th> */}
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
@@ -187,10 +184,10 @@ const Table = ({ searchQuery, data }) => {
           {/* conditional to assess if there are records to display*/}
             {records.filter((user) => {
               return (  
-                search.toLowerCase() === '' ||
-                user.first_name.toLowerCase().includes(search.toLowerCase()) ||
-                user.last_name.toLowerCase().includes(search.toLowerCase()) ||
-                user.email.toLowerCase().includes(search.toLowerCase())
+                
+                user.first_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
+                user.last_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
+                user.email.toLowerCase().includes(safeSearchQuery.toLowerCase())
               );
             }).length > 0 ? (
               records.map((user) => <TableRow key={user.id} user={user} onOpenModal={handleOpenModal} />)
