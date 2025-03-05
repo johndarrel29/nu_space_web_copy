@@ -1,6 +1,4 @@
-
-import MainLayout from "../../components/MainLayout";
-import Button from '../../components/Button';
+import { MainLayout, Button } from "../../components";
 
 
 
@@ -11,10 +9,13 @@ export default function AdminAccount() {
             tabName="Admin Account"
             headingTitle="Admin Full Name"
             > 
+            <div className="grid grid-cols-2 gap-4">
 
-                <h1>Test</h1>
-                <div className="bg-gray-200 rounded-lg p-4 grid grid-cols-3 gap-4">
-                    
+            
+                <div className="bg-gray-200 rounded-lg p-4 grid grid-col">
+                    <div>
+                        <h1 className="font-semibold text-xl mb-6">Profile Picture</h1>
+                    </div>
                     <div className="flex items-center space-x-4">
                         <div className="w-32 h-32 bg-blue-500 rounded-full"></div>
                             <div className="flex flex-col">
@@ -25,13 +26,16 @@ export default function AdminAccount() {
                             <div className="font-light text-gray-600">Position</div>
                         </div>
                     </div>
-
-                    <div>Profile Email</div>
-                    <div>Profile Phone</div>
-                    <Button label="Edit Details"/>
+                    <div className="justify-end">
+                        <Button label="Edit Details"/>
+                    </div>
+                    
                     
                 </div>
+                <div className="bg-gray-200 rounded-lg p-4">
 
+                </div>
+            </div>
                 
             </MainLayout>
 

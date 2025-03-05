@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import MainLayout from "../../components/MainLayout";
 
 
 export default function Activities() {

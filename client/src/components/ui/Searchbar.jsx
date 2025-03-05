@@ -1,4 +1,4 @@
-import searchIcon from "../assets/icons/magnifying-glass-solid.svg";
+import searchIcon from "../../assets/icons/magnifying-glass-solid.svg";
 
 
 function Searchbar({placeholder, searchQuery, setSearchQuery}) {

@@ -1,6 +1,6 @@
 
 import Sidebar from "./Sidebar";
-import style from "../css/Sidebar.module.css";
+import style from "../../css/Sidebar.module.css";
 
 function MainLayout({ children, tabName, headingTitle }) {
   return (

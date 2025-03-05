@@ -1,8 +1,6 @@
-import MainLayout from "../../components/MainLayout";
-import Table from "../../components/Table";
-import Searchbar from "../../components/Searchbar";
 import { useState } from "react";
 import { useEffect } from "react";
+import { MainLayout, Table, Searchbar } from "../../components";
 
 export default function UserManagement() {
 const [data, setData] = useState([]);

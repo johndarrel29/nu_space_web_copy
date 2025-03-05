@@ -1,7 +1,4 @@
-
-import MainLayout from "../../components/MainLayout";
-import NumberPane from "../../components/NumberPane"
-
+import { MainLayout, NumberPane } from "../../components";
 
 
 export default function Dashboard() {

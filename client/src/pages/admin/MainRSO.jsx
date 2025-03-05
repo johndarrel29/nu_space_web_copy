@@ -1,7 +1,5 @@
-import InputModal from "../../components/InputModal";
-import react, { useState } from "react";
-import RSOTable from "../../components/RSOTable";
-import Searchbar from "../../components/Searchbar";
+import { useState } from "react";
+import { RSOTable, Searchbar } from "../../components";
 
 
 export default function MainRSO() {
@@ -22,7 +20,7 @@ export default function MainRSO() {
             </div>
 
                 {/* Scroll Container */}
-            <div className="overflow-x-auto max-h-[500px]">
+            <div className="overflow-x-auto max-h-[400px]">
             <div className="flex items-center space-x-4">
                     <div className="w-32 h-32 bg-blue-500 rounded-full margin-auto"></div>
                     <div>                       
@@ -92,7 +90,7 @@ export default function MainRSO() {
                 </div>
                 
             {/* Scroll Container */}
-                <div className="overflow-x-auto max-h-[500px]">
+                <div className="overflow-x-auto max-h-[400px]">
                 
                 <RSOTable category="All" searchQuery={searchQuery}/>
                

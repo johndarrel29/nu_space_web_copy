@@ -1,15 +1,15 @@
-import sidebar from '../css/Sidebar.module.css';
+import sidebar from '../../css/Sidebar.module.css';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
-import Header from "../components/Header";
-import dashboardIcon from "../assets/icons/gauge-solid.svg"
-import usersIcon from "../assets/icons/users-solid.svg"
-import userIcon from "../assets/icons/user-solid.svg"
-import documentIcon from "../assets/icons/file-solid.svg"
+import Header from "./Header";
+import dashboardIcon from "../../assets/icons/gauge-solid.svg"
+import usersIcon from "../../assets/icons/users-solid.svg"
+import userIcon from "../../assets/icons/user-solid.svg"
+import documentIcon from "../../assets/icons/file-solid.svg"
 import classNames from 'classnames';
-import SidebarButton from '../components/SidebarButton';
-import logo from "../assets/images/tab-logo.png";
-import SidebarLogo from '../components/SidebarLogo';
-import rsoIcon from "../assets/icons/user-plus-solid.svg"
+import SidebarButton from './SidebarButton';
+import logo from "../../assets/images/tab-logo.png";
+import SidebarLogo from './SidebarLogo';
+import rsoIcon from "../../assets/icons/user-plus-solid.svg"
 
 function Sidebar() {
   const navigate = useNavigate();

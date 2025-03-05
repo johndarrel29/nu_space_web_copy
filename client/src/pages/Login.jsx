@@ -1,12 +1,10 @@
-import TextInput from "../components/TextInput"
 import { Link, useNavigate } from 'react-router-dom';
 import style from '../css/Login.module.css';
 import classNames from 'classnames';
-import Button from '../components/Button';
-import Header from "../components/Header";
 import Background from  "../assets/images/login-background.png";
 import Logo from "../assets/images/logo.png";
 import User from "../assets/images/user-icon.png";
+import { TextInput, Button, Header } from "../components";
 
 
 

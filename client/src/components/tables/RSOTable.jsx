@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate } from 'react-router-dom';
-import InputModal from "./InputModal";
+import InputModal from "../modals/InputModal";
 
 
 export default function RSOTable({category, searchQuery}) {

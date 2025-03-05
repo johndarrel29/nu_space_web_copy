@@ -1,9 +1,5 @@
 import React, { useState } from "react";
-import { Outlet } from 'react-router-dom';
-import MainLayout from "../../components/MainLayout";
-import Searchbar from "../../components/Searchbar";
-import DocumentTable from "../../components/DocumentTable";
-
+import { MainLayout, Searchbar, DocumentTable } from "../../components";
 
 export default function MainDocuments() {
     const [toggle, setToggle] = useState(1);
@@ -15,6 +11,7 @@ export default function MainDocuments() {
 
     return (
         <div>   
+            
             <div className="lg:w-1/2 md:w-full ">
                 <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>            
             </div>

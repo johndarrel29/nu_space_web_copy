@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import MainLayout from "../../components/MainLayout";
 import { Outlet } from 'react-router-dom';
+import { MainLayout } from '../../components';
 
 
 export default function Activities() {

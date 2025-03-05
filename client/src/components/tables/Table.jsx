@@ -1,15 +1,12 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import LoadingAnimation from './LoadingAnimation';
-import ActionModal from './ActionModal';
-import editIcon from "../assets/icons/pen-solid.svg";
-import deleteIcon from "../assets/icons/trash-solid (3).svg";
+import LoadingAnimation from '../layout/LoadingAnimation';
+import ActionModal from '../modals/ActionModal';
+import editIcon from "../../assets/icons/pen-solid.svg";
+import deleteIcon from "../../assets/icons/trash-solid (3).svg";
 
  
-
-
-
 // TableRow Component
 const TableRow = ({ user, onOpenModal }) => {
   const handleEditClick = () => {
@@ -171,9 +168,6 @@ const Table = ({ searchQuery, data }) => {
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Category
               </th>
-              {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Edit
-              </th> */}
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>

@@ -1,5 +1,5 @@
-import style from '../css/SidebarButton.module.css';
-import sidebar from '../css/Sidebar.module.css';
+import style from '../../css/SidebarButton.module.css';
+import sidebar from '../../css/Sidebar.module.css';
 import classNames from 'classnames';
 import { useState } from 'react';
 
