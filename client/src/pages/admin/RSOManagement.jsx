@@ -5,7 +5,7 @@ import { MainLayout } from '../../components';
 
 export default function Activities() {
     return (
-        <div>
+        <>
             <MainLayout
             tabName="RSO Management"
             headingTitle="Create RSO Account"
@@ -13,6 +13,6 @@ export default function Activities() {
             <Outlet/>
             </MainLayout>
 
-        </div>
+        </>
     );
 }

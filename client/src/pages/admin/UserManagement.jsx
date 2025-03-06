@@ -15,7 +15,7 @@ useEffect(() => {
   }, []);
 
     return (
-        <div>
+        <>
             <MainLayout
             tabName="User Management"
             headingTitle="Monitor RSO and Student accounts"
@@ -26,6 +26,6 @@ useEffect(() => {
                 
             </MainLayout>
 
-        </div>
+        </>
     );
     }

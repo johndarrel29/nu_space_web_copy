@@ -4,7 +4,7 @@ import { MainLayout, Button } from "../../components";
 
 export default function AdminAccount() {
     return (
-        <div>
+        <>
             <MainLayout
             tabName="Admin Account"
             headingTitle="Admin Full Name"
@@ -39,6 +39,6 @@ export default function AdminAccount() {
                 
             </MainLayout>
 
-        </div>
+        </>
     );
     }

@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 
 
-
-
-
 export default function DropdownSearch({ isDisabled }) {
   const [options, setOptions] = useState([]); 
+  const [selectedOption, setSelectedOption] = useState(null);
   const [isLoading, setIsLoading] = useState(true); 
 
 
@@ -24,6 +22,12 @@ export default function DropdownSearch({ isDisabled }) {
       });
   }, []);
 
+  useEffect(() => {
+    if (isDisabled) {
+      setSelectedOption(null); 
+    }
+  }, [isDisabled]);
+
 
   return (
     <Select
@@ -33,6 +37,8 @@ export default function DropdownSearch({ isDisabled }) {
     isDisabled={isDisabled}
     isClearable={true}
     isSearchable={true}
+    value={selectedOption} 
+    onChange={setSelectedOption}
   />
   )
 

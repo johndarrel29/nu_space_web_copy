@@ -83,8 +83,8 @@ const Table = ({ searchQuery, data }) => {
   const [mode, setMode] = useState('delete');
   const [selectedUser, setSelectedUser] = useState(null); 
   const safeSearchQuery = searchQuery || ''; 
-
-
+  const [users, setUsers] = useState([]);
+  
   const handleOpenModal = (mode, user) => {
     console.log("Modal open");
     setShowModal(true);
@@ -97,9 +97,14 @@ const Table = ({ searchQuery, data }) => {
     setShowModal(false);
     setSelectedUser(null);
   }
+  // useEffect to set users
+  useEffect(() => {
+    setUsers(data);
+  }, [data, searchQuery]);
+  
 
   //Filtering
-  const filteredRecords = data.filter((user) =>
+  const filteredRecords = users.filter((user) =>
     user.first_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
     user.last_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(safeSearchQuery.toLowerCase())
@@ -108,16 +113,21 @@ const Table = ({ searchQuery, data }) => {
 
     //Pagination
     const [currentPage, setCurrentPage] = useState(1);
-    const [postsPerPage] = useState(10);
+    const [postsPerPage] = useState(15);
     const indexOfLastPost = currentPage * postsPerPage;
     const indexOfFirstPost = indexOfLastPost - postsPerPage;
     const records = filteredRecords.slice(indexOfFirstPost, indexOfLastPost);
+    
 
     const npage = Math.ceil(filteredRecords.length / postsPerPage); //tells number of pages
 
     useEffect(() => {
       setCurrentPage(1);
     }, [safeSearchQuery, filteredRecords.length ]);
+
+    useEffect(() => {
+      console.log("Users updated in state:", users);
+    }, [users]);
   
     
     function prePage() {
@@ -134,26 +144,62 @@ const Table = ({ searchQuery, data }) => {
       }
     }
     
+    
+    const handleConfirm = (id, updatedData) => {
+      if (updatedData) { // Edit action
+        console.log("Editing user with ID:", id, "Updated Data:", updatedData);
+    
+        setUsers((prevUsers) => [...prevUsers.map((user) =>
+          user.id === id ? {...user, ...updatedData } : user
+        )]);
+        // {
+          
+        //   console.log("Before update:", prevUsers); 
+        //   console.log("Updating ID:", id, "with Data:", updatedData);
+
+        //   const updatedUsers = prevUsers.map(user => 
+        //     user.id === id ? { ...user, ...updatedData } : user
+        //   );
+        //   console.log("Updated users state:", updatedUsers);
+        //   return updatedUsers;
+        // });
+    
+      } else { // Delete action
+        console.log("Deleting user with ID:", id);
+    
+        setUsers((prevUsers) => {
+          const filteredUsers = prevUsers.filter(user => user.id !== id);
+          console.log("Users after deletion:", filteredUsers);
+          return filteredUsers;
+        });
+      }
+    };
+    
+    // console.log("Test calling handleConfirm directly...");
+
 
 
   return ( 
-  <div >
-    <div className="overflow-y-auto max-h-[400px] ">
+  <>
+    <div className='p-6'>
     
       {/* Rendering of modal */}
           {showModal && (
         <ActionModal
           onClose={handleCloseModal}
           mode={mode}
+          id={selectedUser ? selectedUser.id : ''}
           name={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : ''}
           date={selectedUser ? selectedUser.date : ''}
           email={selectedUser ? selectedUser.email : ''}
           role={selectedUser ? selectedUser.type : ''}
+          user={selectedUser} 
+          onConfirm={handleConfirm}
         />
       )}
 
       {data.length > 0 ? (
-        <table className="min-w-full divide-y divide-gray-200 overflow-x-auto max-h-[400px]">
+        <table  className="min-w-full divide-y divide-gray-200 overflow-x-auto ">
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -176,7 +222,7 @@ const Table = ({ searchQuery, data }) => {
           <tbody className="bg-white divide-y divide-gray-200">
 
           {/* conditional to assess if there are records to display*/}
-            {records.filter((user) => {
+            {filteredRecords.filter((user) => {
               return (  
                 
                 user.first_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
@@ -184,7 +230,7 @@ const Table = ({ searchQuery, data }) => {
                 user.email.toLowerCase().includes(safeSearchQuery.toLowerCase())
               );
             }).length > 0 ? (
-              records.map((user) => <TableRow key={user.id} user={user} onOpenModal={handleOpenModal} />)
+              filteredRecords.map((user) => <TableRow key={user.id} user={user} onOpenModal={handleOpenModal} />)
             ) : (
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={6}>
@@ -201,7 +247,7 @@ const Table = ({ searchQuery, data }) => {
           )}
 
           {/* Pagination */}
-          <div className='bg-red  w-full fixed bottom-20'>
+          <div className='bg-red  w-full bottom-20'>
             <nav>
               <ul className="flex justify-center">
                 <li className={ `page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${ currentPage === 1 || npage === 0  ? "text-gray-400" : " text-gray-800 "}`}>
@@ -226,7 +272,7 @@ const Table = ({ searchQuery, data }) => {
     </div>
     
             
-  </div>
+  </>
 
   );
 

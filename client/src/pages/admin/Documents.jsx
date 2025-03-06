@@ -7,7 +7,7 @@ export default function Documents() {
 
 
     return (
-        <div>
+        <>
             <MainLayout
             tabName="Documents"
             headingTitle="Manage document approval"
@@ -19,6 +19,6 @@ export default function Documents() {
             </MainLayout>
 
 
-        </div>
+        </>
     );
     }
