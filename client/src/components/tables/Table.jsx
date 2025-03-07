@@ -78,12 +78,44 @@ const TableRow = ({ user, onOpenModal }) => {
 };
 
 // Table Component
-const Table = ({ searchQuery, data }) => {
+const Table = ({ searchQuery, data, selectedRole }) => {
   const [showModal, setShowModal] = useState(false);
   const [mode, setMode] = useState('delete');
   const [selectedUser, setSelectedUser] = useState(null); 
   const safeSearchQuery = searchQuery || ''; 
   const [users, setUsers] = useState([]);
+
+
+  //Filtering
+  const filteredRecords = users.filter((user) => {
+    const matchesSearch =
+      user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) 
+
+
+      const matchesRole = selectedRole
+      ? selectedRole === "student"
+        ? user.type.toLowerCase() === "student" 
+        : selectedRole === "student/RSO"
+        ? user.type.toLowerCase().includes("/rso")  
+        : true
+      : true;
+
+    return matchesSearch && matchesRole;
+  });
+
+    //Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [postsPerPage, setPostsPerPage] = useState(10);
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    const records = filteredRecords.slice(indexOfFirstPost, indexOfLastPost);
+
+  const changePageNum = (page) => {
+    setPostsPerPage(page);
+  };
+
   
   const handleOpenModal = (mode, user) => {
     console.log("Modal open");
@@ -103,23 +135,10 @@ const Table = ({ searchQuery, data }) => {
   }, [data, searchQuery]);
   
 
-  //Filtering
-  const filteredRecords = users.filter((user) =>
-    user.first_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
-    user.last_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(safeSearchQuery.toLowerCase())
-  );
 
-
-    //Pagination
-    const [currentPage, setCurrentPage] = useState(1);
-    const [postsPerPage] = useState(15);
-    const indexOfLastPost = currentPage * postsPerPage;
-    const indexOfFirstPost = indexOfLastPost - postsPerPage;
-    const records = filteredRecords.slice(indexOfFirstPost, indexOfLastPost);
+    //tells number of pages
+    const npage = Math.ceil(filteredRecords.length / postsPerPage); 
     
-
-    const npage = Math.ceil(filteredRecords.length / postsPerPage); //tells number of pages
 
     useEffect(() => {
       setCurrentPage(1);
@@ -198,23 +217,32 @@ const Table = ({ searchQuery, data }) => {
         />
       )}
 
+      {/* show total data */}
+      <div className="flex justify-between items-center mb-4 px-6">
+        <span className="text-gray-700 font-semibold">
+          Showing {filteredRecords.length} result{filteredRecords.length !== 1 ? "s" : ""}
+          {searchQuery ? " of" : ""} {searchQuery ? safeSearchQuery : ""}
+        </span>
+      </div>
+
+
       {data.length > 0 ? (
         <table  className="min-w-full divide-y divide-gray-200 overflow-x-auto ">
           <thead className="bg-gray-50 sticky top-0 z-10">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <tr className='text-left text-xs font-medium font-bold uppercase tracking-wider'>
+              <th scope="col" className='px-6 py-3'>
                 Name
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col"  className='px-6 py-3'>
                 Date Created
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col"  className='px-6 py-3'>
                 Role
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col"  className='px-6 py-3'>
                 Category
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col"  className='px-6 py-3'>
                 Actions
               </th>
             </tr>
@@ -227,10 +255,11 @@ const Table = ({ searchQuery, data }) => {
                 
                 user.first_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
                 user.last_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
-                user.email.toLowerCase().includes(safeSearchQuery.toLowerCase())
+                user.email.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
+                user.type.toLowerCase().includes(safeSearchQuery.toLowerCase())
               );
             }).length > 0 ? (
-              filteredRecords.map((user) => <TableRow key={user.id} user={user} onOpenModal={handleOpenModal} />)
+              records.map((user) => <TableRow key={user.id} user={user} onOpenModal={handleOpenModal} />)
             ) : (
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={6}>
@@ -246,10 +275,26 @@ const Table = ({ searchQuery, data }) => {
             <LoadingAnimation />
           )}
 
-          {/* Pagination */}
           <div className='bg-red  w-full bottom-20'>
             <nav>
-              <ul className="flex justify-center">
+              <ul className="flex justify-center space-x-2">
+
+              {/* Change number of rows */}
+              <li className="flex justify-center">
+                <select
+                  className={`w-24 h-10 rounded-md bg-white border border-gray-400 p-1 font-bold ${
+                    npage > 0 ? "text-black" : "text-gray-400 opacity-50 "
+                  }`}
+                  onChange={(e) => changePageNum(e.target.value)}
+                  disabled={npage === 0}
+                  >
+                  <option value="10">10 rows</option>
+                  <option value="20">20 rows</option>
+                  <option value="50">50 rows</option>
+                </select>
+              </li>
+              {/* Pagination */}
+
                 <li className={ `page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${ currentPage === 1 || npage === 0  ? "text-gray-400" : " text-gray-800 "}`}>
                     <button className='page-link' 
                     onClick={prePage}>Prev</button>
