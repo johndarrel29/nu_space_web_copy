@@ -1,4 +1,4 @@
-import paneStyle from "../css/Dashboard.module.css"
+import paneStyle from "../../css/Dashboard.module.css"
 
 function NumberPane ({title, number }) {
     return (

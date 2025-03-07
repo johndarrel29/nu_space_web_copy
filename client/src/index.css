@@ -9,6 +9,8 @@ body {
   @apply font-sans; 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #3A3A3A;
 }
+
 
 

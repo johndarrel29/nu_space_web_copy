@@ -1,8 +1,11 @@
 .container {
+    position: fixed; /* or sticky */
+    top: 0;
+    left: 0;
     height: 100vh;
     width: 18%;
     background-color: #314095;
-    
+    overflow-y: auto; /* Allow the sidebar content to scroll */
 }
 
 

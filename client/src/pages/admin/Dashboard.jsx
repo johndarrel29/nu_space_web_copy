@@ -1,12 +1,9 @@
-import Sidebar from "../components/Sidebar";
-import MainLayout from "../components/MainLayout";
-import NumberPane from "../components/NumberPane"
-import style from "../css/Dashboard.module.css"
+import { MainLayout, NumberPane } from "../../components";
 
 
 export default function Dashboard() {
     return (
-        <div>
+        <>
             <MainLayout
             tabName="Dashboard"
             headingTitle="See previous updates"
@@ -19,6 +16,6 @@ export default function Dashboard() {
 
             </MainLayout>
 
-        </div>
+        </>
     );
     }

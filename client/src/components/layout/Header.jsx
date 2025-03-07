@@ -1,5 +1,5 @@
-import logo from "../assets/images/nu-space.png";
-import whiteLogo from "../assets/images/white-nu-space.png";
+import logo from "../../assets/images/nu-space.png";
+import whiteLogo from "../../assets/images/white-nu-space.png";
 
 function Header ({theme}) {
   return (

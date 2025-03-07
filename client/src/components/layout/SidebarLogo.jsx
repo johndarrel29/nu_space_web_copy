@@ -1,6 +1,6 @@
-import style from "../css/SidebarLogo.module.css";
-import whiteLogo from "../assets/images/white-nu-space.png";
-import iconLogo from "../assets/images/tab-logo.png";
+import style from "../../css/SidebarLogo.module.css";
+import whiteLogo from "../../assets/images/white-nu-space.png";
+import iconLogo from "../../assets/images/tab-logo.png";
 
 function SidebarLogo () {
   return (
