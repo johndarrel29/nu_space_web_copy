@@ -11,6 +11,11 @@ export default function RSOTable({category, searchQuery}) {
     const [show, setShow] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [mode, setMode] = useState('delete');
+    const [users, setUsers] = useState([]);
+
+    useEffect(() => {
+        console.log("🔥 Users state after update:", users);
+    }, [users]);  // Runs every time `users` is updated
 
         // Filter data based on category
         const filteredData = category === "All" 
@@ -25,7 +30,11 @@ const searchedData = filteredData.filter(item =>
    useEffect(() => {
        fetch("/data/RSO_DATA.json")
          .then((response) => response.json())
-         .then((json) => setData(json))
+         .then((json) => {
+            setData(json);
+            setUsers(json || []); // Make sure users is always an array
+        })
+
          .catch((error) => console.error("Error loading data:", error));
      }, []); 
 
@@ -40,13 +49,37 @@ const records = searchedData;
 
 //showing data
 const showModalInfo = (data) => {
-    console.log(data);
+    console.log("selected data: ", data);
     setShowModal(true);
     setSelectedUser(data);
 }
 
+const handleConfirm = (id, updatedData) => {
+    if (!id) {
+        console.error("❌ Missing ID! Cannot update or delete.");
+        return;
+    }
 
+    if (!updatedData) {
+        // If updatedData is undefined, it's a delete action
+        console.log("🗑 Deleting user with ID:", id);
 
+        setUsers((prevUsers) => prevUsers.filter(user => user.id !== id));
+        setData((prevData) => prevData.filter(user => user.id !== id));
+        
+        return;
+    }
+
+    console.log("🚀 Updating user with ID:", id, "Updated Data:", updatedData);
+
+    setUsers((prevUsers) => prevUsers.map(user =>
+        user.id === id ? { ...user, ...updatedData } : user
+    ));
+
+    setData((prevData) => prevData.map(user =>
+        user.id === id ? { ...user, ...updatedData } : user
+    ));
+};
 
 
     return (
@@ -79,12 +112,15 @@ const showModalInfo = (data) => {
             {showModal && selectedUser && (
                 <InputModal
                     onClose={handleCloseModal}
+                    id={selectedUser?.id}
                     image={selectedUser.image}
+                    selectedType={selectedUser.type}
                     org_name={selectedUser.org_name}
                     college={selectedUser.college}
                     category={selectedUser.category}
                     email={selectedUser.email}
                     link={selectedUser.link}
+                    onConfirm={handleConfirm}
                 />
             )}
         </div>

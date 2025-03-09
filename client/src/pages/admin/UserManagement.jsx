@@ -22,7 +22,7 @@ useEffect(() => {
             tabName="User Management"
             headingTitle="Monitor RSO and Student accounts"
             > 
-<UserFilter   searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole}  />
+            <UserFilter   searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole}  />
             <Table data={data} searchQuery={searchQuery} selectedRole={selectedRole}/>
                 
             </MainLayout>
@@ -38,7 +38,7 @@ useEffect(() => {
                 </div> 
                 <div className="w-full">
                 
-                    <select  value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="w-1/2 h-10 border border-black rounded-md p-1">
+                    <select  value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="w-1/2 h-10 border border-gray-400 rounded-md p-1">
                         <option value="">All</option>
                         <option value="student">Student</option>
                         <option value="student/RSO">Student/RSO</option>
