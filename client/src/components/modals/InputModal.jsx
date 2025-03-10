@@ -3,10 +3,12 @@ import react, { useState, useEffect } from "react";
 export default function InputModal({onClose, org_name, college, category, link, image, email, onConfirm, id, selectedType}) {
   // Store input values in state
   const [name, setName] = useState("");
+  const [presetImage, setPresetImage] = useState(image || "");
   const [userCollege, setUserCollege] = useState("");
   const [userCategory, setUserCategory] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userLink, setUserLink] = useState("");
+  const [userImage, setUserImage] = useState("");
 
   // Use useEffect to update state when props change
   useEffect(() => {
@@ -15,7 +17,8 @@ export default function InputModal({onClose, org_name, college, category, link, 
     setUserCategory(category || "");
     setUserEmail(email || "");
     setUserLink(link || "");
-  }, [org_name, college, category, email, link]); 
+    setPresetImage(image || "");
+  }, [org_name, college, category, email, link, image]); 
   
     console.log("Inside InputModal: received data:", { id, name, userCollege, userCategory, userEmail, userLink });
 
@@ -28,6 +31,14 @@ export default function InputModal({onClose, org_name, college, category, link, 
   }
 
   console.log("onConfirm exists?", typeof onConfirm === "function");
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setUserImage(imageUrl);
+    }
+  };
 
   const handleConfirm = (action) => {
 
@@ -42,6 +53,7 @@ export default function InputModal({onClose, org_name, college, category, link, 
         category: userCategory,
         email: userEmail,
         link: userLink,
+        image: userImage,
       };
 
       console.log("Saving changes for user:", id, updatedData);
@@ -67,10 +79,16 @@ export default function InputModal({onClose, org_name, college, category, link, 
           </div>
         <div className="overflow-x-auto max-h-[400px]">
           <div className="p-4">
-          <img className="w-32 h-32 bg-blue-500 rounded-full margin-auto" src={image} alt="profile"></img>
+          <img className="w-32 h-32 bg-blue-500 rounded-full margin-auto" src={userImage || image} alt="profile"
+            >             
+            </img>
                     <div>                       
                         <label className=" block mb-2 text-sm font-medium text-gray-900 border-none dark:text-white " for="file_input">Upload file</label>
-                        <input className="block w-full text-sm text-gray-900 border border-gray-300cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file"/>
+                        <input className="block w-full text-sm text-gray-900 border border-gray-300cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help"
+                                 id="file_input"
+                                 type="file"
+                                 accept="image/*"
+                                 onChange={handleImageChange}/>
                         <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG or GIF (MAX. 800x400px).</p>
                     </div>         
             <div className="flex flex-col mb-4">

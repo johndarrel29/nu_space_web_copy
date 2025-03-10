@@ -7,7 +7,7 @@ function MainLayout({ children, tabName, headingTitle }) {
     <div className="p-4">
     <div className="flex">
         <Sidebar />
-      <main className="flex-1 pl-[18%] p-4">
+      <main className="flex-1 pl-[18%] ">
         <h1 className={style.tabName}>{tabName}</h1>
         <h2 className={style.headingTitle}>{headingTitle}</h2>
         {children}

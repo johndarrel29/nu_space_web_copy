@@ -1,16 +1,38 @@
-
+import { useState } from 'react';
 
 
 export default function RSOForm() {
+    const [image, setImage] = useState(null);
+
+    const handleImageChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImage(imageUrl);
+    }
+    };
+
     return (
         <>
          <div className="flex items-center space-x-4">
                         
-                    <div className="bg-gray-500 mx-auto flex-none size-20 aspect-square shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-20 hover:bg-gray-300 transition duration-300 cursor-pointer"></div>
+                    <div 
+                    className="bg-gray-500 mx-auto flex-none size-20 aspect-square shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-20 hover:bg-gray-300 transition duration-300 cursor-pointer"
+                    style={{
+                        backgroundImage: image ? `url(${image})` : "none",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        }}
+                    ></div>
         
                             <div>                       
                                 <label className=" block mb-2 text-sm font-medium text-gray-900 border-none dark:text-white " for="file_input">Upload Profile Picture</label>
-                                <input className="block w-full text-sm text-gray-900 border border-gray-300cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file"/>
+                                <input className="block w-full text-sm text-gray-900 border border-gray-300cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                                 aria-describedby="file_input_help"
+                                 id="file_input"
+                                 type="file"
+                                 accept="image/*"
+                                 onChange={handleImageChange}/>
                                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG or GIF (MAX. 800x400px).</p>
                             </div>               
                         </div>

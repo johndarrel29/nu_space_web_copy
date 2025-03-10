@@ -23,6 +23,7 @@ useEffect(() => {
             headingTitle="Monitor RSO and Student accounts"
             > 
             <UserFilter   searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole}  />
+            
             <Table data={data} searchQuery={searchQuery} selectedRole={selectedRole}/>
                 
             </MainLayout>
@@ -32,7 +33,8 @@ useEffect(() => {
 
     // function to handle the search and filter
     function UserFilter({searchQuery, setSearchQuery, setSelectedRole}) {
-      return (<div className="flex space-x-2 w-full px-4 py-4 bg-gray-200 rounded-md">
+      return (
+      <div className="flex space-x-2 w-full px-4 py-4 bg-gray-200 rounded-md">
                 <div className="w-1/2">
                 <Searchbar placeholder="Search an Organization" searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
                 </div> 

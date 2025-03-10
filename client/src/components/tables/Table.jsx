@@ -115,7 +115,7 @@ const Table = ({ searchQuery, data, selectedRole }) => {
   useEffect(() => setCurrentPage(1), [safeSearchQuery, filteredRecords.length]);
 
   return (
-    <div className='p-6'>
+    <div className='pl-6  py-6'>
       {showModal && (
         <ActionModal
           onClose={handleCloseModal}
@@ -130,7 +130,7 @@ const Table = ({ searchQuery, data, selectedRole }) => {
         />
       )}
 
-      <div className="flex justify-between items-center mb-4 px-6">
+      <div className="flex justify-between items-center mb-4">
         <span className="text-gray-700 font-semibold">
           Showing {filteredRecords.length} result{filteredRecords.length !== 1 ? "s" : ""}
           {searchQuery && ` of ${safeSearchQuery}`}
