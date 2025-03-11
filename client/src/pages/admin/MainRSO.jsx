@@ -6,6 +6,14 @@ import RSOForm from "../../components/RSOForm";
 export default function MainRSO() {
  const [searchQuery, setSearchQuery] = useState('');
  const [modalOpen, setModalOpen] = useState(false);
+ const [organizations, setOrganizations] = useState([]);
+
+
+
+ const addOrganization = (newOrg) => {
+     setOrganizations((prevOrgs) => [...prevOrgs, newOrg]);
+ };
+
  
  const handleOpen = () => {
     setModalOpen(!modalOpen);
@@ -22,7 +30,7 @@ export default function MainRSO() {
 
                 {/* Scroll Container */}
             <div className="overflow-x-auto max-h-[450px] ">
-                <RSOForm/>
+                <RSOForm addOrganization={addOrganization}/>
             </div>
                 
             </div>
@@ -41,7 +49,7 @@ export default function MainRSO() {
             {/* Scroll Container */}
                 <div className="overflow-x-auto max-h-[400px]">
                 
-                <RSOTable category="All" searchQuery={searchQuery}/>
+                 <RSOTable data={organizations} searchQuery={searchQuery} onUpdate={setOrganizations} />
                
                     
                 </div>

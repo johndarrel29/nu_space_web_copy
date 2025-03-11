@@ -1,8 +1,38 @@
 import { useState } from 'react';
 
 
-export default function RSOForm() {
+export default function RSOForm({ addOrganization }) {
     const [image, setImage] = useState(null);
+    const [formData, setFormData] = useState({
+        orgName: "",
+        acronym: "",
+        email: "",
+        phone: "",
+        website: "",
+        type: "",
+        description: "",
+    });
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+    
+        // Generate ID if not present
+        const newOrg = {
+            id: formData.id || Date.now(), 
+            ...formData,
+            image: image || "No image uploaded" 
+        };
+        
+        // Debugging message to log all data
+        console.log("Form Data to be sent:", newOrg);
+    
+        addOrganization(newOrg);
+    };
+    
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -36,37 +66,42 @@ export default function RSOForm() {
                                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG or GIF (MAX. 800x400px).</p>
                             </div>               
                         </div>
-                    <form>
+                    <form onSubmit={handleSubmit} >
                         
                             <div>
                                 <label for="first_name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Organization Name</label>
-                                <input type="text" id="first_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="John" required />
+                                <input type="text" name='OrgName' id="first_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="John" required 
+                                 onChange={handleChange}/>
                             </div>
                             <div>
                                 <label for="last_name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Organization Acronym</label>
-                                <input type="text" id="last_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Doe" required />
+                                <input type="text" name="acronym" id="last_name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Doe" required 
+                                 onChange={handleChange}/>
                             </div>
                             <div className="grid gap-6 mb-6 md:grid-cols-2">
                             <div>
                                 <label for="company" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
-                                <input type="text" id="company" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Flowbite" required />
+                                <input type="text" name="email" id="company" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Flowbite" required 
+                                 onChange={handleChange}/>
                             </div>  
                             <div>
                                 <label for="phone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone number</label>
-                                <input type="tel" id="phone" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="123-45-678" pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}" required />
+                                <input type="tel" name="phone" id="phone" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="123-45-678" pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}" required  onChange={handleChange}/>
                             </div>
                             <div>
-                                <label for="website" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Website URL</label>
-                                <input type="url" id="website" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="flowbite.com" required />
+                                <label for="website" name="website" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Website URL</label>
+                                <input type="url" id="website" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="flowbite.com" required 
+                                 onChange={handleChange}/>
                             </div>
                             <div>
                                 <label htmlFor="organizationType" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Type of Organization
                                 </label>
                                 <select 
-                                    id="organizationType" 
+                                    id="organizationType"
+                                    name='type' 
                                     className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    required
+                                    required  onChange={handleChange}
                                 >
                                     <option value="" >Select an organization type</option>
                                     <option value="probationary">Probationary</option>
@@ -78,8 +113,8 @@ export default function RSOForm() {
                                 </div>
                         </div>
                         <div className="mb-6">
-                            <label for="large-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Simple Description</label>
-                            <input type="text" id="large-input" className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>
+                            <label for="large-input" name="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Simple Description</label>
+                            <input type="text" id="large-input" className="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"  onChange={handleChange}/>
                         </div>
                         <div className="mb-6">
                             <label for="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>

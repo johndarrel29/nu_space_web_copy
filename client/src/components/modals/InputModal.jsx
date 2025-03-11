@@ -1,34 +1,38 @@
 import react, { useState, useEffect } from "react";
 
-export default function InputModal({onClose, org_name, college, category, link, image, email, onConfirm, id, selectedType}) {
+export default function InputModal({id, onClose, orgName, acronym, category, link, image, email, onConfirm, selectedType}) {
   // Store input values in state
   const [name, setName] = useState("");
   const [presetImage, setPresetImage] = useState(image || "");
-  const [userCollege, setUserCollege] = useState("");
+  const [userAcronym, setUserAcronym] = useState("");
   const [userCategory, setUserCategory] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userLink, setUserLink] = useState("");
   const [userImage, setUserImage] = useState("");
 
+  useEffect(() => {
+    console.log("Inside InputModal: received data:", { id, orgName, acronym, category, email, link, image, selectedType });
+  }, [id, orgName, acronym, category, email, link, image, selectedType]); // ✅ No more props reference
+  
   // Use useEffect to update state when props change
   useEffect(() => {
-    setName(org_name || "");
-    setUserCollege(college || "");
+    setName(orgName || "");
+    setUserAcronym(acronym || "");
     setUserCategory(category || "");
     setUserEmail(email || "");
     setUserLink(link || "");
     setPresetImage(image || "");
-  }, [org_name, college, category, email, link, image]); 
+  }, [orgName, acronym, category, email, link, image]); 
   
-    console.log("Inside InputModal: received data:", { id, name, userCollege, userCategory, userEmail, userLink });
+    console.log("Inside InputModal: received data:", { id, name, userAcronym, userCategory, userEmail, userLink });
 
   useEffect(() => {
     console.log("Selected type received in modal:", selectedType); // Debugging
   }, [selectedType]);
 
   const handleOpen = () => {
-    onClose(true);
-  }
+    onClose(); 
+  };
 
   console.log("onConfirm exists?", typeof onConfirm === "function");
 
@@ -41,27 +45,30 @@ export default function InputModal({onClose, org_name, college, category, link, 
   };
 
   const handleConfirm = (action) => {
-
-
+    const updatedData = {
+      id: id || Date.now(), // ✅ Generate a new ID if missing
+      orgName: name,
+      acronym: userAcronym,
+      category: userCategory,
+      email: userEmail,
+      link: userLink,
+      image: userImage || presetImage, // Use uploaded or existing image
+    };
+  
+    console.log(`Handling action: ${action}`, updatedData);
+  
     if (action === "delete") {
-      console.log("Deleting user with ID:", id);
-      onConfirm(id); // Delete only needs the ID
+      console.log("Deleting entry");
+      onConfirm(id, null);
     } else if (action === "save") {
-      const updatedData = {
-        org_name: name,
-        college: userCollege,
-        category: userCategory,
-        email: userEmail,
-        link: userLink,
-        image: userImage,
-      };
-
-      console.log("Saving changes for user:", id, updatedData);
-      onConfirm(id, updatedData); // Pass updated data to `RSOTable`
+      console.log("Saving entry", updatedData);
+      onConfirm(updatedData.id, updatedData); // ✅ Pass updated data with ID
     }
-
-    onClose();
+  
+    onClose(); // ✅ Close modal after action
   };
+  
+  
 
     return (
         <div>
@@ -99,21 +106,21 @@ export default function InputModal({onClose, org_name, college, category, link, 
                 type="text"
                 id="name"
                 name="name"
-                defaultValue={org_name}
+                defaultValue={name}
                 onChange={(e) => setName(e.target.value)}
                 className="border py-2 px-3 text-grey-darkest"
               />
             </div>
             <div className="flex flex-col mb-4">
-              <label htmlFor="college" className="mb-2 font-bold text-lg">
-                College
+              <label htmlFor="acronym" className="mb-2 font-bold text-lg">
+                Acronym
               </label>
               <input
                 type="text"
-                id="college"
-                name="college"
-                defaultValue={college}
-                onChange={(e) => setUserCollege(e.target.value)}
+                id="acronym"
+                name="acronym"
+                defaultValue={acronym}
+                onChange={(e) => setUserAcronym(e.target.value)}
                 className="border py-2 px-3 text-grey-darkest"
               />
             </div>
@@ -164,7 +171,8 @@ export default function InputModal({onClose, org_name, college, category, link, 
               Delete
             </button>
             <button className="px-4 py-2 bg-blue-600 text-white rounded-md ml-2"
-            onClick={() => handleConfirm("save")}>
+            onClick={() => handleConfirm("save")}
+             >
               Save Changes
             </button>
           </div>
@@ -172,12 +180,7 @@ export default function InputModal({onClose, org_name, college, category, link, 
           </div>         
           </div>
       </div>
- 
+     </div>
 
-
-        </div>
-        
-
-    );
-        
+    );    
 }
