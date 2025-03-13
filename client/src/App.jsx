@@ -12,11 +12,27 @@ import MainDocuments from './pages/admin/MainDocuments';
 import RSOManagement from './pages/admin/RSOManagement';
 import { ThemeProvider } from '@material-tailwind/react';
 import MainRSO from './pages/admin/MainRSO';
+import PreLoader from './components/Preloader';
+import { gsap } from "gsap";
+import { useEffect, useState } from 'react';
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading time (same as GSAP animation delay in Preloader.js)
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 3000); 
+
+    return () => clearTimeout(timer); // Cleanup function
+  }, []);
+
   return (
 <ThemeProvider>
     <BrowserRouter>
+      {loading ? (<PreLoader />
+      ): (
       <Routes>
         <Route index element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -32,6 +48,7 @@ function App() {
           <Route index element={<MainRSO />} />
         </Route>
       </Routes>
+      )}
     </BrowserRouter>
     </ThemeProvider>
   );

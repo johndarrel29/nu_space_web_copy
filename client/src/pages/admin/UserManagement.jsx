@@ -1,6 +1,32 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect, useMemo, memo  } from "react";
 import { MainLayout, Table, Searchbar } from "../../components";
+
+
+      // function to handle the search and filter
+      const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole }) => {
+        return (
+          <div className="flex space-x-2 w-full px-4 py-4 bg-gray-200 rounded-md">
+            <div className="w-1/2">
+              <Searchbar
+                placeholder="Search an Organization"
+                searchQuery={searchQuery || ''}
+                setSearchQuery={setSearchQuery}
+              />
+            </div>
+            <div className="w-full">
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="w-1/2 h-10 border border-gray-400 rounded-md p-1"
+              >
+                <option value="">All</option>
+                <option value="student">Student</option>
+                <option value="student/RSO">Student/RSO</option>
+              </select>
+            </div>
+          </div>
+        );
+      });
 
 export default function UserManagement() {
 const [data, setData] = useState([]);
@@ -16,32 +42,25 @@ useEffect(() => {
       console.log("data is: ", data);
   }, []);
 
+    // Memoize the data to prevent unnecessary re-renders
+    const memoizedData = useMemo(() => data, [data]);
+
+
+
     return (
         <>
             <MainLayout
             tabName="User Management"
             headingTitle="Monitor RSO and Student accounts"
             > 
-            <div className="flex space-x-2 w-full px-4 py-4 bg-gray-200 rounded-md">
-                <div className="w-1/2">
-                <Searchbar placeholder="Search an Organization" 
-                searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
-                </div> 
-                <div className="w-full">
-                
-                    <select name="cars" id="cars" 
-                    onChange={(e) => setSelectedRole(e.target.value)}
-                    className="w-1/2 h-10 border border-black rounded-md p-1">
-                        <option value="">All</option>
-                        <option value="student">Student</option>
-                        <option value="student/RSO">Student/RSO</option>
-                    </select>
-                </div>
-            </div>
-            <Table data={data} searchQuery={searchQuery} selectedRole={selectedRole}/>
+            <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole}  />
+            
+            <Table data={memoizedData} searchQuery={searchQuery} selectedRole={selectedRole}/>
                 
             </MainLayout>
 
         </>
     );
-    }
+
+
+      }

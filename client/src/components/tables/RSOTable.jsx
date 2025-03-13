@@ -1,92 +1,115 @@
 import React, { useState, useEffect } from "react";
-import { Navigate, useNavigate } from 'react-router-dom';
 import InputModal from "../modals/InputModal";
+import { AnimatePresence } from "framer-motion";
 
-
-export default function RSOTable({category, searchQuery}) {
-    const [data, setData] = useState([]);
-    const safeSearchQuery = searchQuery || ''; 
-    const [selectedUser, setSelectedUser] = useState(null); 
-
-    const [show, setShow] = useState(false);
+export default function RSOTable({ data, searchQuery, onUpdate }) {
+    const safeSearchQuery = searchQuery || '';
+    const [selectedUser, setSelectedUser] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [mode, setMode] = useState('delete');
 
-        // Filter data based on category
-        const filteredData = category === "All" 
-        ? data 
-        : data.filter(item => item.category === category);
+    // Filter data 
+    const searchedData = data.filter(org => 
+        (org.orgName || '').toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
+        (org.acronym || '').toLowerCase().includes(safeSearchQuery.toLowerCase()) 
+      );
+      
 
-const searchedData = filteredData.filter(item => 
-    item.org_name.toLowerCase().includes(safeSearchQuery.toLowerCase()) ||
-    item.college.toLowerCase().includes(safeSearchQuery.toLowerCase()) 
-);
+    const records = searchedData;
 
-   useEffect(() => {
-       fetch("/data/RSO_DATA.json")
-         .then((response) => response.json())
-         .then((json) => setData(json))
-         .catch((error) => console.error("Error loading data:", error));
-     }, []); 
+    const showModalInfo = (org) => {
+    console.log("selected data: ", org);
+    setShowModal(true);
+    setSelectedUser(org);
+    }
 
-     const handleCloseModal = () => {
-        console.log("Modal close");
-        setShowModal(false);
-        setSelectedUser(null);
+    const handleCloseModal = () => {
+    console.log("Modal close");
+    setShowModal(false);
+    setSelectedUser(null);
+    }
+
+    const handleConfirm = (id, updatedData) => {
+      if (!updatedData) {
+        onUpdate(data.filter(org => org.id !== id));
+        return;
       }
     
-//filtering data
-const records = searchedData;
-
-//showing data
-const showModalInfo = (data) => {
-    console.log(data);
-    setShowModal(true);
-    setSelectedUser(data);
-}
-
-
-
-
-
+      console.log(" Saving or updating entry", updatedData);
+    
+      // Update if ID exists, otherwise add new entry
+      const updatedRecords = data.some(org => org.id === id)
+        ? data.map(org => org.id === id ? { ...org, ...updatedData } : org) 
+        : [...data, updatedData]; 
+    
+      onUpdate(updatedRecords);
+    };
+      
     return (
-        <div>
-            <table className="table-auto w-full pr-50 border-collapse">
-                <tbody className="overflow-hidden bg-gray-200 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700   cursor-pointer ">
-                {records.map((data, index) => (
-                            //console.log(data) shows the data
-                        <tr key={index} className=" rounded-lg hover:bg-gray-100 rounded-lg" onClick={() => showModalInfo(data)}>
-                            <td className="px-4 py-3 "> 
-                            <div className="flex items-center">
-                            <div className="relative w-8 h-8 mr-3 rounded-full md:block">
-                              <img className="object-cover w-full h-full rounded-full" src={data.image} alt="" loading="lazy" />
-                            </div>             
-                                <div>
-                                  <div >{data.org_name}</div>
-                                  <div className="text-gray-500">{data.college}</div>
-                                </div>
-                            </div>
-                            
-                            </td>
+        <table className="w-full">
+            <tbody >
+                {records.map((org, index) => (
+                    <tr key={index} className="mb-4"
+                    onClick={() => showModalInfo(org)}
+                    >
+                      <div className="grid grid-cols-2 p-4 hover:bg-gray-300 border  rounded-lg cursor-pointer">
+                        <div className="flex items-center gap-4">
+                          <td >
+                              <img src={org.image} alt={org.orgName} width="50" height="50" 
+                              className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10"
+                              />
+                          </td>          
+                          <div className="grid grid-col-1">
+                            <div>
+                              <td>
+                                <h1 className="text-lg font-semibold">
+                                {org.orgName}
+                                </h1>
+                                </td>
+                              </div>
+                            <div><td>{org.email}</td></div>
+                          </div>                         
+                        </div>
+                          <div >
 
-                            <td >{data.category}</td>
+                            <h1 className="text-gray-600 ">
+                            <td>{org.type}</td>
+                            </h1>
+                          </div>
+                          
+                      </div>
+                    </tr>
+                ))}
+            </tbody>
 
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+      <AnimatePresence
+      // Disable any initial animations on children that
+      // are present when the component is first rendered
+      initial={false}
+      // Only render one component at a time.
+      // The exiting component will finish its exit
+      // animation before entering component is rendered
+      exitBeforeEnter={true}
+      // Fires when all exiting nodes have completed animating out
+      onExitComplete={() => null}>
 
             {showModal && selectedUser && (
                 <InputModal
                     onClose={handleCloseModal}
+                    id={selectedUser?.id}
+                    acronym={selectedUser.acronym}
                     image={selectedUser.image}
-                    org_name={selectedUser.org_name}
-                    college={selectedUser.college}
-                    category={selectedUser.category}
+                    orgName={selectedUser.orgName}
+                    phone={selectedUser.phone}
+                    type={selectedUser.type}
+                    description={selectedUser.description}
                     email={selectedUser.email}
-                    link={selectedUser.link}
+                    website={selectedUser.website}
+                    onConfirm={handleConfirm}
                 />
             )}
-        </div>
+      </AnimatePresence>
+        </table>
+
+
     );
 }
