@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import LoadingAnimation from '../layout/LoadingAnimation';
 import ActionModal from '../modals/ActionModal';
-import editIcon from "../../assets/icons/pen-solid.svg";
-import deleteIcon from "../../assets/icons/trash-solid (3).svg";
+import editIcon from "../../assets/icons/pen-to-square-solid.svg";
+import deleteIcon from "../../assets/icons/trash-solid.svg";
 
 // TableRow Component
 const TableRow = ({ user, onOpenModal }) => {
@@ -47,6 +47,7 @@ const TableRow = ({ user, onOpenModal }) => {
             onClick={handleActionClick('edit')}
           >          
             <img src={editIcon} alt="edit" className="size-4"/>
+
           </div>
           <div 
             className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 hover:bg-gray-300 transition duration-300 cursor-pointer"
@@ -61,58 +62,73 @@ const TableRow = ({ user, onOpenModal }) => {
 };
 
 // Table Component
-const Table = ({ searchQuery, data, selectedRole }) => {
+const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const [showModal, setShowModal] = useState(false);
   const [mode, setMode] = useState('delete');
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState(data);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage, setPostsPerPage] = useState(10);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
-  const safeSearchQuery = searchQuery || '';
+
+
+  // Makes the search query debounced so that it doesn't render on every key stroke
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const safeSearchQuery = debouncedSearchQuery || '';
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
 
-  const filteredRecords = users.filter(user => {
-    const matchesSearch = ['first_name', 'last_name', 'email'].some(field => 
-      user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
-    );
-  
-    // Handle role filtering
-    const matchesRole = selectedRole === "" || 
-    (selectedRole === "student" ? user.type.toLowerCase() === "student" : 
-    selectedRole === "student/RSO" ? user.type.toLowerCase().includes("/rso") : false);
-  
-    return matchesSearch && matchesRole;
-  });
+  const filteredRecords = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = ['first_name', 'last_name', 'email'].some(field => 
+        user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
+      );
+    
+      const matchesRole = selectedRole === "" || 
+      (selectedRole === "student" ? user.type.toLowerCase() === "student" : 
+      selectedRole === "student/RSO" ? user.type.toLowerCase().includes("/rso") : false);
+    
+      return matchesSearch && matchesRole;
+    });
+  }, [users, safeSearchQuery, selectedRole]);
 
-  const records = filteredRecords.slice(indexOfFirstPost, indexOfLastPost);
-  const npage = Math.ceil(filteredRecords.length / postsPerPage);
+  const records = useMemo(() => {
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    return filteredRecords.slice(indexOfFirstPost, indexOfLastPost);
+  }, [filteredRecords, currentPage, postsPerPage]);
 
-  const handleOpenModal = (mode, user) => {
+  const npage = useMemo(() => Math.ceil(filteredRecords.length / postsPerPage), [filteredRecords, postsPerPage]);
+
+  const handleOpenModal = useCallback((mode, user) => {
     setShowModal(true);
     setMode(mode);
     setSelectedUser(user);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setShowModal(false);
     setSelectedUser(null);
-  };
+  }, []);
 
-  const handleConfirm = (id, updatedData) => {
+  const handleConfirm = useCallback((id, updatedData) => {
     setUsers(prevUsers => updatedData ? 
       prevUsers.map(user => user.id === id ? { ...user, ...updatedData } : user) :
       prevUsers.filter(user => user.id !== id)
     );
-  };
+  }, []);
 
-  const changePageNum = (page) => setPostsPerPage(Number(page));
-  const prePage = () => setCurrentPage(prev => prev > 1 ? prev - 1 : prev);
-  const nextPage = () => setCurrentPage(prev => prev < npage ? prev + 1 : prev);
+  const changePageNum = useCallback((page) => setPostsPerPage(Number(page)), []);
+  const prePage = useCallback(() => setCurrentPage(prev => prev > 1 ? prev - 1 : prev), []);
+  const nextPage = useCallback(() => setCurrentPage(prev => prev < npage ? prev + 1 : prev), [npage]);
 
   useEffect(() => setUsers(data), [data]);
-  useEffect(() => setCurrentPage(1), [safeSearchQuery, filteredRecords.length]);
+ 
 
   return (
     <div className='pl-6  py-6'>
@@ -190,6 +206,6 @@ const Table = ({ searchQuery, data, selectedRole }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Table;
