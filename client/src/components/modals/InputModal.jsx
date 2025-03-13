@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Backdrop } from "../ui";
 import deleteIcon from "../../assets/icons/trash-solid-white.svg";
 
-export default function InputModal({id, onClose, orgName, acronym, category, website, image, email, onConfirm, type}) {
+export default function InputModal({id, onClose, orgName, acronym,  website, image, email, onConfirm, type, description, phone }) {
   // Store input values in state
   const [name, setName] = useState("");
   const [presetImage, setPresetImage] = useState(image || "");
@@ -10,10 +12,12 @@ export default function InputModal({id, onClose, orgName, acronym, category, web
   const [userEmail, setUserEmail] = useState("");
   const [userWebsite, setUserWebsite] = useState("");
   const [userImage, setUserImage] = useState("");
+  const [userPhone, setUserPhone] = useState("");
+  const [userDescription, setUserDescription] = useState("");
 
   useEffect(() => {
-    console.log("Inside InputModal: received data:", { id, orgName, acronym, category, email, website, image, type });
-  }, [id, orgName, acronym, category, email, website, image, type]); 
+    console.log("Inside InputModal: received data:", { id, orgName, acronym,  email, website, image, type, description, phone });
+  }, [id, orgName, acronym,  email, website, image, type, description, phone]); 
   
   // Use useEffect to update state when props change
   useEffect(() => {
@@ -23,9 +27,10 @@ export default function InputModal({id, onClose, orgName, acronym, category, web
     setUserEmail(email || "");
     setUserWebsite(website || "");
     setPresetImage(image || "");
-  }, [orgName, acronym, category, email, website, image]); 
+    setUserPhone(phone || "");
+    setUserDescription(description || "");
+  }, [orgName, acronym, type, email, website, image, description, phone]); 
   
-    console.log("Inside InputModal: received data:", { id, name, userAcronym, userType, userEmail, userWebsite });
 
   useEffect(() => {
     console.log("Selected type received in modal:", type); // Debugging
@@ -33,6 +38,28 @@ export default function InputModal({id, onClose, orgName, acronym, category, web
 
   const handleOpen = () => {
     onClose(); 
+  };
+
+  //modal animation
+  const dropIn = {
+    hidden: {
+      y: "-100vh",
+      opacity: 0,
+    },
+    visible: {
+      y: "0",
+      opacity: 1,
+      transition: {
+        duration: 0.1,
+        type: "spring",
+        damping: 25,
+        stiffness: 500,
+      },
+    },
+    exit: {
+      y: "100vh",
+      opacity: 0,
+    },
   };
 
   console.log("onConfirm exists?", typeof onConfirm === "function");
@@ -50,7 +77,7 @@ export default function InputModal({id, onClose, orgName, acronym, category, web
       id: id || Date.now(), 
       orgName: name,
       acronym: userAcronym,
-      category: userType,
+      type: userType,
       email: userEmail,
       website: userWebsite,
       image: userImage || presetImage, // Use uploaded or existing image
@@ -72,37 +99,45 @@ export default function InputModal({id, onClose, orgName, acronym, category, web
   
 
     return (
-        <div>
+        <>
+  {/* Backdrop */}
+    <Backdrop  className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
 
-        <div
-        id="modal"
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      >
-        <div className="bg-white  overflow-hidden  rounded-lg shadow-lg w-[90%] max-w-auto  p-4">
+  {/* Modal */}
+        <motion.div className="bg-white overflow-hidden rounded-lg shadow-lg w-[90%] max-w-[600px]  p-4"
+  
+            variants={dropIn}
+            initial="hidden"
+            animate="visible"
+            exit="exit">
+
           <div className="flex justify-between items-center border-b pb-2">
             <h3 className="text-lg font-bold">{`About ${name}`}</h3>
             <button onClick={handleOpen} className="text-gray-500">
               ✖
             </button>
           </div>
-        <div className="overflow-x-auto max-h-auto">
+
+        {/* Image */}
+        <div className="overflow-x-auto max-h-[80vh]">
           <div className="p-4">
             
           <div className="flex items-center flex-col justify-center mb-4">
-            <img className="w-64 h-64 bg-gray-500 rounded-full margin-auto border border-gray-400" src={userImage || image} alt="profile">             
+            <img className="w-40 h-40 bg-gray-500 rounded-full margin-auto border border-gray-400" src={userImage || image} alt="profile">             
             </img>
-                    <div className="w-1/2">                       
-                        <label className=" block mb-2 text-sm font-medium text-gray-900 border-none dark:text-white " for="file_input"></label>
-                        <input className="block w-full text-sm text-gray-900 border border-gray-300cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help"
-                                 id="file_input"
-                                 type="file"
-                                 accept="image/*"
-                                 onChange={handleImageChange}
-                                 />
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG or GIF (MAX. 800x800px).</p>
-                    </div>
+            <div className="w-1/2">                       
+                <label className=" block mb-2 text-sm font-medium text-gray-900 border-none dark:text-white " for="file_input"></label>
+                <input className="block w-full text-sm text-gray-900 border border-gray-300cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help"
+                  id="file_input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  />
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG or GIF (MAX. 800x800px).</p>
+            </div>
           </div>
-          
+        
+        {/* Form Inputs */}
             <div className="grid grid-cols-2 gap-4">
                    
             <div className="flex flex-col mb-4">
@@ -135,15 +170,25 @@ export default function InputModal({id, onClose, orgName, acronym, category, web
               <label htmlFor="type" className="mb-2 font-bold text-lg">
                 Category
               </label>
-              <input
-                type="text"
-                id="type"
-                name="type"
-                defaultValue={type}
-                onChange={(e) => setUserType(e.target.value)}
-                className="border py-2 px-3 text-grey-darkest"
-              />
+                <select 
+                    type="text"
+                    id="type"
+                    name="type" 
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 placeholder-gray-300 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    defaultValue={type}
+                    onChange={(e) => setUserType(e.target.value)}
+                    required  
+                >
+                    <option value="" disabled className='text-gray-300'>Select an organization type</option>
+                    <option value="Probationary">Probationary</option>
+                    <option value="Professional and Affiliates">Professional & Affiliates</option>
+                    <option value="Professional">Professional</option>
+                    <option value="Special Interest">Special Interest</option>
+
+                </select>              
+
             </div>
+       
             <div className="flex flex-col mb-4">
               <label htmlFor="type" className="mb-2 font-bold text-lg">
                 Email
@@ -170,6 +215,35 @@ export default function InputModal({id, onClose, orgName, acronym, category, web
                 className="border py-2 px-3 text-grey-darkest"
               />
             </div>
+            <div className="flex flex-col mb-4">
+              <label htmlFor="type" className="mb-2 font-bold text-lg">
+                Phone
+              </label>
+              <input
+                type="text"
+                id="phone"
+                name="phone"
+                defaultValue={phone}
+                onChange={(e) => setUserPhone(e.target.value)}
+                className="border py-2 px-3 text-grey-darkest"
+              />
+            </div>
+            <div className="flex flex-col mb-4">
+              <label htmlFor="category" className="mb-2 font-bold text-lg">
+                Description
+              </label>
+              <input
+                type="description"
+                id="description"
+                name="description"
+                defaultValue={description}
+                onChange={(e) => setUserDescription(e.target.value)}
+                className="border py-2 px-3 text-grey-darkest"
+              />
+            </div>
+        </div>
+
+        {/* Save and Delete Buttons */}
           <div className="flex justify-end border-t pt-2">
             <button
               onClick={() => handleConfirm("delete")}
@@ -186,12 +260,11 @@ export default function InputModal({id, onClose, orgName, acronym, category, web
               Save Changes
             </button>
           </div>
-        </div>
           </div>         
           </div>
-          </div>   
-      </div>
-     </div>
+          </motion.div>   
+      </Backdrop>
+     </>
 
     );    
 }

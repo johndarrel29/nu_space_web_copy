@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import defaultPic from '../assets/images/default-profile.jpg';
 
 
 export default function RSOForm({ addOrganization }) {
@@ -71,13 +72,13 @@ export default function RSOForm({ addOrganization }) {
 
     return (
         <>
-         <div className="flex items-center space-x-4">
+         <div className="flex items-center space-x-4 mb-6">
 
                 {/* Image Preview */}                      
                     <div 
                     className="bg-gray-500 mx-auto flex-none size-20 aspect-square shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-20 hover:bg-gray-300 transition duration-300 cursor-pointer"
                     style={{
-                        backgroundImage: image ? `url(${image})` : "none",
+                        backgroundImage: image ? `url(${image})` : `url(${defaultPic})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         }}
@@ -102,7 +103,7 @@ export default function RSOForm({ addOrganization }) {
                     <form onSubmit={handleSubmit} >
                         
                         {/* Organization Name */}
-                            <div>
+                            <div className='mb-4'>
                                 <label  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Organization Name</label>
                                 <input type="text" name='orgName' 
                                 id="file_input"
@@ -111,7 +112,7 @@ export default function RSOForm({ addOrganization }) {
                                  value={formData.orgName}/>
                             </div>
                         {/* Organization Acronym */}
-                            <div>
+                            <div className='mb-4'>
                                 <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Organization Acronym</label>
                                 <input type="text" name="acronym" 
                                 id="file_input"
@@ -120,7 +121,7 @@ export default function RSOForm({ addOrganization }) {
                                  value={formData.acronym}/>
                             </div>
                         {/* Email, Phone, Website, Type of Organization */}
-                            <div className="grid gap-6 mb-6 md:grid-cols-2">
+                            <div className="grid gap-4 mb-4 md:grid-cols-2">
                             <div>
                                 <label  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
                                 <input type="text" name="email"
@@ -129,14 +130,14 @@ export default function RSOForm({ addOrganization }) {
                                  onChange={handleChange}
                                  value={formData.email}/>
                             </div>  
-                            <div>
+                            <div className='mb-4'>
                                 <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone number</label>
                                 <input type="tel" name="phone" 
                                 id="file_input"
                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="123-45-678" pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}" required  onChange={handleChange}
                                 value={formData.phone}/>
                             </div>
-                            <div>
+                            <div className='mb-4'>
                                 <label for="website" name="website" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Website URL</label>
                                 <input type="url" 
                                 name="website"
@@ -145,7 +146,7 @@ export default function RSOForm({ addOrganization }) {
                                  onChange={handleChange}
                                  value={formData.website}/>
                             </div>
-                            <div>
+                            <div className='mb-4'>
                                 <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Type of Organization
                                 </label>
@@ -166,7 +167,7 @@ export default function RSOForm({ addOrganization }) {
                                 </div>
                         </div>
                     {/* Description */}
-                        <div className="mb-6">
+                        <div className='mb-4'>
                             <label for="large-input" name="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Simple Description</label>
                             <input type="text"  
                             id="file_input"
@@ -175,7 +176,7 @@ export default function RSOForm({ addOrganization }) {
                             value={formData.description}/>
                         </div>
                     {/* Password */}
-                        <div className="mb-6">
+                        <div className='mb-4'>
                             <label for="password" 
                             id="file_input"
                             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
@@ -183,7 +184,7 @@ export default function RSOForm({ addOrganization }) {
                             />
                         </div> 
                     {/* Confirm Password */}
-                        <div className="mb-6">
+                        <div className='mb-4'>
                             <label for="confirm_password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm password</label>
                             <input type="password" id="file_input" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="•••••••••" required />
                         </div> 

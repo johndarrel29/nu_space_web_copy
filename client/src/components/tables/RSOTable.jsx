@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import InputModal from "../modals/InputModal";
+import { AnimatePresence } from "framer-motion";
 
 export default function RSOTable({ data, searchQuery, onUpdate }) {
     const safeSearchQuery = searchQuery || '';
     const [selectedUser, setSelectedUser] = useState(null);
     const [showModal, setShowModal] = useState(false);
-
-    
 
     // Filter data 
     const searchedData = data.filter(org => 
@@ -23,47 +22,42 @@ export default function RSOTable({ data, searchQuery, onUpdate }) {
     setSelectedUser(org);
     }
 
-         const handleCloseModal = () => {
-        console.log("Modal close");
-        setShowModal(false);
-        setSelectedUser(null);
+    const handleCloseModal = () => {
+    console.log("Modal close");
+    setShowModal(false);
+    setSelectedUser(null);
+    }
+
+    const handleConfirm = (id, updatedData) => {
+      if (!updatedData) {
+        onUpdate(data.filter(org => org.id !== id));
+        return;
       }
-
-      const handleConfirm = (id, updatedData) => {
-        if (!updatedData) {
-          onUpdate(data.filter(org => org.id !== id));
-          return;
-        }
+    
+      console.log(" Saving or updating entry", updatedData);
+    
+      // Update if ID exists, otherwise add new entry
+      const updatedRecords = data.some(org => org.id === id)
+        ? data.map(org => org.id === id ? { ...org, ...updatedData } : org) 
+        : [...data, updatedData]; 
+    
+      onUpdate(updatedRecords);
+    };
       
-        console.log(" Saving or updating entry", updatedData);
-      
-        // Update if ID exists, otherwise add new entry
-        const updatedRecords = data.some(org => org.id === id)
-          ? data.map(org => org.id === id ? { ...org, ...updatedData } : org) 
-          : [...data, updatedData]; 
-      
-        onUpdate(updatedRecords);
-      };
-      
-      
-
-
     return (
-        <table className="w-full ">
+        <table className="w-full">
             <tbody >
                 {records.map((org, index) => (
                     <tr key={index} className="mb-4"
                     onClick={() => showModalInfo(org)}
                     >
                       <div className="grid grid-cols-2 p-4 hover:bg-gray-300 border  rounded-lg cursor-pointer">
-                        <div className="flex items-center gap-4 ">
+                        <div className="flex items-center gap-4">
                           <td >
                               <img src={org.image} alt={org.orgName} width="50" height="50" 
                               className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10"
                               />
-                          </td>
-                        
-                       
+                          </td>          
                           <div className="grid grid-col-1">
                             <div>
                               <td>
@@ -87,7 +81,17 @@ export default function RSOTable({ data, searchQuery, onUpdate }) {
                 ))}
             </tbody>
 
-{/* TODO: replace the map function with the correct data. make sure to include search, delete, and update functionality */}
+      <AnimatePresence
+      // Disable any initial animations on children that
+      // are present when the component is first rendered
+      initial={false}
+      // Only render one component at a time.
+      // The exiting component will finish its exit
+      // animation before entering component is rendered
+      exitBeforeEnter={true}
+      // Fires when all exiting nodes have completed animating out
+      onExitComplete={() => null}>
+
             {showModal && selectedUser && (
                 <InputModal
                     onClose={handleCloseModal}
@@ -103,6 +107,7 @@ export default function RSOTable({ data, searchQuery, onUpdate }) {
                     onConfirm={handleConfirm}
                 />
             )}
+      </AnimatePresence>
         </table>
 
 
