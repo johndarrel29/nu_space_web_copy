@@ -48,6 +48,10 @@
     color: #314095;
 }
 
+.disabled {
+    color: rgb(157, 156, 156);
+}
+
 .headingTitle{
     font-weight: 700;
     font-size: 30px;

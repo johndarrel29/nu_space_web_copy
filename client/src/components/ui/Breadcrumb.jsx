@@ -1,9 +1,19 @@
 
 import { Link, useLocation } from "react-router-dom";
 
-export default function Breadcrumb (){
+export default function Breadcrumb ({ style, unSelected }){
     const location = useLocation();
     const paths = location.pathname.split("/").filter(Boolean);
+    const capitalize = (str) => {
+    return str
+        .split('-')
+        .map(word => 
+            word.toLowerCase() === 'rso' 
+                ? 'RSO' // Special case for "Rso"
+                : word.charAt(0).toUpperCase() + word.slice(1)
+        )
+        .join('-');
+    }
 
     return (
         <nav className="flex" aria-label="Breadcrumb">
@@ -26,10 +36,10 @@ export default function Breadcrumb (){
                                 )
                                 }
                                 {isLast ? (
-                                    <span className="ms-1 text-sm font-medium text-gray-500 md:ms-2 dark:text-gray-400">{path}</span>
+                                    <span className={style}>{capitalize(path)}</span>
                                 ) : (
-                                    <Link to={routeTo} className="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white">
-                                        {path}
+                                    <Link to={routeTo} className={unSelected}>
+                                        {capitalize(path)}
                                     </Link>
                                 )}
                             </div>

@@ -10,6 +10,7 @@ import AdminAccount from './pages/admin/AdminAccount';
 import Activities from './pages/admin/Activities';
 import MainDocuments from './pages/admin/MainDocuments';
 import RSOManagement from './pages/admin/RSOManagement';
+import Requirements from './pages/admin/Requirements';
 import { ThemeProvider } from '@material-tailwind/react';
 import MainRSO from './pages/admin/MainRSO';
 import PreLoader from './components/Preloader';
@@ -41,6 +42,7 @@ function App() {
         <Route path="/documents" element={<Documents />} >
           <Route index element={<MainDocuments />} />
           <Route path="activities" element={<Activities />} />
+          <Route path="requirements" element={<Requirements />} />
         </Route>
         <Route path="/admin-account" element={<AdminAccount />} />
         
