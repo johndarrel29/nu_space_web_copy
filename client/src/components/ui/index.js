@@ -6,3 +6,4 @@ export { default as Searchbar } from './Searchbar';
 export { default as TextInput } from './TextInput';
 export { default as Breadcrumb } from './Breadcrumb';
 export { default as Backdrop } from './Backdrop';
+export { default as Notification } from './Notification';

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import defaultPic from '../assets/images/default-profile.jpg';
 
 
-export default function RSOForm({ addOrganization }) {
+export default function RSOForm({ addOrganization, onSubmit }) {
     const [image, setImage] = useState(null);
     const [formData, setFormData] = useState({
         orgName: "",
@@ -36,7 +36,7 @@ export default function RSOForm({ addOrganization }) {
     
         addOrganization(newOrg);
 
-        alert("Organization added successfully!");
+        onSubmit && onSubmit("Organization added successfully!");
 
         // Reset form data
         setFormData({
