@@ -7,7 +7,7 @@ import editIcon from "../../assets/icons/pen-to-square-solid.svg";
 import deleteIcon from "../../assets/icons/trash-solid.svg";
 
 // TableRow Component
-const TableRow = ({ user, onOpenModal }) => {
+const TableRow = ({ user, onOpenModal, index }) => {
   const handleActionClick = (action) => () => {
     onOpenModal(action, user);
   };
@@ -16,10 +16,10 @@ const TableRow = ({ user, onOpenModal }) => {
   const roleClass = user.type === 'Student' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 
   return (
-    <tr className='hover:bg-gray-100'>
+    <tr className='hover:bg-gray-200' >
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
-          <div className="text-sm font-medium text-gray-900">{user.id}</div>
+          <div className="text-sm font-medium text-gray-900">{index}</div>
           <div className="ml-4">
             <div className="text-sm font-medium text-gray-900">{fullName}</div>
             <div className="text-sm text-gray-500">{user.email}</div>
@@ -131,7 +131,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
  
 
   return (
-    <div className='pl-6  py-6'>
+    <div className=' min-w-full mt-6 sm:min-w-1/2 '>
       {showModal && (
         <ActionModal
           onClose={handleCloseModal}
@@ -151,22 +151,35 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
           Showing {filteredRecords.length} result{filteredRecords.length !== 1 ? "s" : ""}
           {searchQuery && ` of ${safeSearchQuery}`}
         </span>
+        <li className="flex justify-center ">
+              <select
+                className={`w-24 h-10 rounded-md bg-white border border-mid-gray p-1 font-bold  ${npage > 0 ? "text-off-black" : "text-gray-400 opacity-50"}`}
+                onChange={(e) => changePageNum(e.target.value)}
+                disabled={npage === 0}
+              >
+                <option value="10">10 rows</option>
+                <option value="20">20 rows</option>
+                <option value="50">50 rows</option>
+              </select>
+        </li>
+
       </div>
 
       {data.length > 0 ? (
-        <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
-          <thead className="bg-gray-50 sticky top-0 z-10">
-            <tr className='text-left text-xs font-medium font-bold uppercase tracking-wider'>
-              <th scope="col" className='px-6 py-3'>Name</th>
+        <div className="border border-mid-gray rounded-md mb-4 rounded-md p-6 bg-card-bg">
+        <table className="min-w-full divide-y divide-gray-200 rounded-md  overflow-x-auto ">
+          <thead className="bg-card-bg rounded-md ">
+            <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider'>
+              <th scope="col" className='px-6 py-3 '>Name</th>
               <th scope="col" className='px-6 py-3'>Date Created</th>
               <th scope="col" className='px-6 py-3'>Role</th>
               <th scope="col" className='px-6 py-3'>Category</th>
               <th scope="col" className='px-6 py-3'>Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {records.length > 0 ? records.map(user => (
-              <TableRow key={user.id} user={user} onOpenModal={handleOpenModal} />
+          <tbody className="bg-card-bg divide-y divide-gray-200">
+            {records.length > 0 ? records.map((user, index) => (
+              <TableRow key={index} user={user} onOpenModal={handleOpenModal} index={(currentPage - 1) * postsPerPage + index + 1}/>
             )) : (
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={5}>
@@ -176,29 +189,20 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
             )}
           </tbody>
         </table>
+        </div>
       ) : <LoadingAnimation />}
 
       <div className='w-full bottom-20'>
         <nav>
           <ul className="flex justify-center space-x-2">
-            <li className="flex justify-center">
-              <select
-                className={`w-24 h-10 rounded-md bg-white border border-gray-400 p-1 font-bold ${npage > 0 ? "text-black" : "text-gray-400 opacity-50"}`}
-                onChange={(e) => changePageNum(e.target.value)}
-                disabled={npage === 0}
-              >
-                <option value="10">10 rows</option>
-                <option value="20">20 rows</option>
-                <option value="50">50 rows</option>
-              </select>
-            </li>
-            <li className={`page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${currentPage === 1 || npage === 0 ? "text-gray-400" : "text-gray-800"}`}>
+
+            <li className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded ${currentPage === 1 || npage === 0 ? "text-gray-400" : "text-gray-800"}`}>
               <button className='page-link' onClick={prePage}>Prev</button>
             </li>
             <div className="px-4 py-2 font-semibold">
               {npage > 0 ? `${currentPage} of ${npage}` : "0 of 0"}
             </div>
-            <li className={`page-item mx-1 px-3 py-2 bg-gray-200 font-semibold rounded ${currentPage === npage || npage === 0 ? "text-gray-400" : "text-gray-800"}`}>
+            <li className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded ${currentPage === npage || npage === 0 ? "text-gray-400" : "text-gray-800"}`}>
               <button className='page-link' onClick={nextPage}>Next</button>
             </li>
           </ul>

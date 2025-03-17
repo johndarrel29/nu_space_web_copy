@@ -4,6 +4,11 @@ import { Link, useLocation } from "react-router-dom";
 export default function Breadcrumb ({ style, unSelected }){
     const location = useLocation();
     const paths = location.pathname.split("/").filter(Boolean);
+
+    if (location.state?.fromRequirements) {
+        paths.splice(-1, 0, "requirements");
+    }
+    
     const capitalize = (str) => {
     return str
         .split('-')

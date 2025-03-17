@@ -7,6 +7,7 @@ import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Documents from './pages/admin/Documents';
 import AdminAccount from './pages/admin/AdminAccount';
+import MainActivities from './pages/admin/MainActivities';
 import Activities from './pages/admin/Activities';
 import MainDocuments from './pages/admin/MainDocuments';
 import RSOManagement from './pages/admin/RSOManagement';
@@ -16,6 +17,7 @@ import MainRSO from './pages/admin/MainRSO';
 import PreLoader from './components/Preloader';
 import { gsap } from "gsap";
 import { useEffect, useState } from 'react';
+import Review from './pages/admin/Review';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -41,8 +43,11 @@ function App() {
         <Route path="/user-management" element={<UserManagement />} />
         <Route path="/documents" element={<Documents />} >
           <Route index element={<MainDocuments />} />
-          <Route path="activities" element={<Activities />} />
-          <Route path="requirements" element={<Requirements />} />
+          <Route path="main-activities" element={<MainActivities />} >
+            <Route index element={<Activities />} />
+            <Route path="requirements" element={<Requirements />} />
+            <Route path="review" element={<Review/>}/>
+          </Route>
         </Route>
         <Route path="/admin-account" element={<AdminAccount />} />
         

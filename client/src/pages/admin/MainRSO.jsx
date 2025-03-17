@@ -28,8 +28,8 @@ export default function MainRSO() {
     return (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full">
             {/* Left Pane */}
-            <div className="bg-gray-200 rounded-xl p-4 w-full flex-1 ">
-                <div className="bg-gray-200 sticky top-0 z-10 ">
+            <div className="bg-card-bg rounded-xl p-4 w-full flex-1 shadow-md">
+                <div className="bg-card-bg sticky top-0 z-10 ">
                 <h1>Create an RSO Account</h1>
                 <hr className="my-4 border-gray-400" />
             </div>
@@ -41,8 +41,8 @@ export default function MainRSO() {
             </div>
 
             {/* Right Pane */}
-            <div className="bg-gray-200 rounded-xl p-4 w-full flex-1 ">
-                    <div className="bg-gray-200 sticky top-0 z-10 ">
+            <div className="bg-card-bg rounded-xl p-4 w-full flex-1 shadow-md">
+                    <div className="bg-card-bg sticky top-0 z-10 ">
                     <h1>History</h1>
                     <hr className="my-4 border-gray-400" />
                     <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery} />

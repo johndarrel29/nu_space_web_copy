@@ -12,11 +12,13 @@ export default function MainDocuments() {
 
     return (
         <>              
-            <div className="lg:w-1/2 md:w-full ">
-                <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>            
+            <div className=" md:w-full bg-card-bg p-6 rounded-lg shadow-md">
+                <div className="w-1/2">
+                    <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>   
+                </div>                       
             </div>            
                 {/* Tab content*/}
-                <div className="mt-6">
+                <div className="mt-6 bg-card-bg rounded-lg shadow-md">
                     <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400 cursor-pointer">
                         <li className="me-2">
                             <Link  onClick={() => handleToggle(1)} className={toggle === 1 ? "inline-flex items-center justify-center p-4 text-[#314095] border-b-2 border-[#314095] rounded-t-lg active" : "inline-flex items-center justify-center p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 group"}>
@@ -55,7 +57,7 @@ export default function MainDocuments() {
                 </div>
                     
                     {/* Matches the tab content with the selected tab */}
-                    <div className="border border-gray-300 rounded-lg">
+                    <div className="border border-mid-gray bg-white   rounded-lg">
                             {toggle === 1 &&   <DocumentTable category="All" searchQuery={searchQuery}/>}
                             {toggle === 2 &&   <DocumentTable category="Probationary" searchQuery={searchQuery}/>}
                             {toggle === 3 &&  <DocumentTable category="Professional" searchQuery={searchQuery}/>}

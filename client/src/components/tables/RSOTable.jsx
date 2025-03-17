@@ -13,7 +13,6 @@ export default function RSOTable({ data, searchQuery, onUpdate }) {
         (org.acronym || '').toLowerCase().includes(safeSearchQuery.toLowerCase()) 
       );
       
-
     const records = searchedData;
 
     const showModalInfo = (org) => {
