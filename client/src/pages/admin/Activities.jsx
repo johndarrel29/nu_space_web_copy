@@ -28,6 +28,7 @@ function Activities() {
 
   return (
   <>
+  
     <div className="flex  justify-start mb-4  p-6 bg-card-bg rounded-lg shadow-md">
       <div className='w-1/2'>
         <Searchbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} placeholder="Find an Activity"/>

@@ -1,18 +1,23 @@
 import React from 'react'
+import { Button } from '../../components';
 
 function Review () {
   return (
     <>
       {/* back button */}
       <div className='flex flex-row items-center justify-start mb-4'>
-        <button className=' bg-light-gray text-off-black font-semibold py-2 px-4 rounded hover:bg-mid-gray' onClick={() => window.history.back()}>
+        <Button
+          style='secondary'
+          className='px-4'
+          onClick={() => window.history.back()}
+        >
           <div className='flex flex-row items-center gap-2'>
             <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-current text-off-black' viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
             <h1>
               Back
             </h1>
           </div>
-        </button>
+        </Button>
       </div>
 
       {/* file card */}
@@ -33,10 +38,15 @@ function Review () {
                 <h2 className='text-sm text-gray-500'>13MB</h2>
             </div>
             {/* download button  */}
-            <button class="bg-light-gray hover:bg-mid-gray text-off-black font-bold py-2 px-4 rounded inline-flex items-center">
-              <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
-              <span>Download</span>
-            </button>
+            <Button
+              style='secondary'
+              className='px-4'
+              >
+                <div className='flex flex-row items-center gap-2'>
+                    <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                    <span>Download</span> 
+                </div>         
+            </Button>
         </div>
       </div>
 
@@ -47,7 +57,7 @@ function Review () {
             <h1 className='text-lg font-semibold '>Review Document</h1>
         </div>
             <div className="flex flex-col items-center justify-center mt-4">
-              {/* create row checkbox */}
+    {/* create row checkbox */}
               <div className="flex items-center justify-start space-x-4">
                   <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike"/>
                   <label for="vehicle1">Approve</label>
@@ -58,6 +68,13 @@ function Review () {
                   <label htmlFor="large-input">Remarks</label>
                   <input type="text" id="large-input" class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>            
               </div>
+              <div>
+                <Button 
+                 className="px-4">
+                    Submit
+                </Button>
+              </div>
+                         
              </div>
         </div>
     </div>
