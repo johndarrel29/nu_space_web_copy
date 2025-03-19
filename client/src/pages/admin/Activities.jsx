@@ -1,9 +1,6 @@
 import React, { act, useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Searchbar } from '../../components';
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
-import { div } from 'three/tsl';
 
 function Activities() {
   const [searchQuery, setSearchQuery] = useState('');
