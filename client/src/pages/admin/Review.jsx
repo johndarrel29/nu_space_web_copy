@@ -21,7 +21,7 @@ function Review () {
       </div>
 
       {/* file card */}
-      <div className='bg-card-bg w-full h-min-[300px] p-4 rounded-md border border-mid-gray'>
+      <div className='bg-[#BAC1E3] w-full h-min-[300px] p-4 rounded-md border border-primary'>
         <div className='flex flex-row items-center justify-start space-between space-x-12'>
           {/* icon and document name */}
             <div className='flex flex-row items-center gap-2'>
@@ -31,19 +31,18 @@ function Review () {
             </div>
             {/* status */}
             <div>
-                <span class="bg-yellow-100 border border-yellow-800 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-md dark:bg-yellow-900 dark:text-yellow-300">Pending</span>
+            <span class="bg-yellow-100 text-primary text-xs font-medium me-2 px-2.5 py-0.5 rounded-lg dark:bg-gray-700 dark:text-yellow-300">Pending</span>
             </div>
             {/* size */}
             <div>
-                <h2 className='text-sm text-gray-500'>13MB</h2>
+                <h2 className='text-sm text-primary'>13MB</h2>
             </div>
             {/* download button  */}
             <Button
-              style='secondary'
               className='px-4'
               >
                 <div className='flex flex-row items-center gap-2'>
-                    <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                    <svg className="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
                     <span>Download</span> 
                 </div>         
             </Button>
@@ -51,27 +50,27 @@ function Review () {
       </div>
 
     {/* review form */}
-    <div className='bg-card-bg w-full h-min-[300px] p-4 rounded-md border border-mid-gray mt-4'>
+    <div className='bg-card-bg w-full h-min-[300px] p-4 rounded-md border border-mid-gray mt-4 shadow-md'>
         <div >
         <div className='flex items-start justify-start'>
             <h1 className='text-lg font-semibold '>Review Document</h1>
         </div>
             <div className="flex flex-col items-center justify-center mt-4">
-    {/* create row checkbox */}
-              <div className="flex items-center justify-start space-x-4">
-                  <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike"/>
-                  <label for="vehicle1">Approve</label>
-                  <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike"/>
-                  <label for="vehicle1">Reject</label>
-              </div>
               <div className="w-1/2">
-                  <label htmlFor="large-input">Remarks</label>
+                  <label htmlFor="large-input">Message</label>
                   <input type="text" id="large-input" class="block w-full p-4 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"/>            
               </div>
-              <div>
+              <div className='mt-6 space-x-4 flex flex-row items-center justify-center'>
                 <Button 
-                 className="px-4">
-                    Submit
+                 className="px-4 flex flex-row justify-center items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className='fill-current w-4 h-4 mr-2' viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>
+                    <h1>Approve</h1>
+                </Button>
+                <Button 
+                 className="px-4 border border-mid-gray flex flex-row justify-center items-center"
+                 style="secondary">
+                  <svg xmlns="http://www.w3.org/2000/svg" className='fill-current w-4 h-4 mr-2' viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/></svg>
+                    <h1>Reject</h1>
                 </Button>
               </div>
                          

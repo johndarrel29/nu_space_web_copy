@@ -35,7 +35,7 @@ export default function Login () {
                     <h1 className={style['small-text']}>Password</h1>
                 </div>
                 <TextInput placeholder="Password" type="password"/>
-                    <Button label="Sign in" onClick={handleLogin}/>
+                    <Button onClick={handleLogin} className="w-full mt-6"> Login </Button>
             
         </div>
     </div>

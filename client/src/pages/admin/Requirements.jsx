@@ -1,10 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom';
+import { Button } from '../../components';
 
 
 const Requirements = () => {
+  const navigate = useNavigate();
+  
   return (
     <>
+      {/* back button */}
+      <div className='flex flex-row items-center justify-start mb-4'>
+        <Button
+          style='secondary'
+          className='px-4'
+          onClick={() => navigate(-1)}
+        >
+          <div className='flex flex-row items-center gap-2'>
+            <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-current text-off-black' viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+            <h1>
+              Back
+            </h1>
+          </div>
+        </Button>
+      </div>
 
        <div className='bg-card-bg max-h-[800px] items-center justify-center border border-mid-gray rounded-lg w-full'>
         <div className='flex justify-start items-center p-4 font-bold '>
