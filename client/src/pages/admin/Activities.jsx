@@ -1,5 +1,5 @@
-import React, { act, useEffect, useMemo, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom';
+import React, {  useEffect, useMemo, useState } from 'react'
+import {  useNavigate } from 'react-router-dom';
 import { Searchbar } from '../../components';
 
 function Activities() {
