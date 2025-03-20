@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, memo  } from "react";
 import { MainLayout, Table, Searchbar } from "../../components";
 
+//TODO: fetch data from the server and display it in the table
 
   // function to handle the search and filter
   const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole }) => {

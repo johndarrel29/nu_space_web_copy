@@ -1,13 +1,13 @@
 import style from '../../css/TextInput.module.css';
 
-function TextInput({ type = 'text', placeholder, value, onChange }) {
+function TextInput({ type = 'text', placeholder, value, onChange, className }) {
   return (
     <input 
         type={type} 
         placeholder={placeholder} 
         value={value} 
         onChange={onChange} 
-        className={style['text-style']} 
+        className={className}
     />
 );
   }
