@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, memo  } from "react";
 import { MainLayout, Table, Searchbar } from "../../components";
 
-//TODO: fetch data from the server and display it in the table
+//TODO: fetch data from the server and display it in the table --Checked
+//TODO: Make changes to the table component to display the data
 
   // function to handle the search and filter
   const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole }) => {
@@ -39,15 +40,53 @@ import { MainLayout, Table, Searchbar } from "../../components";
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
 
   // fetch data from json file
-  useEffect(() => {
-      fetch("/data/MOCK_DATA.json")
-        .then((response) => response.json())
-        .then((json) => setData(json))
-        .catch((error) => console.error("Error loading data:", error));
-        console.log("data is: ", data);
-    }, []);
+// Fetch data from API
+useEffect(() => {
+  const fetchData = async () => {
+    const token = localStorage.getItem("token");
+    console.log("Stored token:", token);
+  
+    // Remove 'Bearer ' prefix if already included
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+  
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": token ? `Bearer ${formattedToken}` : "",
+    };
+  
+    setLoading(true);
+    setError(null);
+  
+    try {
+      const response = await fetch(`${process.env.REACT_APP_FETCH_USERS_URL}`, {
+        method: "GET",
+        headers, 
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+  
+      const json = await response.json();
+      console.log("Fetched data:", json);
+      setData(Array.isArray(json.users) ? json.users : []);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error loading data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  fetchData();
+}, []);
+
 
     // Memoize the data to prevent unnecessary re-renders
     const memoizedData = useMemo(() => data, [data]);

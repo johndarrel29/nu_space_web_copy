@@ -25,7 +25,7 @@ export default function Login () {
     // store url in .env
     // api endpoint to .env
         try {
-            const response = await axios.post(`${process.env.REACT_APP_API_URL}`, 
+            const response = await axios.post(`${process.env.REACT_APP_LOGIN_URL}`, 
                 {
                     email: email,
                     password: password,

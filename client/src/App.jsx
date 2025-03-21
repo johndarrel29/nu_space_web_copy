@@ -3,6 +3,7 @@ import './App.css';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
+import ErrorPage from './pages/ErrorPage';
 import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Documents from './pages/admin/Documents';
@@ -39,6 +40,7 @@ function App() {
       <Routes>
         <Route index element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/error" element={<ErrorPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/user-management" element={<UserManagement />} />
         <Route path="/documents" element={<Documents />} >

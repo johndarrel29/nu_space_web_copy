@@ -6,6 +6,8 @@ import ActionModal from '../modals/ActionModal';
 import editIcon from "../../assets/icons/pen-to-square-solid.svg";
 import deleteIcon from "../../assets/icons/trash-solid.svg";
 
+
+
 // TableRow Component
 const TableRow = ({ user, onOpenModal, index }) => {
   const handleActionClick = (action) => () => {
@@ -66,12 +68,37 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const [showModal, setShowModal] = useState(false);
   const [mode, setMode] = useState('delete');
   const [selectedUser, setSelectedUser] = useState(null);
-  const [users, setUsers] = useState(data);
+  const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage, setPostsPerPage] = useState(10);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
+  useEffect(() => {
+    console.log("Data received:", data, "Type:", typeof data);
+    setUsers(Array.isArray(data) ? data : []);
+  }, [data]);
 
+  useEffect(() => {
+    console.log("Data received:", data); // Check if data is an array
+    setUsers(data);
+  }, [data]);
+
+  useEffect(() => {
+    if (Array.isArray(data)) {
+      setUsers(data.map(user => ({
+        firstName: user.first_name || "", 
+        lastName: user.last_name || "",
+        email: user.email || "",
+        type: user.type || "",
+        date: user.date || "",
+        quantity: user.quantity || 0
+      })));
+    } else {
+      setUsers([]);
+    }
+  }, [data]);
+  
+  console.log("Users data before filtering:", users);
 
   // Makes the search query debounced so that it doesn't render on every key stroke
   useEffect(() => {
@@ -85,8 +112,8 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
 
   const filteredRecords = useMemo(() => {
     return users.filter(user => {
-      const matchesSearch = ['first_name', 'last_name', 'email'].some(field => 
-        user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
+      const matchesSearch = ['firstName', 'lastName', 'email'].some(field => 
+        user[field]?.toLowerCase().includes(safeSearchQuery.toLowerCase())
       );
     
       const matchesRole = selectedRole === "" || 
