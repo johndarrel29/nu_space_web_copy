@@ -26,18 +26,18 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
           <MenuItem>
             <a
               
-              onClick={() => handleMenuItemClick("Student")}
+              onClick={() => handleMenuItemClick("student")}
               className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
             >
-              Student
+              student
             </a>
           </MenuItem>
           <MenuItem>
             <a
-              onClick={() => handleMenuItemClick("Student/RSO")}
+              onClick={() => handleMenuItemClick("student/rso")}
               className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
             >
-              Student/RSO
+              student/rso
             </a>
           </MenuItem>
  

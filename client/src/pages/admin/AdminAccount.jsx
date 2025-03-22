@@ -1,4 +1,4 @@
-import { MainLayout, Button } from "../../components";
+import { MainLayout, Button, TextInput } from "../../components";
 
 
 
@@ -34,6 +34,10 @@ export default function AdminAccount() {
                 <div className="bg-white rounded-lg p-4 shadow-md" >
 
                 </div>
+            </div>
+            <div className="mt-8 w-full bg-white rounded-lg p-4 border border-mid-gray">
+                <h1 className="font-semibold text-xl mb-6">Account Details</h1>
+                <TextInput/>
             </div>
                 
             </MainLayout>

@@ -16,9 +16,9 @@ import Requirements from './pages/admin/Requirements';
 import { ThemeProvider } from '@material-tailwind/react';
 import MainRSO from './pages/admin/MainRSO';
 import PreLoader from './components/Preloader';
-import { gsap } from "gsap";
 import { useEffect, useState } from 'react';
 import Review from './pages/admin/Review';
+import { SkeletonTheme } from 'react-loading-skeleton'
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -37,9 +37,11 @@ function App() {
     <BrowserRouter>
       {loading ? (<PreLoader />
       ): (
+      <SkeletonTheme baseColor="#e0e0e0" highlightColor="#f5f5f5">
       <Routes>
         <Route index element={<Login />} />
         <Route path="/login" element={<Login />} />
+      
         <Route path="/error" element={<ErrorPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/user-management" element={<UserManagement />} />
@@ -57,7 +59,8 @@ function App() {
           <Route index element={<MainRSO />} />
         </Route>
       </Routes>
-      )}
+      </SkeletonTheme>
+      )}   
     </BrowserRouter>
     </ThemeProvider>
   );

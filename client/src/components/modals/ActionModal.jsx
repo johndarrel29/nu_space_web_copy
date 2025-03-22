@@ -7,7 +7,7 @@ import Dropdown from '../ui/Dropdown'
 import DropdownSearch from '../ui/DropdownSearch'
 
 export default function ActionModal({ onClose, mode, id, name, date, email, role, onConfirm }) {
-  const [selectedRole, setSelectedRole] = useState(role || "Student");
+  const [selectedRole, setSelectedRole] = useState(role || "student");
 
   useEffect(() => {
     if (mode === "edit") {
@@ -22,10 +22,14 @@ export default function ActionModal({ onClose, mode, id, name, date, email, role
     console.log("handleConfirm inside ActionModal triggered");
 
     if (mode === "edit") {
-      const data = { type: selectedRole }; 
-      console.log("Inside ActionModal: Data before calling onConfirm:", data);
-      console.log("Inside ActionModal: Calling onConfirm with:", id, data);
-      onConfirm(id, data);
+      console.log(selectedRole)
+      const updatedData = {
+        role: selectedRole, 
+        assigned_RSO: selectedRole === "student/rso" ? "student/rso" : "student", 
+      };
+      console.log("Inside ActionModal: Data before calling onConfirm:", updatedData);
+      console.log("ID being sent:", id);
+      onConfirm(id, updatedData);
     } else if (mode === "delete") {
       console.log("Inside ActionModal (DELETE MODE): Calling onConfirm with:", id);
       onConfirm(id); 
@@ -88,7 +92,7 @@ export default function ActionModal({ onClose, mode, id, name, date, email, role
 
                   <div>
                     <h1>Category:</h1>
-                    <DropdownSearch isDisabled={selectedRole === "Student"} />
+                    <DropdownSearch isDisabled={selectedRole === "student"} />
                   </div>
 
                   <div>

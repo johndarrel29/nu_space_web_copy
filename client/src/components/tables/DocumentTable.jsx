@@ -1,11 +1,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Navigate, useNavigate } from 'react-router-dom';
+import 'react-loading-skeleton/dist/skeleton.css'
+import Skeleton from 'react-loading-skeleton'
 
 
 export default function DocumentTable({category, searchQuery}) {
     const [data, setData] = useState([]);
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
 
 
         //Pagination
@@ -37,8 +40,12 @@ export default function DocumentTable({category, searchQuery}) {
    useEffect(() => {
        fetch("/data/RSO_DATA.json")
          .then((response) => response.json())
-         .then((json) => setData(json))
-         .catch((error) => console.error("Error loading data:", error));
+         .then((json) => {
+                setData(json);
+                setIsLoading(false);
+            })
+        .catch((error) => console.error("Error loading data:", error));
+         
      }, []); 
 
      
@@ -48,7 +55,9 @@ export default function DocumentTable({category, searchQuery}) {
         <div className="overflow-x-auto p-10  max-h-[400px]">
             <table className="table-auto w-full pr-50 border-collapse ">
                 <tbody className="overflow-hidden bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700   cursor-pointer ">
+                    {isLoading && <Skeleton count={10} height={55}/>}
                     {records.map((data, index) => (
+
                             //console.log(data) shows the data
                         <tr key={index} className=" rounded-lg hover:bg-gray-100 rounded-lg" onClick={() => navigate("main-activities")}>
                             <td className="px-4 py-3 "> 

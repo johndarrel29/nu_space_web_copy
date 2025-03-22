@@ -5,7 +5,9 @@ import LoadingAnimation from '../layout/LoadingAnimation';
 import ActionModal from '../modals/ActionModal';
 import editIcon from "../../assets/icons/pen-to-square-solid.svg";
 import deleteIcon from "../../assets/icons/trash-solid.svg";
-
+import 'react-loading-skeleton/dist/skeleton.css'
+import { CardSkeleton } from '../../components'; 
+import axios from "axios";
 
 
 // TableRow Component
@@ -14,8 +16,8 @@ const TableRow = ({ user, onOpenModal, index }) => {
     onOpenModal(action, user);
   };
 
-  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
-  const roleClass = user.type === 'Student' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+  const roleClass = user.role === 'student' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
 
   return (
     <tr className='hover:bg-gray-200' >
@@ -29,16 +31,16 @@ const TableRow = ({ user, onOpenModal, index }) => {
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-900">{user.date}</div>
+        <div className="text-sm text-gray-900">{user.college}</div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}`}>
-          {user.type}
+          {user.role}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}`}>
-          {user.type === 'Student' ? user.type : 'RSO Name'}
+          {user.role === 'student' ? user.role : 'RSO Name'}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -83,20 +85,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
     setUsers(data);
   }, [data]);
 
-  useEffect(() => {
-    if (Array.isArray(data)) {
-      setUsers(data.map(user => ({
-        firstName: user.first_name || "", 
-        lastName: user.last_name || "",
-        email: user.email || "",
-        type: user.type || "",
-        date: user.date || "",
-        quantity: user.quantity || 0
-      })));
-    } else {
-      setUsers([]);
-    }
-  }, [data]);
+
   
   console.log("Users data before filtering:", users);
 
@@ -143,12 +132,60 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
     setSelectedUser(null);
   }, []);
 
-  const handleConfirm = useCallback((id, updatedData) => {
-    setUsers(prevUsers => updatedData ? 
-      prevUsers.map(user => user.id === id ? { ...user, ...updatedData } : user) :
-      prevUsers.filter(user => user.id !== id)
-    );
+  
+  console.log("Current users:", users);
+
+  const handleConfirm = useCallback(async (_id, updatedData) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    if (updatedData) {
+      console.log("Updated data being sent:", updatedData);
+    }
+
+    const url = `/api/auth/user/${_id}`; 
+
+    console.log("Attempting DELETE request to:", url); 
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": token ? `Bearer ${formattedToken}` : "",
+    };
+  
+    try {
+      if (updatedData) {
+        console.log("ID being sent:", _id); // Should be a valid MongoDB ObjectId
+        console.log("Data being sent:", updatedData); // Should contain type: "student/rso"
+        console.log("Update API URL:", `${process.env.REACT_APP_UPDATE_USER_URL}/${_id}`);
+        // Use PATCH instead of PUT
+        const response = await axios.patch(
+          `${process.env.REACT_APP_UPDATE_USER_URL}/${_id}`,
+          updatedData,
+          { 
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json",
+              "Authorization": token ? `Bearer ${formattedToken}` : "",
+            }
+          }
+        );
+  
+        setUsers(prevUsers => 
+          prevUsers.map(user => 
+            user._id === _id ? { ...user, ...response.data } : user
+          )
+        );
+      } else {
+        console.log("Delete URL:", `${process.env.REACT_APP_DELETE_USER_URL}/${_id}`);
+        // Delete user
+        await axios.delete(`${process.env.REACT_APP_DELETE_USER_URL}/${_id}`, { headers });
+  
+        setUsers(prevUsers => prevUsers.filter(user => user._id !== _id));
+      }
+    } catch (error) {
+      console.error("Error updating/deleting user:", error);
+    }
   }, []);
+  
 
   const changePageNum = useCallback((page) => setPostsPerPage(Number(page)), []);
   const prePage = useCallback(() => setCurrentPage(prev => prev > 1 ? prev - 1 : prev), []);
@@ -159,15 +196,18 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
 
   return (
     <div className=' min-w-full mt-6 sm:min-w-1/2 '>
+      
       {showModal && (
+        
         <ActionModal
+        
           onClose={handleCloseModal}
           mode={mode}
-          id={selectedUser?.id}
-          name={selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name}` : ''}
+          id={selectedUser?._id}
+          name={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : ''}
           date={selectedUser?.date}
           email={selectedUser?.email}
-          role={selectedUser?.type}
+          role={selectedUser?.role}
           user={selectedUser}
           onConfirm={handleConfirm}
         />
@@ -217,7 +257,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
           </tbody>
         </table>
         </div>
-      ) : <LoadingAnimation />}
+      ) : <CardSkeleton/>}
 
       <div className='w-full bottom-20'>
         <nav>
