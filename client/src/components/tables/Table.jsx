@@ -100,6 +100,11 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
 
   const filteredRecords = useMemo(() => {
+    if (!Array.isArray(users)) {
+      console.error("Users is not an array:", users);
+      return []; // Return an empty array if users is not an array
+    }
+
     return users.filter(user => {
       const matchesSearch = ['firstName', 'lastName', 'email'].some(field => 
         user[field]?.toLowerCase().includes(safeSearchQuery.toLowerCase())
@@ -132,8 +137,22 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
     setSelectedUser(null);
   }, []);
 
-  
-  console.log("Current users:", users);
+  const fetchUsers = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_FETCH_USERS_URL}`, {
+        headers: {
+          Authorization: `Bearer ${formattedToken}`,
+        },
+      });
+      console.log("API Response:", response.data); 
+      setUsers(Array.isArray(response.data.users) ? response.data.users : []);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  }, []);
 
   const handleConfirm = useCallback(async (_id, updatedData) => {
     const token = localStorage.getItem("token");
@@ -156,7 +175,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
         console.log("ID being sent:", _id); // Should be a valid MongoDB ObjectId
         console.log("Data being sent:", updatedData); // Should contain type: "student/rso"
         console.log("Update API URL:", `${process.env.REACT_APP_UPDATE_USER_URL}/${_id}`);
-        // Use PATCH instead of PUT
+        
         const response = await axios.patch(
           `${process.env.REACT_APP_UPDATE_USER_URL}/${_id}`,
           updatedData,
@@ -171,7 +190,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   
         setUsers(prevUsers => 
           prevUsers.map(user => 
-            user._id === _id ? { ...user, ...response.data } : user
+            user._id === _id ? { ...user, ...response.data.user } : user
           )
         );
       } else {
@@ -181,10 +200,15 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   
         setUsers(prevUsers => prevUsers.filter(user => user._id !== _id));
       }
-    } catch (error) {
-      console.error("Error updating/deleting user:", error);
-    }
-  }, []);
+        // Refetch users after the operation
+        await fetchUsers();
+      } catch (error) {
+        console.error("Error updating/deleting user:", error);
+      } finally {
+        // Close the modal after the operation
+        setShowModal(false);
+      }
+  }, [fetchUsers]);
   
 
   const changePageNum = useCallback((page) => setPostsPerPage(Number(page)), []);
