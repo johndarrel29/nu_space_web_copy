@@ -25,7 +25,7 @@ export default function InputModal({
   const [userDescription, setUserDescription] = useState("");
   const [userCollege, setUserCollege] = useState("");
   const [userStatus, setUserStatus] = useState("");
-  const [userTags, setUserTags] = useState([]);
+  const [userTags, setUserTags] = useState("");
 
   // Log received props for debugging
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function InputModal({
     setUserImage(image || "");
     setUserCollege(college || "");
     setUserStatus(status === true || status === "true" ? true : status === false || status === "false" ? false : status);
-    setUserTags(tags || []);
+    setUserTags(Array.isArray(tags) ? tags.join(", ") : tags || "");
     setUserCategory(category || "");
     setUserDescription(description || "");
   }, [acronym, image, name, category, description, college, status, tags]);
@@ -105,17 +105,16 @@ export default function InputModal({
    */
   const handleConfirm = (action) => {
     const updatedData = {
-      RSO_id: id || Date.now(),
+      RSO_id: id,
       RSO_name: userName,
       RSO_acronym: userAcronym,
       RSO_category: userCategory,
       RSO_description: userDescription,
       RSO_college: userCollege,
       RSO_status: userStatus === "true" || userStatus === true,
-      RSO_tags: userTags,
+      RSO_tags: userTags.split(',').map(tag => tag.trim()), // Ensure tags are an array
       RSO_image: userImage || presetImage,
     };
-    
 
     if (action === "delete") {
       onConfirm(id, null); // Delete the organization

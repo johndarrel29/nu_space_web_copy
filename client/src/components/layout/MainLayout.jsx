@@ -7,8 +7,8 @@ function MainLayout({ children, tabName, headingTitle }) {
   return (
     <div className="h-screen  bg-background"> 
     <div className="flex ">
-        <Sidebar />
-      <div className="fixed left-[18%] w-[calc(100%-18%)] h-full z-0">
+      <Sidebar />
+      <div className="fixed h-full z-0 left-[10%] w-[calc(100%-10%)]  lg:w-[calc(100%-18%)] lg:left-[18%]">
         <main className="h-full overflow-y-auto p-4">
           <div className="mb-6">
             {/* <h1 className={style.tabName}>{tabName}</h1> */}

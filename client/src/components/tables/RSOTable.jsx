@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import InputModal from "../modals/InputModal";
 import { AnimatePresence } from "framer-motion";
 
-export default function RSOTable({ data, searchQuery, onUpdate }) {
+export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, deleteRSO }) {
     const safeSearchQuery = searchQuery || '';
     const [selectedUser, setSelectedUser] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -42,20 +42,22 @@ export default function RSOTable({ data, searchQuery, onUpdate }) {
      * @param {string} id - The ID of the organization.
      * @param {Object} updatedData - The updated data for the organization.
      */
-    const handleConfirm = (id, updatedData) => {
+    const handleConfirm = async (id, updatedData) => {
         console.log("Confirming data", id, updatedData);
 
         if (!updatedData) {
             // Delete the organization if no updated data is provided
-            onUpdate(data.filter(org => org.id !== id));
+            await deleteRSO(id);
+            onUpdate(data.filter(org => org._id !== id));
             return;
         }
 
         console.log("Saving or updating entry", updatedData);
 
         // Update the organization if it exists, otherwise add a new entry
-        const updatedRecords = data.some(org => org.id === id)
-            ? data.map(org => org.id === id ? { ...org, ...updatedData } : org)
+        await updateRSO(id, updatedData);
+        const updatedRecords = data.some(org => org._id === id)
+            ? data.map(org => org._id === id ? { ...org, ...updatedData } : org)
             : [...data, updatedData];
 
         onUpdate(updatedRecords);
@@ -72,39 +74,32 @@ export default function RSOTable({ data, searchQuery, onUpdate }) {
                             className="mb-4"
                             onClick={() => showModalInfo(org)}
                         >
-                            <div className="grid grid-cols-2 p-4 hover:bg-gray-300 border border-mid-gray rounded-lg cursor-pointer mt-2">
-                                {/* Organization Image and Name */}
+                            <td className="p-4 hover:bg-gray-300 border border-mid-gray rounded-lg cursor-pointer mt-2">
                                 <div className="flex items-center gap-4">
-                                    <td>
-                                        <img
-                                            src={org.RSO_picture}
-                                            alt={org.RSO_name}
-                                            width="50"
-                                            height="50"
-                                            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10"
-                                        />
-                                    </td>
+                                    <img
+                                        src={org.RSO_picture}
+                                        alt={org.RSO_name}
+                                        width="50"
+                                        height="50"
+                                        className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10"
+                                    />
                                     <div className="grid grid-col-1">
                                         <div>
-                                            <td>
-                                                <h1 className="text-lg font-semibold">
-                                                    {org.RSO_name}
-                                                </h1>
-                                            </td>
+                                            <h1 className="text-lg font-semibold">
+                                                {org.RSO_name}
+                                            </h1>
                                         </div>
                                         <div>
-                                            <td>{org.RSO_college}</td>
+                                            {org.RSO_college}
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Organization Category */}
                                 <div>
                                     <h1 className="text-gray-600">
-                                        <td>{org.RSO_category}</td>
+                                        {org.RSO_category}
                                     </h1>
                                 </div>
-                            </div>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -119,7 +114,7 @@ export default function RSOTable({ data, searchQuery, onUpdate }) {
                 {showModal && selectedUser && (
                     <InputModal
                         onClose={handleCloseModal}
-                        id={selectedUser?.id}
+                        id={selectedUser?._id}
                         acronym={selectedUser.RSO_acronym}
                         image={selectedUser.RSO_picture}
                         name={selectedUser.RSO_name}

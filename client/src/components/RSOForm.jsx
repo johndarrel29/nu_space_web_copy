@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import defaultPic from '../assets/images/default-profile.jpg';
 
-export default function RSOForm({ addOrganization, onSubmit }) {
+export default function RSOForm({ createRSO, onSubmit }) {
     // State for RSO picture and form data
     const [RSO_picture, setRSOPicture] = useState(null);
     const [formData, setFormData] = useState({
@@ -29,22 +29,25 @@ export default function RSOForm({ addOrganization, onSubmit }) {
      * Handles form submission.
      * @param {Object} e - The event object.
      */
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         console.log("Form Data:", formData);
+
+        // Convert RSO_tags to an array
+        const tagsArray = formData.RSO_tags.split(',').map(tag => tag.trim());
 
         // Generate ID if not present and prepare the new organization data
         const newOrg = {
             id: formData.id || Date.now(),
             ...formData,
+            RSO_tags: tagsArray,
             RSO_picture: RSO_picture || "No RSO_picture uploaded"
         };
 
         console.log("Form Data to be sent:", newOrg);
 
-        // Add the new organization and call the onSubmit callback if provided
-        addOrganization(newOrg);
-        onSubmit && onSubmit("Organization added successfully!");
+        // Call the createRSO function passed as a prop
+        await createRSO(newOrg);
 
         // Reset form data and picture
         setFormData({
@@ -62,6 +65,9 @@ export default function RSOForm({ addOrganization, onSubmit }) {
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
+
+        // Call the onSubmit callback if provided
+        onSubmit && onSubmit("Organization added successfully!");
     };
 
     /**
@@ -153,23 +159,23 @@ export default function RSOForm({ addOrganization, onSubmit }) {
                     <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
                     <div className='flex flex-row'>
                         <input
-                            id="default-checkbox"
+                            id="default-checkbox-true"
                             type="radio"
                             checked={formData.RSO_status === true}
                             onChange={() => setFormData({ ...formData, RSO_status: true })}
                             className="w-4 h-4 text-blue-600 bg-blue-600 border-blue-600 rounded-sm"
                         />
-                        <label htmlFor="default-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">True</label>
+                        <label htmlFor="default-checkbox-true" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">True</label>
                     </div>
                     <div className="flex items-center">
                         <input
-                            id="default-checkbox"
+                            id="default-checkbox-false"
                             type="radio"
                             checked={formData.RSO_status === false}
                             onChange={() => setFormData({ ...formData, RSO_status: false })}
                             className="w-4 h-4 text-blue-600 bg-blue-600 border-blue-600 rounded-sm"
                         />
-                        <label htmlFor="default-checkbox" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">False</label>
+                        <label htmlFor="default-checkbox-false" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">False</label>
                     </div>
                 </div>
 
@@ -221,30 +227,6 @@ export default function RSOForm({ addOrganization, onSubmit }) {
                         className="block w-full p-4 text-gray-900 border border-mid-gray rounded-lg bg-textfield text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         onChange={handleChange}
                         value={formData.RSO_description}
-                    />
-                </div>
-
-                {/* Password */}
-                <div className='mb-4'>
-                    <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="•••••••••"
-                        required
-                    />
-                </div>
-
-                {/* Confirm Password */}
-                <div className='mb-4'>
-                    <label htmlFor="confirm_password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm password</label>
-                    <input
-                        type="password"
-                        id="confirm_password"
-                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="•••••••••"
-                        required
                     />
                 </div>
 
