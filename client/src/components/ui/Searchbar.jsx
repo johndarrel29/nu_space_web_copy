@@ -13,7 +13,7 @@ function Searchbar({placeholder, searchQuery, setSearchQuery}) {
           type="text"
           placeholder={placeholder}
           value={searchQuery}
-          className="p-2 pl-10 rounded-md bg-textfield w-full border border-mid-gray text-gray-700"
+          className="p-2 pl-10 rounded-md bg-textfield w-full border border-mid-gray text-gray-700 focus:outline-none focus:ring-1 focus:ring-off-black"
           onChange={(e) => setSearchQuery(e.target.value)}
         />
 

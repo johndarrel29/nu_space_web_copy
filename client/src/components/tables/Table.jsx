@@ -100,19 +100,26 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
 
   const filteredRecords = useMemo(() => {
+
     if (!Array.isArray(users)) {
       console.error("Users is not an array:", users);
+      
       return []; // Return an empty array if users is not an array
     }
 
     return users.filter(user => {
+      console.log(user);
       const matchesSearch = ['firstName', 'lastName', 'email'].some(field => 
-        user[field]?.toLowerCase().includes(safeSearchQuery.toLowerCase())
+        typeof user[field] === 'string' && user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
       );
     
-      const matchesRole = selectedRole === "" || 
-      (selectedRole === "student" ? user.type.toLowerCase() === "student" : 
-      selectedRole === "student/RSO" ? user.type.toLowerCase().includes("/rso") : false);
+      console.log("selectedRole value:", selectedRole);
+      console.log("user type:", user.type);
+      console.log("user role:", user.role);
+      const matchesRole = !selectedRole || 
+      (selectedRole === "student" ? user.role?.toLowerCase() === "student" : 
+      selectedRole === "student/rso" ? user.role?.toLowerCase()?.includes("/rso") : false);
+    
     
       return matchesSearch && matchesRole;
     });
@@ -258,7 +265,8 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
 
       {data.length > 0 ? (
         <div className="border border-mid-gray rounded-md mb-4 rounded-md p-6 bg-card-bg">
-        <table className="min-w-full divide-y divide-gray-200 rounded-md  overflow-x-auto ">
+          <div className=' overflow-x-auto w-full'>
+        <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
           <thead className="bg-card-bg rounded-md ">
             <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider'>
               <th scope="col" className='px-6 py-3 '>Name</th>
@@ -280,6 +288,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
             )}
           </tbody>
         </table>
+        </div>
         </div>
       ) : <CardSkeleton/>}
 

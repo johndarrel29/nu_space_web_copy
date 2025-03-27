@@ -12,10 +12,10 @@ export default function MainDocuments() {
 
     return (
         <>              
-            <div className=" md:w-full bg-card-bg p-6 rounded-lg shadow-md">
-                <div className="w-1/2">
-                    <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>   
-                </div>                       
+            <div className="w-full bg-card-bg p-6 rounded-lg shadow-md">
+                <div className="lg:w-1/2 md:w-full">
+                    <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>                         
+                </div>
             </div>            
                 {/* Tab content*/}
                 <div className="mt-6 bg-card-bg rounded-lg shadow-md">
@@ -56,14 +56,14 @@ export default function MainDocuments() {
                     </ul>
                 </div>
                     
-                    {/* Matches the tab content with the selected tab */}
-                    <div className="border border-mid-gray bg-white   rounded-lg">
-                            {toggle === 1 &&   <DocumentTable category="All" searchQuery={searchQuery}/>}
-                            {toggle === 2 &&   <DocumentTable category="Probationary" searchQuery={searchQuery}/>}
-                            {toggle === 3 &&  <DocumentTable category="Professional" searchQuery={searchQuery}/>}
-                            {toggle === 4 &&  <DocumentTable category="Professional & Affiliates"searchQuery={searchQuery} />}
-                            {toggle === 5 &&  <DocumentTable category="Special Interest" searchQuery={searchQuery}/>}
-                        </div>
+        {/* Matches the tab content with the selected tab */}
+        <div className="border border-mid-gray bg-white rounded-lg">
+                {toggle === 1 &&   <DocumentTable category="All" searchQuery={searchQuery}/>}
+                {toggle === 2 &&   <DocumentTable category="Probationary" searchQuery={searchQuery}/>}
+                {toggle === 3 &&  <DocumentTable category="Professional" searchQuery={searchQuery}/>}
+                {toggle === 4 &&  <DocumentTable category="Professional & Affiliates"searchQuery={searchQuery} />}
+                {toggle === 5 &&  <DocumentTable category="Special Interest" searchQuery={searchQuery}/>}
+            </div>
 
         </>
     );

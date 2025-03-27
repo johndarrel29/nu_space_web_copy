@@ -1,30 +1,30 @@
 import { useState, useEffect, useMemo, memo  } from "react";
 import { MainLayout, Table, Searchbar } from "../../components";
 
-//TODO: fetch data from the server and display it in the table --Checked
-//TODO: Make changes to the table component to display the data
-
   // function to handle the search and filter
   const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole }) => {
     return (
       <>
-      <div className="flex space-x-2 w-full px-4 py-4 bg-card-bg rounded-md shadow-md">
-        <div className="w-1/2">
+      {/* search query */}
+      <div className=" w-full px-4 py-4 bg-card-bg rounded-md shadow-md flex flex-col space-x-0 space-y-2  md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
+        <div className="w-full lg:w-1/2 md:w-full">
           <Searchbar
             placeholder="Search an Organization"
             searchQuery={searchQuery || ''}
             setSearchQuery={setSearchQuery}
           />
         </div>
-        <div className="w-full">
+
+        {/* dropdown role filter */}
+        <div className="w-full lg:w-1/2 md:w-full">
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
-            className="w-1/2 h-10 border border-mid-gray rounded-md p-1 bg-textfield"
+            className="w-full h-10 border border-mid-gray rounded-md p-1 bg-textfield focus:outline-none focus:ring-off-black  focus:ring-1"
           >
             <option value="">All</option>
             <option value="student">Student</option>
-            <option value="student/RSO">Student/RSO</option>
+            <option value="student/rso">Student/RSO</option>
           </select>
         </div>
       </div>
