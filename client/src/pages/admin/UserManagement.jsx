@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, memo  } from "react";
-import { MainLayout, Table, Searchbar } from "../../components";
+import { MainLayout, Table, Searchbar, Button } from "../../components";
 
   // function to handle the search and filter
   const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole }) => {
@@ -7,7 +7,13 @@ import { MainLayout, Table, Searchbar } from "../../components";
       <>
       {/* search query */}
       <div className=" w-full px-4 py-4 bg-card-bg rounded-md shadow-md flex flex-col space-x-0 space-y-2  md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
-        <div className="w-full lg:w-1/2 md:w-full">
+        <div className="w-full lg:w-full md:w-full">
+        <label 
+          htmlFor="roleFilter" 
+          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >
+          Search
+        </label>
           <Searchbar
             placeholder="Search an Organization"
             searchQuery={searchQuery || ''}
@@ -17,6 +23,12 @@ import { MainLayout, Table, Searchbar } from "../../components";
 
         {/* dropdown role filter */}
         <div className="w-full lg:w-1/2 md:w-full">
+        <label 
+          htmlFor="roleFilter" 
+          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >
+            Filter by Role
+        </label>
           <select
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
@@ -27,6 +39,19 @@ import { MainLayout, Table, Searchbar } from "../../components";
             <option value="student/rso">Student/RSO</option>
           </select>
         </div>
+        <div className="w-full lg:w-1/2 md:w-full">
+            <label className="block mb-2 text-sm font-medium text-transparent select-none">
+              Action
+            </label>
+            <Button className="w-full flex justify-center items-center">
+                <div className='flex flex-row items-center gap-2'>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="fill-white size-4"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/></svg>
+                  <h1>Create New Account</h1>
+                </div>
+
+            </Button>
+        </div>
+
       </div>
 
 

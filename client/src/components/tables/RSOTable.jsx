@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import InputModal from "../modals/InputModal";
 import { AnimatePresence } from "framer-motion";
 
+//NOTE: RSO_picture is not defined in the backend, hence displaying the "" value
+
 export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, deleteRSO }) {
     const safeSearchQuery = searchQuery || '';
     const [selectedUser, setSelectedUser] = useState(null);
@@ -63,45 +65,55 @@ export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, 
         onUpdate(updatedRecords);
     };
 
+
     return (
         <>
             {/* Table to display RSO records */}
             <table className="w-full">
                 <tbody>
-                    {records.map((org, index) => (
+                    {records.map((org, index) => {
+                        console.log("Organization object:", org); 
+                     return (
+                        
                         <tr
                             key={index}
                             className="mb-4"
                             onClick={() => showModalInfo(org)}
                         >
-                            <td className="p-4 hover:bg-gray-300 border border-mid-gray rounded-lg cursor-pointer mt-2">
-                                <div className="flex items-center gap-4">
-                                    <img
-                                        src={org.RSO_picture}
-                                        alt={org.RSO_name}
-                                        width="50"
-                                        height="50"
-                                        className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10"
-                                    />
-                                    <div className="grid grid-col-1">
-                                        <div>
-                                            <h1 className="text-lg font-semibold">
-                                                {org.RSO_name}
-                                            </h1>
-                                        </div>
-                                        <div>
-                                            {org.RSO_college}
+                            <td className="pt-2   cursor-pointer mt-2">
+                                <div className="hover:bg-gray-300 border border-mid-gray rounded-lg flex flex-row p-4 justify-between items-center">
+                                    <div className="flex items-center gap-4">
+                                        <img
+                                            src={org.RSO_picture || ""}
+                                            alt={org.RSO_name}
+                                            width="50"
+                                            height="50"
+                                            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10"
+                                        />
+                                        <div className="grid grid-col-1">
+                                            <div>
+                                                <h1 className="text-lg font-semibold">
+                                                    {org.RSO_name}
+                                                </h1>
+                                            </div>
+                                            <div>
+                                                {org.RSO_college}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <h1 className="text-gray-600">
-                                        {org.RSO_category}
-                                    </h1>
+                                    
+                                    
+                                    <div>
+                                        <h1 className="text-gray-600 text-sm">
+                                            {org.RSO_category}
+                                        </h1>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
-                    ))}
+                    );
+                }
+                    )}
                 </tbody>
             </table>
 
