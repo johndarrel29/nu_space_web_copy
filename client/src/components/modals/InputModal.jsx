@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Backdrop } from "../ui";
 import deleteIcon from "../../assets/icons/trash-solid-white.svg";
+import { handleShortenName } from "../../utils/handleShortenName";
 
 export default function InputModal({
   onClose,
@@ -143,7 +144,9 @@ export default function InputModal({
         >
           {/* Modal Header */}
           <div className="flex justify-between items-center border-b pb-2">
-            <h3 className="text-lg font-bold">{`About ${userName}`}</h3>
+            <h3 className="text-lg font-bold">
+              {"About" + " " + handleShortenName(userName)}
+            </h3>
             <button onClick={handleOpen} className="text-gray-500">
               ✖
             </button>

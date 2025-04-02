@@ -1,8 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import defaultPic from '../assets/images/default-profile.jpg';
+import { Searchbar } from '../components';
+import  useSearchQuery  from "../hooks/useSearchQuery";
 
+//to test searchquery on tag, create a map on console log
+//if that works, replace it with the div that shows the selected tags like YT searchbar
 export default function RSOForm({ createRSO, onSubmit }) {
+    const { searchQuery, setSearchQuery } = useSearchQuery(); 
+    const [ data, setData ] = useState([]);
+    const [ tags, setTags ] = useState([]);
+    const safeSearchQuery = searchQuery || '';
+    const [input, setInput] = useState('');
     // State for RSO picture and form data
     const [RSO_picture, setRSOPicture] = useState(null);
     const [formData, setFormData] = useState({
@@ -14,6 +23,86 @@ export default function RSOForm({ createRSO, onSubmit }) {
         RSO_status: "",
         RSO_description: "",
     });
+
+
+    useEffect(() => {
+        async function fetchTags() {
+            const token = localStorage.getItem("token");
+            console.log("Stored token:", token);
+      
+            const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+            const headers = {
+                "Content-Type": "application/json",
+                "Authorization": token ? `Bearer ${formattedToken}` : "",
+              };
+
+            try {
+                console.log("Fetching tags from:", process.env.REACT_APP_FETCH_TAGS_URL);
+                const response = await fetch(`${process.env.REACT_APP_FETCH_TAGS_URL}`, {
+                    method: "GET",
+                    headers,
+                  });
+          
+                const data = await response.json();
+                setTags(data.tags.map(tagObj => tagObj.tag)); // Extract only the tag names
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        }
+        fetchTags();
+    }, []);
+
+    // const fetchData = (searchQuery) => {
+    //     const token = localStorage.getItem("token");
+    //     console.log("Stored token:", token);
+    
+    //     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    //     fetch (`${process.env.REACT_APP_FETCH_TAGS_URL}`, {
+    //         method: 'GET', // or POST, PUT, DELETE, etc.
+    //         headers: {
+    //           'Content-Type': 'application/json', // Ensure the content type is set
+    //           "Authorization": token ? `Bearer ${formattedToken}` : "",
+    //         },
+    //       })
+    //     .then((response) => response.json())
+    //     .then((json) => {
+    //         const results = json.filter((tag) => {
+    //             return tag && tag.tags && tag.tags.toLowerCase().includes(searchQuery.toLowerCase());
+    //         });
+    //         setData(results);
+    //     })
+    //     .catch((error) => {
+    //         console.error("Error fetching data:", error);
+    //     });
+
+    // }
+
+    // const handleTagChange = (searchQuery) => {
+    //     setInput(searchQuery);
+    //     fetchData(searchQuery);
+    // }
+
+    // useEffect(() => {
+    //     fetchData(safeSearchQuery);  // Fetch on initial load with the searchQuery
+    // }, [safeSearchQuery]);
+
+    
+    const searchedData = tags.filter(tag =>
+        tag.toLowerCase().includes(safeSearchQuery.toLowerCase())
+    );
+    
+    console.log("Searched Data:", searchedData);
+    console.log("Tags:", tags);
+
+    
+    useEffect(() => {
+        console.log("Current search query:", searchQuery);
+    }, [searchQuery]);
+
+    
+
 
     const fileInputRef = useRef(null);
 
@@ -143,15 +232,23 @@ export default function RSOForm({ createRSO, onSubmit }) {
                 {/* Tag */}
                 <div className='mb-4'>
                     <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tag</label>
-                    <input
-                        type="text"
-                        name="RSO_tags"
-                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="Insert a tag"
-                        required
-                        onChange={handleChange}
-                        value={formData.RSO_tags}
-                    />
+                    <div className='p-2 pl-4 pr-4'>
+                        <Searchbar
+                        placeholder="Search a tag"
+                        style="secondary"
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery} 
+                        />
+                        
+
+
+                        <div className='w-full p-2 mt-2 bg-white border border-mid-gray rounded-lg'>
+                            <div className='flex flex-col items-center justify-center h-20'>
+                                <h1 className='text-sm text-dark-gray'><em>No tags selected.</em></h1>
+                            </div>                       
+                        </div>
+                    </div>
+
                 </div>
 
                 {/* Status Checkbox */}
@@ -221,8 +318,9 @@ export default function RSOForm({ createRSO, onSubmit }) {
                 {/* Description */}
                 <div className='mb-4'>
                     <label htmlFor="large-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Simple Description</label>
-                    <input
+                    <textarea
                         type="text"
+                        rows="4"
                         name="RSO_description"
                         className="block w-full p-4 text-gray-900 border border-mid-gray rounded-lg bg-textfield text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         onChange={handleChange}

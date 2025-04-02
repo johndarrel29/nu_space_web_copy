@@ -3,9 +3,10 @@ import { RSOTable, Searchbar, Notification } from "../../components";
 import RSOForm from "../../components/RSOForm";
 import { motion, AnimatePresence } from "framer-motion";
 import Skeleton from 'react-loading-skeleton';
+import  useSearchQuery  from "../../hooks/useSearchQuery";
 
 export default function MainRSO() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const { searchQuery, setSearchQuery } = useSearchQuery(); 
   const [organizations, setOrganizations] = useState([]);
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(false);

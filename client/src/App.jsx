@@ -19,6 +19,7 @@ import PreLoader from './components/Preloader';
 import { useEffect, useState } from 'react';
 import Review from './pages/admin/Review';
 import { SkeletonTheme } from 'react-loading-skeleton'
+import ProtectedRoutes from './utils/ProtectedRoute';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -41,23 +42,27 @@ function App() {
       <Routes>
         <Route index element={<Login />} />
         <Route path="/login" element={<Login />} />
-      
-        <Route path="/error" element={<ErrorPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/user-management" element={<UserManagement />} />
-        <Route path="/documents" element={<Documents />} >
-          <Route index element={<MainDocuments />} />
-          <Route path="main-activities" element={<MainActivities />} >
-            <Route index element={<Activities />} />
-            <Route path="requirements" element={<Requirements />} />
-            <Route path="review" element={<Review/>}/>
+
+        {/* Authenticates user and redirects to dashboard if already logged in */}
+          <Route element={<ProtectedRoutes />}>
+            <Route path="/error" element={<ErrorPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/user-management" element={<UserManagement />} />
+            <Route path="/documents" element={<Documents />} >
+              <Route index element={<MainDocuments />} />
+              <Route path="main-activities" element={<MainActivities />} >
+                <Route index element={<Activities />} />
+                <Route path="requirements" element={<Requirements />} />
+                <Route path="review" element={<Review/>}/>
+              </Route>
+            </Route>
+            <Route path="/admin-account" element={<AdminAccount />} />
+            
+            <Route path="/rso-management" element={<RSOManagement />} >
+              <Route index element={<MainRSO />} />
+            </Route>
           </Route>
-        </Route>
-        <Route path="/admin-account" element={<AdminAccount />} />
         
-        <Route path="/rso-management" element={<RSOManagement />} >
-          <Route index element={<MainRSO />} />
-        </Route>
       </Routes>
       </SkeletonTheme>
       )}   
