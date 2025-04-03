@@ -1,7 +1,7 @@
 
 
 
-function Searchbar({placeholder, searchQuery, setSearchQuery, style}) {
+function Searchbar({placeholder, searchQuery, setSearchQuery, style, setShowSearch}) {
 
   const handleSearchModeChange = style === "secondary" ? "p-2 pl-10 rounded-md bg-textfield w-full border border-none text-gray-700 focus:outline-none focus:ring-1 focus:ring-off-black" : "p-2 pl-10 rounded-md bg-textfield w-full border border-mid-gray text-gray-700 focus:outline-none focus:ring-1 focus:ring-off-black";
 
@@ -15,6 +15,7 @@ function Searchbar({placeholder, searchQuery, setSearchQuery, style}) {
           value={searchQuery}
           className={handleSearchModeChange}
           onChange={(e) => setSearchQuery(e.target.value)}
+
         />
 
     </div>
