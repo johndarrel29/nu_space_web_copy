@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import LoadingAnimation from '../layout/LoadingAnimation';
 import ActionModal from '../modals/ActionModal';
 import editIcon from "../../assets/icons/pen-to-square-solid.svg";
 import deleteIcon from "../../assets/icons/trash-solid.svg";

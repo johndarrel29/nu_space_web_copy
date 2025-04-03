@@ -3,13 +3,15 @@ import InputModal from "../modals/InputModal";
 import { AnimatePresence } from "framer-motion";
 import { handleShortenName } from "../../utils/handleShortenName";
 
+
+//TODO: Make the changes reflect without reloading the page
 //NOTE: RSO_picture is not defined in the backend, hence displaying the "" value
+
 
 export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, deleteRSO }) {
     const safeSearchQuery = searchQuery || '';
     const [selectedUser, setSelectedUser] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [shortenName, setShortenName] = useState(false);
 
     /**
      * Filters data based on the search query.

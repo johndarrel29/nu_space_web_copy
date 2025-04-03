@@ -4,8 +4,9 @@ import defaultPic from '../assets/images/default-profile.jpg';
 import { Searchbar, SearchResultsList } from '../components';
 import  useSearchQuery  from "../hooks/useSearchQuery";
 
-//TODO: Componentize the useeffect API calls, -done
 //And all other suggestions made by the GPT
+
+//there's tags already present for each rso, find a way to display them in the modal 
 
 //Future Idea: Create a table for the whole RSO instead of the history form displaying all of them
 
@@ -14,6 +15,7 @@ export default function RSOForm({ createRSO, onSubmit }) {
     const [showSearch, setShowSearch] = useState([]);
     const [ tags, setTags ] = useState([]);
     const safeSearchQuery = searchQuery || '';
+    const [selectedTags, setSelectedTags] = useState([]);
 
     // State for RSO picture and form data
     const [RSO_picture, setRSOPicture] = useState(null);
@@ -22,7 +24,7 @@ export default function RSOForm({ createRSO, onSubmit }) {
         RSO_acronym: "",
         RSO_category: "",
         RSO_tags: "",
-        RSO_college: "",
+        RSO_College: "",
         RSO_status: "",
         RSO_description: "",
     });
@@ -89,14 +91,11 @@ export default function RSOForm({ createRSO, onSubmit }) {
         e.preventDefault();
         console.log("Form Data:", formData);
 
-        // Convert RSO_tags to an array
-        const tagsArray = formData.RSO_tags.split(',').map(tag => tag.trim());
-
         // Generate ID if not present and prepare the new organization data
         const newOrg = {
             id: formData.id || Date.now(),
             ...formData,
-            RSO_tags: tagsArray,
+            RSO_tags: selectedTags,
             RSO_picture: RSO_picture || "No RSO_picture uploaded"
         };
 
@@ -111,11 +110,13 @@ export default function RSOForm({ createRSO, onSubmit }) {
             RSO_acronym: "",
             RSO_category: "",
             RSO_tags: "",
-            RSO_college: "",
+            RSO_College: "",
             RSO_status: "",
             RSO_description: "",
         });
         setRSOPicture(null);
+        setSelectedTags([]);
+        setSearchQuery("");
 
         // Reset file input
         if (fileInputRef.current) {
@@ -137,6 +138,20 @@ export default function RSOForm({ createRSO, onSubmit }) {
             setRSOPicture(imageUrl);
         }
     };
+
+    function handleTagClick(tag) {
+        console.log("Tag clicked:", tag);
+    
+        // If the tag is already selected, remove it; otherwise, add it
+        setSelectedTags((prevTags) =>
+            prevTags.includes(tag) ? prevTags.filter((t) => t !== tag) : [...prevTags, tag]
+        );
+        //empty the search query
+        setSearchQuery("");
+        
+    }
+    
+    
 
     return (
         <>
@@ -209,12 +224,39 @@ export default function RSOForm({ createRSO, onSubmit }) {
                             setShowSearch={setShowSearch}
                             />
 
-                        <SearchResultsList showSearch={searchedData} searchQuery={searchQuery}/>    
+                        <SearchResultsList 
+                        showSearch={searchedData} 
+                        searchQuery={searchQuery} 
+                        handleTagClick={handleTagClick}
+                        />    
 
                         </div>
-                        <div className='w-full p-2 mt-2 bg-white border border-mid-gray rounded-lg'>
-                        <div className='flex flex-col items-center justify-center h-20'>
-                            <h1 className='text-sm text-dark-gray'><em>No tags selected.</em></h1>
+
+                    {/* tag table */}
+                    <div className='w-full p-2 mt-2 bg-white border border-mid-gray rounded-lg'>
+                        
+                        <div className='grid grid-cols-4 items-center justify-center space-y-2'>
+                            {/* tag */}
+
+                            { selectedTags.length > 0 ? 
+                            selectedTags.map((tag, index) => (
+                                <span key={index} className="flex items-center justify-center  bg-blue-100 text-primary text-xs font-medium me-2 px-2.5 py-0.5 rounded-[50px] dark:bg-gray-700 dark:text-primary border border-primary">
+                                <div className='flex flex-row items-center space-x-2 p-1 '>
+                                    <h1 className='text-sm text-dark-gray text-primary'>{tag}</h1>
+                                    <div
+                                    onClick={() => handleTagClick(tag)}
+                                    className='cursor-pointer hover:bg-gray-200 rounded-full p-1'
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="fill-primary size-4" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                                    </div>
+                                </div>
+                            </span>
+                            )
+                        ) : (
+                                <h1 className='text-sm text-dark-gray'><em>No tags selected.</em></h1>
+                        )}
+
+                            
                         </div>                       
                     </div>
                     </div>
@@ -253,11 +295,11 @@ export default function RSOForm({ createRSO, onSubmit }) {
                     <div className='mb-4'>
                         <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Colleges</label>
                         <select
-                            name='RSO_college'
+                            name='RSO_College'
                             className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-lg focus:ring-blue-500 placeholder-gray-300 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                             required
                             onChange={handleChange}
-                            value={formData.RSO_college}
+                            value={formData.RSO_College}
                         >
                             <option value="" disabled className='text-gray-300'>Select College</option>
                             <option value="CAH">CAH</option>
@@ -318,7 +360,7 @@ export default function RSOForm({ createRSO, onSubmit }) {
                 {/* Submit Button */}
                 <button
                     type="submit"
-                    className="text-white bg-[#314095] hover:bg-[#2E3C88] focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    className="text-white bg-[#314095] hover:bg-[#2E3C88] focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-primary"
                 >
                     Submit
                 </button>

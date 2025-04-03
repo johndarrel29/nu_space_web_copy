@@ -43,23 +43,26 @@ const [organizations, setOrganizations] = useState([]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]); // Now fetchData won't cause re-renders
+  }, [fetchData]); 
         
 
   const createRSO = async (newOrg) => {
     try {
       const token = localStorage.getItem("token");
       const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-
-      const headers = {
-        "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
-      };
-
+      console.log("Submitting new RSO:", newOrg);
+      console.log("Request URL:", process.env.REACT_APP_CREATE_RSO_URL);
+      
       const response = await fetch(`${process.env.REACT_APP_CREATE_RSO_URL}`, {
         method: "POST",
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization":  token ? `Bearer ${formattedToken}` : "",
+          
+        },
+        
         body: JSON.stringify(newOrg),
+        
       });
 
       if (!response.ok) {
