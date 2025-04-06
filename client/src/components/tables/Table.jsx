@@ -1,78 +1,24 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import ActionModal from '../modals/ActionModal';
-import editIcon from "../../assets/icons/pen-to-square-solid.svg";
-import deleteIcon from "../../assets/icons/trash-solid.svg";
+import {ActionModal, TableRow } from '../../components';
 import 'react-loading-skeleton/dist/skeleton.css'
 import { CardSkeleton } from '../../components'; 
+import { AnimatePresence } from "framer-motion";
+import   { useModal }  from "../../hooks";
 import axios from "axios";
 
 
-// TableRow Component
-const TableRow = ({ user, onOpenModal, index }) => {
-  const handleActionClick = (action) => () => {
-    onOpenModal(action, user);
-  };
-
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
-  const roleClass = user.role === 'student' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-
-  return (
-    <tr className='hover:bg-gray-200' >
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center">
-          <div className="text-sm font-medium text-gray-900">{index}</div>
-          <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">{fullName}</div>
-            <div className="text-sm text-gray-500">{user.email}</div>
-          </div>
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="text-sm text-gray-900">{user.college}</div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}`}>
-          {user.role}
-        </span>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}`}>
-          {user.role === 'student' ? user.role : 'RSO Name'}
-        </span>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        {user.quantity}
-        <div className='space-x-2 h-8 w-8 flex justify-center items-center'>
-          <div 
-            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 hover:bg-gray-300 transition duration-300 cursor-pointer"
-            onClick={handleActionClick('edit')}
-          >          
-            <img src={editIcon} alt="edit" className="size-4"/>
-
-          </div>
-          <div 
-            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 hover:bg-gray-300 transition duration-300 cursor-pointer"
-            onClick={handleActionClick('delete')}
-          >          
-            <img src={deleteIcon} alt="delete" className="size-4"/>
-          </div>
-        </div>
-      </td>
-    </tr>
-  );
-};
 
 // Table Component
 const Table = React.memo(({ searchQuery, data, selectedRole }) => {
-  const [showModal, setShowModal] = useState(false);
   const [mode, setMode] = useState('delete');
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage, setPostsPerPage] = useState(10);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+  const { isOpen, openModal, closeModal } = useModal();
 
   useEffect(() => {
     console.log("Data received:", data, "Type:", typeof data);
@@ -80,7 +26,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   }, [data]);
 
   useEffect(() => {
-    console.log("Data received:", data); // Check if data is an array
+    console.log("Data received:", data); 
     setUsers(data);
   }, [data]);
 
@@ -133,13 +79,13 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const npage = useMemo(() => Math.ceil(filteredRecords.length / postsPerPage), [filteredRecords, postsPerPage]);
 
   const handleOpenModal = useCallback((mode, user) => {
-    setShowModal(true);
+    openModal();
     setMode(mode);
     setSelectedUser(user);
   }, []);
 
   const handleCloseModal = useCallback(() => {
-    setShowModal(false);
+    closeModal();
     setSelectedUser(null);
   }, []);
 
@@ -212,7 +158,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
         console.error("Error updating/deleting user:", error);
       } finally {
         // Close the modal after the operation
-        setShowModal(false);
+        closeModal();
       }
   }, [fetchUsers]);
   
@@ -226,8 +172,12 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
 
   return (
     <div className=' min-w-full mt-6 sm:min-w-1/2 '>
-      
-      {showModal && (
+    <AnimatePresence
+        initial={false}
+        exitBeforeEnter={true}
+        onExitComplete={() => null}
+    >
+      {isOpen && (
         
         <ActionModal
         
@@ -235,13 +185,19 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
           mode={mode}
           id={selectedUser?._id}
           name={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : ''}
-          date={selectedUser?.date}
+          createdAt={selectedUser?.createdAt} 
           email={selectedUser?.email}
           role={selectedUser?.role}
+          category={selectedUser?.assigned_rso?.RSO_acronym}
           user={selectedUser}
           onConfirm={handleConfirm}
+
         />
+        
+        
       )}
+      </AnimatePresence>
+      
 
       <div className="flex justify-between items-center mb-4">
         <span className="text-gray-700 font-semibold">
@@ -266,17 +222,39 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
         <div className="border border-mid-gray rounded-md mb-4 rounded-md p-6 bg-card-bg">
           <div className=' overflow-x-auto w-full'>
         <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
-          <thead className="bg-card-bg rounded-md ">
+          <thead className="bg-card-bg rounded-md border-b border-gray-400">
             <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider'>
-              <th scope="col" className='px-6 py-3 '>Name</th>
-              <th scope="col" className='px-6 py-3'>Date Created</th>
-              <th scope="col" className='px-6 py-3'>Role</th>
-              <th scope="col" className='px-6 py-3'>Category</th>
-              <th scope="col" className='px-6 py-3'>Actions</th>
+              <th scope="col" className='px-6 py-3'>
+                  <div className="flex items-center justify-center">
+                    Name
+                  </div>
+                </th>
+              <th scope="col" className='px-6 py-3'>
+                  <div className="flex items-center justify-center">
+                    Date Created
+                  </div>
+              </th>
+              <th scope="col" className='px-6 py-3'>
+                <div className="flex items-center justify-center">
+                  Role
+                </div>
+              </th>
+              <th scope="col" className='px-6 py-3'>
+                <div className="flex items-center justify-center">
+                  Category
+                </div>
+              </th>
+              <th scope="col" className='px-6 py-3'>
+                <div className="flex items-center justify-center">
+                  Actions
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody className="bg-card-bg divide-y divide-gray-200">
             {records.length > 0 ? records.map((user, index) => (
+              
+              
               <TableRow key={index} user={user} onOpenModal={handleOpenModal} index={(currentPage - 1) * postsPerPage + index + 1}/>
             )) : (
               <tr>

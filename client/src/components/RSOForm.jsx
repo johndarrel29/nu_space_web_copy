@@ -4,11 +4,8 @@ import defaultPic from '../assets/images/default-profile.jpg';
 import { Searchbar, SearchResultsList } from '../components';
 import  useSearchQuery  from "../hooks/useSearchQuery";
 
-//And all other suggestions made by the GPT
-
-//there's tags already present for each rso, find a way to display them in the modal 
-
-//Future Idea: Create a table for the whole RSO instead of the history form displaying all of them
+//TODO: Make the tag into a separate component and use it in the RSOForm component
+//Once created, find a way to pass the component if it is for ready and update, or create
 
 export default function RSOForm({ createRSO, onSubmit }) {
     const { searchQuery, setSearchQuery } = useSearchQuery(); 
@@ -16,6 +13,7 @@ export default function RSOForm({ createRSO, onSubmit }) {
     const [ tags, setTags ] = useState([]);
     const safeSearchQuery = searchQuery || '';
     const [selectedTags, setSelectedTags] = useState([]);
+    const [ isFocused, setIsFocused ] = useState(false);
 
     // State for RSO picture and form data
     const [RSO_picture, setRSOPicture] = useState(null);
@@ -58,9 +56,10 @@ export default function RSOForm({ createRSO, onSubmit }) {
         fetchTags();
     }, []);
    
-    const searchedData = tags.filter(tag =>
-        searchQuery && tag.toLowerCase().includes(safeSearchQuery.toLowerCase())
-    );
+    const searchedData = isFocused 
+    ? tags.filter(tag => !searchQuery || tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
+
 
     console.log("Searched Data:", searchedData);
     console.log("Tags:", tags);
@@ -222,6 +221,8 @@ export default function RSOForm({ createRSO, onSubmit }) {
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery} 
                             setShowSearch={setShowSearch}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                             />
 
                         <SearchResultsList 

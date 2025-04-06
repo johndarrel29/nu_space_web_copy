@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import useRSO from '../../hooks/useRSO';
 
-export default function DropdownSearch({ isDisabled }) {
+export default function DropdownSearch({ isDisabled, category }) {
   const { organizations, loading } = useRSO();
   const [selectedOption, setSelectedOption] = useState(null);
   const [isLoading, setIsLoading] = useState(true); 
@@ -32,7 +32,7 @@ export default function DropdownSearch({ isDisabled }) {
       isDisabled={isDisabled}
       isClearable={true}
       isSearchable={true}
-      value={selectedOption} 
+      value={category ? { value: category, label: category } : selectedOption}
       onChange={setSelectedOption}
     />
   );

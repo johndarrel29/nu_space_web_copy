@@ -1,8 +1,12 @@
 import { useState, useEffect, useMemo, memo  } from "react";
 import { MainLayout, Table, Searchbar, Button } from "../../components";
+import   { useModal }  from "../../hooks";
+import { AnimatePresence } from "framer-motion";
+import { CreateUserModal } from "../../components";
 
   // function to handle the search and filter
-  const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole }) => {
+  const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole, openModal }) => {
+
     return (
       <>
       {/* search query */}
@@ -43,7 +47,9 @@ import { MainLayout, Table, Searchbar, Button } from "../../components";
             <label className="block mb-2 text-sm font-medium text-transparent select-none">
               Action
             </label>
-            <Button className="w-full flex justify-center items-center">
+            <Button className="w-full flex justify-center items-center"
+            onClick={openModal}
+            >
                 <div className='flex flex-row items-center gap-2'>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="fill-white size-4"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/></svg>
                   <h1>Create New Account</h1>
@@ -67,6 +73,7 @@ import { MainLayout, Table, Searchbar, Button } from "../../components";
   const [selectedRole, setSelectedRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { isOpen, openModal, closeModal } = useModal();
 
 
   // fetch data from json file
@@ -122,12 +129,22 @@ useEffect(() => {
         <>
             <MainLayout
             tabName="User Management"
-            headingTitle="Monitor RSO and Student accounts"
+            headingTitle="Monitor Student/RSO and Student accounts"
             > 
-            <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole}  />
+            <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/>
             
             <Table data={memoizedData} searchQuery={searchQuery} selectedRole={selectedRole}/>
-            
+
+          <AnimatePresence
+              initial={false}
+              exitBeforeEnter={true}
+              onExitComplete={() => null}
+          >
+            {isOpen && (
+                <CreateUserModal closeModal={closeModal}/>
+
+            )}
+            </AnimatePresence>
                 
             </MainLayout>
 

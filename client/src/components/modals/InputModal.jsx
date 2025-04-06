@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Backdrop } from "../ui";
 import deleteIcon from "../../assets/icons/trash-solid-white.svg";
 import { handleShortenName } from "../../utils/handleShortenName";
+import  {DropIn}  from "../../animations/DropIn";
 
 export default function InputModal({
   onClose,
@@ -67,26 +68,6 @@ export default function InputModal({
     onClose();
   };
 
-  // Modal animation variants
-  const dropIn = {
-    hidden: {
-      y: "-100vh",
-      opacity: 0,
-    },
-    visible: {
-      y: "0",
-      opacity: 1,
-      transition: {
-        duration: 0.3,
-        type: "tween",
-        ease: "easeInOut",
-      },
-    },
-    exit: {
-      y: "100vh",
-      opacity: 0,
-    },
-  };
 
   /**
    * Handles image file selection and updates the user image state.
@@ -137,7 +118,7 @@ export default function InputModal({
         {/* Modal */}
         <motion.div
           className="bg-white overflow-hidden rounded-lg shadow-lg w-[90%] max-w-[600px] p-4"
-          variants={dropIn}
+          variants={DropIn}
           initial="hidden"
           animate="visible"
           exit="exit"
@@ -213,7 +194,7 @@ export default function InputModal({
               </div>
 
               {/* Category and Tags */}
-              <div className="grid grid-cols-2 gap-4">
+              
                 {/* Category */}
                 <div className="flex flex-col mb-4">
                   <label htmlFor="type" className="mb-2 font-bold text-lg">
@@ -239,7 +220,7 @@ export default function InputModal({
                 </div>
 
                 {/* Tags */}
-                <div className="flex flex-col mb-4">
+                 <div className="flex flex-col mb-4">
                   <label htmlFor="type" className="mb-2 font-bold text-lg">
                     Tags
                   </label>
@@ -251,8 +232,7 @@ export default function InputModal({
                     onChange={(e) => setUserTags(e.target.value)}
                     className="border py-2 px-3 text-grey-darkest"
                   />
-                </div>
-              </div>
+                </div> 
 
               {/* Colleges */}
               <div className="mb-4">

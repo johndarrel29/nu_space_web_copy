@@ -5,8 +5,6 @@ import { handleShortenName } from "../../utils/handleShortenName";
 
 
 //TODO: Make the changes reflect without reloading the page
-//NOTE: RSO_picture is not defined in the backend, hence displaying the "" value
-
 
 export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, deleteRSO }) {
     const safeSearchQuery = searchQuery || '';
