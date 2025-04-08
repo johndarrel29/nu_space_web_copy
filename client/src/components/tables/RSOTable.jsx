@@ -134,7 +134,7 @@ export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, 
                     description={selectedUser.RSO_description}
                     college={selectedUser.RSO_college}
                     status={selectedUser.RSO_status}
-                    tags={selectedUser.RSO_tags}
+                    tags={selectedUser.RSO_tags.map(tag => tag.tag)}
                     onConfirm={handleConfirm}
                 />
             )}

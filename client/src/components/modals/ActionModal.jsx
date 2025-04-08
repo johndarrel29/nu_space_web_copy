@@ -74,8 +74,8 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                   // Edit Role Layout
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center">
-                      <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-yellow-100 sm:mx-0 sm:size-10">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 text-orange-600" fill='none'>
+                      <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-[#BAC1E3] sm:mx-0 sm:size-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6 text-primary" fill='none'>
                           <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                         </svg>
                       </div>
@@ -85,7 +85,7 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                     <div className="col-span-2"></div>
 
                     <div>
-                      <h1 className="text-blue-600">Name:</h1>
+                      <h1 className="text-primary">Name:</h1>
                       <h1>{name}</h1>
                     </div>
 
@@ -95,7 +95,7 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                     </div>
 
                     <div>
-                      <h1 className="text-blue-600">Date Created:</h1>
+                      <h1 className="text-primary">Date Created:</h1>
                       <h1>{formattedDate}</h1>
                     </div>
 
@@ -108,7 +108,7 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                     </div>
 
                     <div>
-                      <h1 className="text-blue-600">Email:</h1>
+                      <h1 className="text-primary">Email:</h1>
                       <h1>{email}</h1>
                     </div>
                   </div>
@@ -121,7 +121,7 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                   type="button"
                   onClick={handleConfirm}
                   className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-xs sm:ml-3 sm:w-auto 
-                  ${mode === 'delete' ? 'bg-red-600 hover:bg-red-500' : 'bg-blue-600 hover:bg-blue-500'}`}
+                  ${mode === 'delete' ? 'bg-red-600 hover:bg-red-500' : 'bg-primary hover:bg-blue-500'}`}
                 >
                   {mode === 'delete' ? 'Delete' : 'Save'}
                 </button>

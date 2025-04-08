@@ -1,19 +1,31 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import defaultPic from '../assets/images/default-profile.jpg';
-import { Searchbar, SearchResultsList } from '../components';
+import  TagSelector  from '../components/TagSelector';
 import  useSearchQuery  from "../hooks/useSearchQuery";
+import useTagSelector from '../hooks/useTagSelector';
 
-//TODO: Make the tag into a separate component and use it in the RSOForm component
+//TODO: Make the tag into a separate component and use it in the RSOForm component - done
 //Once created, find a way to pass the component if it is for ready and update, or create
 
 export default function RSOForm({ createRSO, onSubmit }) {
-    const { searchQuery, setSearchQuery } = useSearchQuery(); 
-    const [showSearch, setShowSearch] = useState([]);
+    
     const [ tags, setTags ] = useState([]);
-    const safeSearchQuery = searchQuery || '';
-    const [selectedTags, setSelectedTags] = useState([]);
-    const [ isFocused, setIsFocused ] = useState(false);
+    const [showSearch, setShowSearch] = useState([]);
+
+
+    const {
+        selectedTags,
+        setSelectedTags,
+        searchQuery,
+        setSearchQuery,
+        isFocused,
+        setIsFocused,
+        searchedData,
+        handleTagClick,
+        handleApiTagRemove
+    } = useTagSelector();
+
 
     // State for RSO picture and form data
     const [RSO_picture, setRSOPicture] = useState(null);
@@ -27,38 +39,6 @@ export default function RSOForm({ createRSO, onSubmit }) {
         RSO_description: "",
     });
 
-
-    useEffect(() => {
-        async function fetchTags() {
-            const token = localStorage.getItem("token");
-            console.log("Stored token:", token);
-      
-            const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-
-            const headers = {
-                "Content-Type": "application/json",
-                "Authorization": token ? `Bearer ${formattedToken}` : "",
-              };
-
-            try {
-                console.log("Fetching tags from:", process.env.REACT_APP_FETCH_TAGS_URL);
-                const response = await fetch(`${process.env.REACT_APP_FETCH_TAGS_URL}`, {
-                    method: "GET",
-                    headers,
-                  });
-          
-                const data = await response.json();
-                setTags(data.tags.map(tagObj => tagObj.tag)); 
-            } catch (error) {
-                console.error('Error fetching tags:', error);
-            }
-        }
-        fetchTags();
-    }, []);
-   
-    const searchedData = isFocused 
-    ? tags.filter(tag => !searchQuery || tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    : [];
 
 
     console.log("Searched Data:", searchedData);
@@ -137,18 +117,6 @@ export default function RSOForm({ createRSO, onSubmit }) {
             setRSOPicture(imageUrl);
         }
     };
-
-    function handleTagClick(tag) {
-        console.log("Tag clicked:", tag);
-    
-        // If the tag is already selected, remove it; otherwise, add it
-        setSelectedTags((prevTags) =>
-            prevTags.includes(tag) ? prevTags.filter((t) => t !== tag) : [...prevTags, tag]
-        );
-        //empty the search query
-        setSearchQuery("");
-        
-    }
     
     
 
@@ -210,61 +178,17 @@ export default function RSOForm({ createRSO, onSubmit }) {
                     />
                 </div>
 
-                {/* Tag */}
-                <div className=' mb-4'>
-                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tag</label>
-                    <div className='p-2 pl-4 pr-4'>
-                        <div className=' relative'>
-                            <Searchbar
-                            placeholder="Search a tag"
-                            style="secondary"
-                            searchQuery={searchQuery}
-                            setSearchQuery={setSearchQuery} 
-                            setShowSearch={setShowSearch}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-                            />
-
-                        <SearchResultsList 
-                        showSearch={searchedData} 
-                        searchQuery={searchQuery} 
-                        handleTagClick={handleTagClick}
-                        />    
-
-                        </div>
-
-                    {/* tag table */}
-                    <div className='w-full p-2 mt-2 bg-white border border-mid-gray rounded-lg'>
-                        
-                        <div className='grid grid-cols-4 items-center justify-center space-y-2'>
-                            {/* tag */}
-
-                            { selectedTags.length > 0 ? 
-                            selectedTags.map((tag, index) => (
-                                <span key={index} className="flex items-center justify-center  bg-blue-100 text-primary text-xs font-medium me-2 px-2.5 py-0.5 rounded-[50px] dark:bg-gray-700 dark:text-primary border border-primary">
-                                <div className='flex flex-row items-center space-x-2 p-1 '>
-                                    <h1 className='text-sm text-dark-gray text-primary'>{tag}</h1>
-                                    <div
-                                    onClick={() => handleTagClick(tag)}
-                                    className='cursor-pointer hover:bg-gray-200 rounded-full p-1'
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="fill-primary size-4" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
-                                    </div>
-                                </div>
-                            </span>
-                            )
-                        ) : (
-                                <h1 className='text-sm text-dark-gray'><em>No tags selected.</em></h1>
-                        )}
-
-                            
-                        </div>                       
-                    </div>
-                    </div>
-
-
-
-                </div>
+                {/* Tags Management */}
+                <TagSelector
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    setShowSearch={setShowSearch}
+                    setIsFocused={setIsFocused}
+                    searchedData={searchedData}
+                    handleTagClick={handleTagClick}
+                    selectedTags={selectedTags}
+                    handleApiTagRemove={handleApiTagRemove}
+                />
 
                 {/* Status Checkbox */}
                 <div className="mb-4">

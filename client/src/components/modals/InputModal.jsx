@@ -4,6 +4,8 @@ import { Backdrop } from "../ui";
 import deleteIcon from "../../assets/icons/trash-solid-white.svg";
 import { handleShortenName } from "../../utils/handleShortenName";
 import  {DropIn}  from "../../animations/DropIn";
+import TagSelector from "../TagSelector";
+import { useTagSelector } from "../../hooks"
 
 export default function InputModal({
   onClose,
@@ -28,6 +30,23 @@ export default function InputModal({
   const [userCollege, setUserCollege] = useState("");
   const [userStatus, setUserStatus] = useState("");
   const [userTags, setUserTags] = useState("");
+  const [showSearch, setShowSearch] = useState([]);
+
+  const {
+    selectedTags,
+    setSelectedTags,
+    searchQuery,
+    setSearchQuery,
+    isFocused,
+    setIsFocused,
+    searchedData,
+    handleTagClick
+} = useTagSelector();
+
+useEffect(() => {
+  console.log("Current search query:", searchQuery);
+}, [searchQuery]);
+
 
   // Log received props for debugging
   useEffect(() => {
@@ -51,7 +70,7 @@ export default function InputModal({
     setUserImage(image || "");
     setUserCollege(college || "");
     setUserStatus(status === true || status === "true" ? true : status === false || status === "false" ? false : status);
-    setUserTags(Array.isArray(tags) ? tags.join(", ") : tags || "");
+    setUserTags(Array.isArray(tags) ? tags.map(tag => tag.tag).join(", ") : "");
     setUserCategory(category || "");
     setUserDescription(description || "");
   }, [acronym, image, name, category, description, college, status, tags]);
@@ -220,7 +239,7 @@ export default function InputModal({
                 </div>
 
                 {/* Tags */}
-                 <div className="flex flex-col mb-4">
+                 {/* <div className="flex flex-col mb-4">
                   <label htmlFor="type" className="mb-2 font-bold text-lg">
                     Tags
                   </label>
@@ -232,7 +251,19 @@ export default function InputModal({
                     onChange={(e) => setUserTags(e.target.value)}
                     className="border py-2 px-3 text-grey-darkest"
                   />
-                </div> 
+                </div>  */}
+
+              {/* Tags Management */}
+              <TagSelector
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  setShowSearch={setShowSearch}
+                  setIsFocused={setIsFocused}
+                  searchedData={searchedData}
+                  handleTagClick={handleTagClick}
+                  selectedTags={selectedTags}
+                  apiTags={tags}
+              />
 
               {/* Colleges */}
               <div className="mb-4">

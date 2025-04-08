@@ -32,6 +32,7 @@ export default function DropdownSearch({ isDisabled, category }) {
       isDisabled={isDisabled}
       isClearable={true}
       isSearchable={true}
+      menuPortalTarget={document.body}
       value={category ? { value: category, label: category } : selectedOption}
       onChange={setSelectedOption}
     />

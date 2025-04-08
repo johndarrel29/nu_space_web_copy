@@ -27,7 +27,7 @@ const TableRow = ({ user, onOpenModal, index }) => {
 
 
   return (
-    <tr className='hover:bg-gray-200' >
+    <tr className='hover:bg-gray-200 transition duration-300 ease-in-out' >
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <div className="text-sm font-medium text-gray-900">{index}</div>
@@ -58,14 +58,14 @@ const TableRow = ({ user, onOpenModal, index }) => {
       <td className="px-6 py-4 whitespace-nowrap ">
       <div className='space-x-2 flex flex-row justify-center items-center'>
           <div 
-            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 hover:bg-gray-300 transition duration-300 cursor-pointer"
+            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer"
             onClick={handleActionClick('edit')}
           >          
             <img src={editIcon} alt="edit" className="size-4"/>
 
           </div>
           <div 
-            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 hover:bg-gray-300 transition duration-300 cursor-pointer"
+            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer"
             onClick={handleActionClick('delete')}
           >          
             <img src={deleteIcon} alt="delete" className="size-4"/>
