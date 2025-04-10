@@ -43,7 +43,7 @@ import { CreateUserModal } from "../../components";
             <option value="student/rso">Student/RSO</option>
           </select>
         </div>
-        <div className="w-full lg:w-1/2 md:w-full">
+        {/* <div className="w-full lg:w-1/2 md:w-full">
             <label className="block mb-2 text-sm font-medium text-transparent select-none">
               Action
             </label>
@@ -56,7 +56,7 @@ import { CreateUserModal } from "../../components";
                 </div>
 
             </Button>
-        </div>
+        </div> */}
 
       </div>
 

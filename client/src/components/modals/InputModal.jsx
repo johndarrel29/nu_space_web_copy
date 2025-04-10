@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Backdrop } from "../ui";
+import { Backdrop, CloseButton } from "../../components";
+import  TagSelector  from "../TagSelector";
 import deleteIcon from "../../assets/icons/trash-solid-white.svg";
 import { handleShortenName } from "../../utils/handleShortenName";
-import  {DropIn}  from "../../animations/DropIn";
-import TagSelector from "../TagSelector";
+import  { DropIn }  from "../../animations/DropIn";
 import { useTagSelector } from "../../hooks"
 
 export default function InputModal({
@@ -147,9 +147,7 @@ useEffect(() => {
             <h3 className="text-lg font-bold">
               {"About" + " " + handleShortenName(userName)}
             </h3>
-            <button onClick={handleOpen} className="text-gray-500">
-              ✖
-            </button>
+            <CloseButton onClick={handleOpen}/>
           </div>
 
           {/* Modal Content */}

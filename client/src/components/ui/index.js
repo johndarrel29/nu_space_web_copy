@@ -9,3 +9,4 @@ export { default as Backdrop } from './Backdrop';
 export { default as Notification } from './Notification';
 export { default as SearchResultsList } from './SearchResultsList';
 export { default as TabSelector } from './TabSelector';
+export { default as CloseButton } from './CloseButton';

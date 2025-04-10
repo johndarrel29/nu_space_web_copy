@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import useRSO from '../../hooks/useRSO';
 
-export default function DropdownSearch({ isDisabled, category }) {
+export default function DropdownSearch({ isDisabled, category, setSelectedCategory }) {
   const { organizations, loading } = useRSO();
   const [selectedOption, setSelectedOption] = useState(null);
   const [isLoading, setIsLoading] = useState(true); 
@@ -10,9 +10,14 @@ export default function DropdownSearch({ isDisabled, category }) {
   
   // Extract only RSO_acronym values
   const options = organizations.map((org) => ({
-    value: org.RSO_acronym,
-    label: org.RSO_acronym,
+    value: org._id, 
+    label: org.RSO_acronym, 
+
   }));
+
+  
+  
+
 
   useEffect(() => {
     setIsLoading(loading); 
@@ -26,15 +31,19 @@ export default function DropdownSearch({ isDisabled, category }) {
 
   return (
     <Select
-      placeholder="Select an organization"
+      placeholder={"Select an RSO"}
       options={options}
       isLoading={isLoading}
       isDisabled={isDisabled}
       isClearable={true}
       isSearchable={true}
       menuPortalTarget={document.body}
-      value={category ? { value: category, label: category } : selectedOption}
-      onChange={setSelectedOption}
+      value={category ? options.find((opt) => opt.value === category) : selectedOption}
+      onChange={(option) => {
+        setSelectedOption(option);
+        setSelectedCategory(option ? option.value : "N/A");
+        console.log("Selected option:", option);
+      }}
     />
   );
 }

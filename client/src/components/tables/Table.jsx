@@ -8,7 +8,8 @@ import { AnimatePresence } from "framer-motion";
 import   { useModal }  from "../../hooks";
 import axios from "axios";
 
-
+//Even when the data is null in assigned_rso, the data still retains on the server.
+//make a way to display that if the user contains assigned_rso, then display it in the dropdownsearch.
 
 // Table Component
 const Table = React.memo(({ searchQuery, data, selectedRole }) => {
@@ -106,17 +107,68 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
     }
   }, []);
 
+  const deleteCategory = async (_id) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+  
+    try {
+      console.log("Attempting to delete category for user with ID:", _id);
+      const response = await axios.delete(`${process.env.REACT_APP_DELETE_CATEGORY_URL}/${_id}`, {
+        headers: {
+          Authorization: `Bearer ${formattedToken}`,
+        },
+      });
+  
+      console.log("Category deleted successfully:", response.data);
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    }
+  };
+  
+
   const handleConfirm = useCallback(async (_id, updatedData) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+  
+    // if (updatedData) {
+    //   console.log("Updated data being sent:", updatedData);
+      
+    //   // Ensure that assigned_rso is part of updatedData
+    //   if (updatedData.category && !updatedData.assignedRSO) {
+    //     updatedData.assigned_rso = updatedData.category; // Add category to assigned_rso
+    //   }
+  
+    //   // Ensure that assigned_rso is in updatedData
+    //   if (!updatedData.assignedRSO) {
+    //     console.error("Missing assignedRSO in updatedData!");
+    //     // Handle this case accordingly (perhaps set a default value)
+    //   }
+    // }
 
     if (updatedData) {
       console.log("Updated data being sent:", updatedData);
+  
+      // If the role is being changed to 'student', ensure that assigned_rso is removed
+      if (updatedData.role === 'student') {
+        await deleteCategory(_id); // Call the delete function
+        // Don't send category data in the update request when role is student
+        updatedData.category = null;
+        updatedData.assignedRSO = null;
+        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'student'
+      }
+  
+      // If the role is 'student/rso', ensure the category is assigned to assigned_rso
+      if (updatedData.role === 'student/rso' && updatedData.category) {
+        updatedData.assigned_rso = updatedData.category;
+      }
+  
+      // Log to check if assigned_rso is being set correctly
+      console.log("Final updated data:", updatedData);
     }
-
+  
     const url = `/api/auth/user/${_id}`; 
-
-    console.log("Attempting DELETE request to:", url); 
+  
+    console.log("Attempting PATCH request to:", url); 
     const headers = {
       "Content-Type": "application/json",
       "Authorization": token ? `Bearer ${formattedToken}` : "",
@@ -152,14 +204,14 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   
         setUsers(prevUsers => prevUsers.filter(user => user._id !== _id));
       }
-        // Refetch users after the operation
-        await fetchUsers();
-      } catch (error) {
-        console.error("Error updating/deleting user:", error);
-      } finally {
-        // Close the modal after the operation
-        closeModal();
-      }
+      // Refetch users after the operation
+      await fetchUsers();
+    } catch (error) {
+      console.error("Error updating/deleting user:", error);
+    } finally {
+      // Close the modal after the operation
+      closeModal();
+    }
   }, [fetchUsers]);
   
 
