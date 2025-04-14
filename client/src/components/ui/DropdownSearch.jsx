@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import useRSO from '../../hooks/useRSO';
 
-export default function DropdownSearch({ isDisabled, category, setSelectedCategory }) {
+export default function DropdownSearch({ isDisabled, category, setSelectedCategory, selectedCategory }) {
   const { organizations, loading } = useRSO();
   const [selectedOption, setSelectedOption] = useState(null);
   const [isLoading, setIsLoading] = useState(true); 
@@ -14,10 +14,6 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
     label: org.RSO_acronym, 
 
   }));
-
-  
-  
-
 
   useEffect(() => {
     setIsLoading(loading); 
@@ -31,7 +27,7 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
 
   return (
     <Select
-      placeholder={"Select an RSO"}
+    placeholder={category ? category : "Select an RSO"}
       options={options}
       isLoading={isLoading}
       isDisabled={isDisabled}

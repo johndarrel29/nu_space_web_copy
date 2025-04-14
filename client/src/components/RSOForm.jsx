@@ -191,7 +191,7 @@ export default function RSOForm({ createRSO, onSubmit }) {
                 />
 
                 {/* Status Checkbox */}
-                <div className="mb-4">
+                {/* <div className="mb-4">
                     <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
                     <div className='flex flex-row'>
                         <input
@@ -213,7 +213,7 @@ export default function RSOForm({ createRSO, onSubmit }) {
                         />
                         <label htmlFor="default-checkbox-false" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">False</label>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Grid for RSO Colleges & Organization Type */}
                 <div className="grid gap-4 mb-4 md:grid-cols-2">

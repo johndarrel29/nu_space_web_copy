@@ -304,7 +304,7 @@ useEffect(() => {
               </div>
 
               {/* Status Checkbox */}
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label className="mb-2 font-bold text-lg">Status</label>
                 <div className="flex flex-row">
                   <input
@@ -330,7 +330,7 @@ useEffect(() => {
                     False
                   </label>
                 </div>
-              </div>
+              </div> */}
 
               {/* Save and Delete Buttons */}
               <div className="flex justify-end border-t pt-2">

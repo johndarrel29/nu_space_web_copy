@@ -4,15 +4,23 @@ import { ChevronDownIcon } from '@heroicons/react/20/solid'
 
 export default function Dropdown({ selectedRole, setSelectedRole}) {
   const handleMenuItemClick = (item) => {
-    setSelectedRole(item);
+
+    // Allow changing the role only if it's not 'admin'
+    if (selectedRole !== 'admin') {
+      setSelectedRole(item);
+    }
   };
 
   return (
     
     <Menu as="div" className="relative inline-block text-left">
       <div>
-        <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50">
-          {selectedRole}
+      <MenuButton className={`inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 ${selectedRole === 'admin' ? 'cursor-not-allowed' : ''}`}>
+        {selectedRole === 'admin' ? (
+          <span className="text-gray-400">Admin</span>
+        ) : (
+          <span className="text-gray-900">{selectedRole}</span>
+        )}
           <ChevronDownIcon aria-hidden="true" className="-mr-1 size-5 text-gray-400" />
         </MenuButton>
       </div>
