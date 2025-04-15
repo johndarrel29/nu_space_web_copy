@@ -12,5 +12,14 @@ body {
   color: #3A3A3A;
 }
 
+:root {
+  --primary: #263170;
+  --primary-rso: #F2BE28;
+  --primary-rso-hover: #FFC92D;
+  --primary-rso-border: #E68E0A;
+  --mid-gray: #e0e0e0;
+  --dark-gray: #333333;
+}
+
 
 

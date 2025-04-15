@@ -38,13 +38,22 @@ export default function Login () {
             });
             console.log("button clicked", response);
 
+
+
             if (response.data.success && response.status == 200) {
                 console.log("Login Successful: ", response.data);
 
                 localStorage.setItem("token", response.data.token);
                 localStorage.setItem("user", JSON.stringify(response.data.user));
 
-                navigate("/dashboard"); 
+                const role = response.data.user.role;
+                if (role === "admin") {
+
+                    navigate("/dashboard"); 
+                }
+                else if (role === "student/rso") {
+                    navigate("/document-page"); 
+                }
 
             } else {
                 setError(response.data.message || "Invalid Login Credentials");

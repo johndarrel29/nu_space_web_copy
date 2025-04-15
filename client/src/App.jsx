@@ -18,8 +18,10 @@ import MainRSO from './pages/admin/MainRSO';
 import PreLoader from './components/Preloader';
 import { useEffect, useState } from 'react';
 import Review from './pages/admin/Review';
-import { SkeletonTheme } from 'react-loading-skeleton'
+import { SkeletonTheme } from 'react-loading-skeleton';
+import ActivityPage from './pages/rso/ActivityPage';
 import ProtectedRoutes from './utils/ProtectedRoute';
+import { DocumentPage, RSOAccountPage, UserMgmtPage, RSOHomePage } from './pages/rso';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,13 @@ function App() {
 
         {/* Authenticates user and redirects to dashboard if already logged in */}
           <Route element={<ProtectedRoutes />}>
+          {/* rso */}
+            <Route path="/activity-page" element={<ActivityPage />} />
+            <Route path="/rso-account" element={<RSOAccountPage />} />
+            <Route path="/rso-user-management" element={<UserMgmtPage />} />
+            <Route path="/document-page" element={<DocumentPage />} />
+
+          {/* sdao */}
             <Route path="/error" element={<ErrorPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/user-management" element={<UserManagement />} />

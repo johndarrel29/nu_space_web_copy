@@ -12,7 +12,7 @@ module.exports = withMT({
         sans: ['Inter var', 'sans-serif'],
       },
       colors: {
-        primary: '#314095',
+        primary: 'var(--primary)',
         'primary-active': '#263277',
         background: '#f5f5f5',
         'card-bg': '#ffffff',
@@ -23,8 +23,8 @@ module.exports = withMT({
         'primary-text': '#112A46',
         textfield: '#f5f5f5',
         'light-gray': '#f5f5f5',
-        'mid-gray': '#e0e0e0',
-        'dark-gray': '#333333',
+        'mid-gray': 'var(--mid-gray)',
+        'dark-gray': 'var(--dark-gray)',
        }
     },
   },
