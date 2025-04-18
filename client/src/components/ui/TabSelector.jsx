@@ -3,7 +3,7 @@ import React from "react";
 
 export default function TabSelector({ tabs, activeTab, onTabChange }) {
     return (
-        <div className="mt-6 bg-card-bg rounded-lg ">
+        <div className="bg-card-bg rounded-lg ">
             <ul className="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400 cursor-pointer">
                 {tabs.map((tab, index) => (
                     <li key={index} className="me-2">

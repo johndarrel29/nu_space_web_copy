@@ -13,7 +13,7 @@ function Searchbar({placeholder, searchQuery, setSearchQuery, style, setShowSear
           type="text"
           placeholder={placeholder}
           value={searchQuery}
-          className={handleSearchModeChange}
+          className={`${handleSearchModeChange} placeholder-dark-gray`}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={onFocus}
           onBlur={onBlur}

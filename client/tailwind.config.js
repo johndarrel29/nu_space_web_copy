@@ -17,7 +17,7 @@ module.exports = withMT({
         background: '#f5f5f5',
         'card-bg': '#ffffff',
         white: 'white',
-        'off-black': '#282c34',
+        'off-black': '#222222',
         error: '#ff4d4f',
         success: '#52c41a',
         'primary-text': '#112A46',
@@ -25,6 +25,8 @@ module.exports = withMT({
         'light-gray': '#f5f5f5',
         'mid-gray': 'var(--mid-gray)',
         'dark-gray': 'var(--dark-gray)',
+
+        'primary-rso': 'var(--primary-rso)',
        }
     },
   },
