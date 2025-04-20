@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Backdrop, CloseButton } from "../../components";
-import  TagSelector  from "../TagSelector";
+import TagSelector from "../TagSelector";
 import deleteIcon from "../../assets/icons/trash-solid-white.svg";
 import { handleShortenName } from "../../utils/handleShortenName";
-import  { DropIn }  from "../../animations/DropIn";
-import { useTagSelector } from "../../hooks"
+import { DropIn } from "../../animations/DropIn";
+import { useTagSelector } from "../../hooks";
 
 export default function InputModal({
   onClose,
@@ -41,12 +41,11 @@ export default function InputModal({
     setIsFocused,
     searchedData,
     handleTagClick
-} = useTagSelector();
+  } = useTagSelector();
 
-useEffect(() => {
-  console.log("Current search query:", searchQuery);
-}, [searchQuery]);
-
+  useEffect(() => {
+    console.log("Current search query:", searchQuery);
+  }, [searchQuery]);
 
   // Log received props for debugging
   useEffect(() => {
@@ -80,18 +79,10 @@ useEffect(() => {
     console.log("Selected type received in modal:", category);
   }, [category]);
 
-  /**
-   * Handles closing the modal.
-   */
   const handleOpen = () => {
     onClose();
   };
 
-
-  /**
-   * Handles image file selection and updates the user image state.
-   * @param {Object} event - The file input event.
-   */
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -100,10 +91,6 @@ useEffect(() => {
     }
   };
 
-  /**
-   * Handles confirming updates or deletions for the organization.
-   * @param {string} action - The action to perform ("delete" or "save").
-   */
   const handleConfirm = (action) => {
     const updatedData = {
       RSO_id: id,
@@ -113,17 +100,17 @@ useEffect(() => {
       RSO_description: userDescription,
       RSO_college: userCollege,
       RSO_status: userStatus === "true" || userStatus === true,
-      RSO_tags: userTags.split(',').map(tag => tag.trim()), // Ensure tags are an array
+      RSO_tags: userTags.split(',').map(tag => tag.trim()),
       RSO_image: userImage || presetImage,
     };
 
     if (action === "delete") {
-      onConfirm(id, null); // Delete the organization
+      onConfirm(id, null);
     } else if (action === "save") {
-      onConfirm(updatedData.RSO_id, updatedData); // Save or update the organization
+      onConfirm(updatedData.RSO_id, updatedData);
     }
 
-    onClose(); // Close the modal
+    onClose();
   };
 
   useEffect(() => {
@@ -132,224 +119,162 @@ useEffect(() => {
 
   return (
     <>
-      {/* Backdrop */}
       <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        {/* Modal */}
         <motion.div
-          className="bg-white overflow-hidden rounded-lg shadow-lg w-[90%] max-w-[600px] p-4"
+          className="bg-white overflow-hidden rounded-lg shadow-lg w-[90%] max-w-[800px] p-6"
           variants={DropIn}
           initial="hidden"
           animate="visible"
           exit="exit"
         >
           {/* Modal Header */}
-          <div className="flex justify-between items-center border-b pb-2">
-            <h3 className="text-lg font-bold">
-              {"About" + " " + handleShortenName(userName)}
+          <div className="flex justify-between items-center pb-4 border-b">
+            <h3 className="text-xl font-semibold text-gray-800">
+              Edit Organization: {handleShortenName(userName)}
             </h3>
-            <CloseButton onClick={handleOpen}/>
+            <CloseButton onClick={handleOpen} />
           </div>
 
           {/* Modal Content */}
-          <div className="overflow-x-auto max-h-[80vh]">
-            <div className="p-4">
-              {/* Image Upload Section */}
-              <div className="flex items-center flex-col justify-center mb-4">
-                <img
-                  className="w-40 h-40 bg-gray-500 rounded-full margin-auto border border-gray-400"
-                  src={userImage || image}
-                  alt="profile"
-                />
-                <div className="w-1/2">
-                  <label
-                    className="block mb-2 text-sm font-medium text-gray-900 border-none dark:text-white"
-                    htmlFor="file_input"
-                  ></label>
-                  <input
-                    className="block w-full text-sm text-gray-900 border border-gray-300 cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-                    aria-describedby="file_input_help"
-                    id="file_input"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">
-                    SVG, PNG, JPG or GIF (MAX. 800x800px).
+          <div className="overflow-y-auto max-h-[70vh] py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-4">
+                {/* Image Upload */}
+                <div className="flex flex-col items-center">
+                  <div className="relative mb-3">
+                    <img
+                      className="w-32 h-32 rounded-lg object-cover border border-gray-300"
+                      src={userImage || image}
+                      alt="Organization"
+                    />
+                    <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-1 rounded-full cursor-pointer hover:bg-blue-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                      </svg>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-sm text-gray-500 text-center">
+                    Recommended size: 800x800px
                   </p>
+                </div>
+
+                {/* Basic Info */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Organization Name</label>
+                    <input
+                      type="text"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Acronym</label>
+                    <input
+                      type="text"
+                      value={userAcronym}
+                      onChange={(e) => setUserAcronym(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select
+                      value={userCategory}
+                      onChange={(e) => setUserCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select a category</option>
+                      <option value="Probationary">Probationary</option>
+                      <option value="Professional and Affiliates">Professional & Affiliates</option>
+                      <option value="Professional">Professional</option>
+                      <option value="Special Interest">Special Interest</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* Form Inputs */}
-              {/* RSO Name */}
-              <div className="flex flex-col mb-4">
-                <label htmlFor="name" className="mb-2 font-bold text-lg">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  defaultValue={name}
-                  onChange={(e) => setUserName(e.target.value)}
-                  className="border py-2 px-3 text-grey-darkest"
-                />
-              </div>
+              {/* Right Column */}
+              <div className="space-y-4">
+                {/* Tags */}
+                <div>
+                  <TagSelector
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    setShowSearch={setShowSearch}
+                    setIsFocused={setIsFocused}
+                    searchedData={searchedData}
+                    handleTagClick={handleTagClick}
+                    selectedTags={selectedTags}
+                    apiTags={tags}
+                  />
+                </div>
 
-              {/* Acronym */}
-              <div className="flex flex-col mb-4">
-                <label htmlFor="acronym" className="mb-2 font-bold text-lg">
-                  Acronym
-                </label>
-                <input
-                  type="text"
-                  id="acronym"
-                  name="acronym"
-                  defaultValue={acronym}
-                  onChange={(e) => setUserAcronym(e.target.value)}
-                  className="border py-2 px-3 text-grey-darkest"
-                />
-              </div>
-
-              {/* Category and Tags */}
-              
-                {/* Category */}
-                <div className="flex flex-col mb-4">
-                  <label htmlFor="type" className="mb-2 font-bold text-lg">
-                    Category
-                  </label>
+                {/* College */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">College</label>
                   <select
-                    type="text"
-                    id="category"
-                    name="category"
-                    className="block w-full py-3 text-sm text-gray-900 border border-gray-300 cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-                    defaultValue={category}
-                    onChange={(e) => setUserCategory(e.target.value)}
-                    required
+                    value={userCollege}
+                    onChange={(e) => setUserCollege(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="" disabled className="text-gray-300">
-                      Select an organization type
-                    </option>
-                    <option value="Probationary">Probationary</option>
-                    <option value="Professional and Affiliates">Professional & Affiliates</option>
-                    <option value="Professional">Professional</option>
-                    <option value="Special Interest">Special Interest</option>
+                    <option value="">Select college</option>
+                    <option value="CAH">CAH</option>
+                    <option value="CA">CA</option>
+                    <option value="CBA">CBA</option>
+                    <option value="CCIT">CCIT</option>
+                    <option value="CEAS">CEAS</option>
+                    <option value="CE">CE</option>
+                    <option value="CTHM">CTHM</option>
                   </select>
                 </div>
 
-                {/* Tags */}
-                 {/* <div className="flex flex-col mb-4">
-                  <label htmlFor="type" className="mb-2 font-bold text-lg">
-                    Tags
-                  </label>
-                  <input
-                    type="text"
-                    id="tags"
-                    name="tags"
-                    defaultValue={tags}
-                    onChange={(e) => setUserTags(e.target.value)}
-                    className="border py-2 px-3 text-grey-darkest"
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    rows="4"
+                    value={userDescription}
+                    onChange={(e) => setUserDescription(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                </div>  */}
-
-              {/* Tags Management */}
-              <TagSelector
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  setShowSearch={setShowSearch}
-                  setIsFocused={setIsFocused}
-                  searchedData={searchedData}
-                  handleTagClick={handleTagClick}
-                  selectedTags={selectedTags}
-                  apiTags={tags}
-              />
-
-              {/* Colleges */}
-              <div className="mb-4">
-                <label className="mb-4 font-bold text-lg">Colleges</label>
-                <select
-                  id="file_input"
-                  name="RSO_college"
-                  className="block w-full py-3 text-sm text-gray-900 border border-gray-300 cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-                  required
-                  onChange={(e) => setUserCollege(e.target.value)}
-                  defaultValue={college}
-                >
-                  <option value="" disabled className="text-gray-300">
-                    Select College
-                  </option>
-                  <option value="CAH">CAH</option>
-                  <option value="CA">CA</option>
-                  <option value="CBA">CBA</option>
-                  <option value="CCIT">CCIT</option>
-                  <option value="CEAS">CEAS</option>
-                  <option value="CE">CE</option>
-                  <option value="CTHM">CTHM</option>
-                </select>
-              </div>
-
-              {/* Description */}
-              <div className="flex flex-col mb-4">
-                <label htmlFor="category" className="mb-2 font-bold text-lg">
-                  Description
-                </label>
-                <textarea
-                  type="description"
-                  rows="4"
-                  id="description"
-                  name="description"
-                  defaultValue={description}
-                  onChange={(e) => setUserDescription(e.target.value)}
-                  className="border py-2 px-3 text-grey-darkest"
-                />
-              </div>
-
-              {/* Status Checkbox */}
-              {/* <div className="mb-4">
-                <label className="mb-2 font-bold text-lg">Status</label>
-                <div className="flex flex-row">
-                  <input
-                    id="status-true"
-                    type="radio"
-                    checked={userStatus === true}
-                    onChange={() => setUserStatus(true)}
-                    className="w-4 h-4 text-blue-600 bg-blue-600 border-blue-600 rounded-sm"
-                  />
-                  <label htmlFor="status-true" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                    True
-                  </label>
                 </div>
-                <div className="flex items-center">
-                  <input
-                    id="status-false"
-                    type="radio"
-                    checked={userStatus === false}
-                    onChange={() => setUserStatus(false)}
-                    className="w-4 h-4 text-blue-600 bg-blue-600 border-blue-600 rounded-sm"
-                  />
-                  <label htmlFor="status-false" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                    False
-                  </label>
-                </div>
-              </div> */}
-
-              {/* Save and Delete Buttons */}
-              <div className="flex justify-end border-t pt-2">
-                <button
-                  onClick={() => handleConfirm("delete")}
-                  className="cursor-pointer p-6 py-2 bg-[#FF2C2C] rounded-md h-10 text-white hover:bg-[#D12525]"
-                >
-                  <div className="flex items-center gap-2">
-                    <img src={deleteIcon} alt="delete" className="size-4" />
-                    Delete
-                  </div>
-                </button>
-                <button
-                  className="cursor-pointer px-4 py-2 bg-[#314095] text-white rounded-md ml-2 h-10 hover:bg-[#2E3C88]"
-                  onClick={() => handleConfirm("save")}
-                >
-                  Save Changes
-                </button>
               </div>
+            </div>
+          </div>
+
+          {/* Footer with action buttons */}
+          <div className="flex justify-between items-center pt-4 border-t">
+            <button
+              onClick={() => handleConfirm("delete")}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              <img src={deleteIcon} alt="delete" className="h-4 w-4" />
+              Delete Organization
+            </button>
+            <div className="space-x-3">
+              <button
+                onClick={handleOpen}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleConfirm("save")}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Save Changes
+              </button>
             </div>
           </div>
         </motion.div>

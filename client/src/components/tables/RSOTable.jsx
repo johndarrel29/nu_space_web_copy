@@ -4,7 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { handleShortenName } from "../../utils/handleShortenName";
 
 
-//TODO: Make the changes reflect without reloading the page
+//Error on passing data for category, tag, and college. (error for dropdowns and tags)
 
 export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, deleteRSO }) {
     const safeSearchQuery = searchQuery || '';
@@ -46,27 +46,65 @@ export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, 
      * @param {string} id - The ID of the organization.
      * @param {Object} updatedData - The updated data for the organization.
      */
+    // const handleConfirm = async (id, updatedData) => {
+    //     console.log("Confirming data", id, updatedData);
+
+    //     if (!updatedData) {
+    //         // Delete the organization if no updated data is provided
+    //         await deleteRSO(id);
+    //         onUpdate(data.filter(org => org._id !== id));
+    //         return;
+    //     }
+
+    //     console.log("Saving or updating entry", updatedData);
+
+    //     // Update the organization if it exists, otherwise add a new entry
+    //     await updateRSO(id, updatedData);
+    //     const updatedRecords = data.some(org => org._id === id)
+    //         ? data.map(org => org._id === id ? { ...org, ...updatedData } : org)
+    //         : [...data, updatedData];
+
+    //     onUpdate(updatedRecords);
+    // };
     const handleConfirm = async (id, updatedData) => {
         console.log("Confirming data", id, updatedData);
-
+    
         if (!updatedData) {
-            // Delete the organization if no updated data is provided
             await deleteRSO(id);
             onUpdate(data.filter(org => org._id !== id));
             return;
         }
 
-        console.log("Saving or updating entry", updatedData);
 
-        // Update the organization if it exists, otherwise add a new entry
-        await updateRSO(id, updatedData);
+    // Check if tags are present and properly formatted; if not, use the selected user's tags
+    const updatedTags = updatedData.RSO_tags && updatedData.RSO_tags.length > 0
+        ? updatedData.RSO_tags.map(tag => tag._id ? tag._id : tag).filter(tag => tag.trim() !== '')  // Extract _id if tag is an object
+        : selectedUser.RSO_tags.map(tag => tag._id); // Use the _id of existing tags if no new ones are provided
+
+    // Map frontend field names to match backend expectations
+    const sanitizedData = {
+        _id: id,
+        RSO_name: updatedData.RSO_name,
+        RSO_acronym: updatedData.RSO_acronym,
+        RSO_category: updatedData.RSO_category,
+        RSO_description: updatedData.RSO_description,
+        RSO_college: updatedData.RSO_college,
+        RSO_picture: updatedData.RSO_image || null,
+        RSO_status: updatedData.RSO_status ? 1 : 0,
+        RSO_tags: updatedTags, // Ensure correct tag format
+    };
+    
+        console.log("Saving or updating entry", sanitizedData);
+    
+        await updateRSO(id, sanitizedData);
+    
         const updatedRecords = data.some(org => org._id === id)
-            ? data.map(org => org._id === id ? { ...org, ...updatedData } : org)
-            : [...data, updatedData];
-
+            ? data.map(org => org._id === id ? { ...org, ...sanitizedData } : org)
+            : [...data, sanitizedData];
+    
         onUpdate(updatedRecords);
     };
-
+    
     return (
         <>
         {/* Table to display RSO records */}
@@ -132,7 +170,7 @@ export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, 
                     name={selectedUser.RSO_name}
                     category={selectedUser.RSO_category}
                     description={selectedUser.RSO_description}
-                    college={selectedUser.RSO_college}
+                    college={selectedUser.RSO_College}
                     status={selectedUser.RSO_status}
                     tags={selectedUser.RSO_tags.map(tag => tag.tag)}
                     onConfirm={handleConfirm}

@@ -9,7 +9,7 @@ export default function MainActivities() {
     <>
     <div className="flex items-center ">
         <div className="flex flex-row gap-4 items-center">
-            <div className="w-32 h-32 bg-white border border-gray-400 rounded-full"
+            <div className="w-32 h-32 bg-card-bg border border-gray-400 rounded-full"
             style={{
                 backgroundImage: `url(${defaultPic})`,
                 backgroundSize: "cover",

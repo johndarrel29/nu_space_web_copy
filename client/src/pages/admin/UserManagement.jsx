@@ -10,7 +10,7 @@ import { CreateUserModal } from "../../components";
     return (
       <>
       {/* search query */}
-      <div className=" w-full px-4 py-4 bg-card-bg rounded-md shadow-md flex flex-col space-x-0 space-y-2  md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
+      <div className=" w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
         <div className="w-full lg:w-full md:w-full">
         <label 
           htmlFor="roleFilter" 
@@ -43,21 +43,6 @@ import { CreateUserModal } from "../../components";
             <option value="student/rso">Student/RSO</option>
           </select>
         </div>
-        {/* <div className="w-full lg:w-1/2 md:w-full">
-            <label className="block mb-2 text-sm font-medium text-transparent select-none">
-              Action
-            </label>
-            <Button className="w-full flex justify-center items-center"
-            onClick={openModal}
-            >
-                <div className='flex flex-row items-center gap-2'>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="fill-white size-4"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/></svg>
-                  <h1>Create New Account</h1>
-                </div>
-
-            </Button>
-        </div> */}
-
       </div>
 
 
@@ -131,9 +116,12 @@ useEffect(() => {
             tabName="User Management"
             headingTitle="Monitor Student/RSO and Student accounts"
             > 
+          <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg p-4 shadow-md">
             <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/>
-            
+              
             <Table data={memoizedData} searchQuery={searchQuery} selectedRole={selectedRole}/>
+          </div>
+
 
           <AnimatePresence
               initial={false}

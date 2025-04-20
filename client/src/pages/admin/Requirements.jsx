@@ -32,7 +32,7 @@ const Requirements = () => {
         <div className="bg-mid-gray w-full h-px"></div>
 
         {/* table */}
-        <div className='max-h-[400px] overflow-y-auto '>
+        <div>
           <RequirementsTable/>
         </div>          
       </div>       

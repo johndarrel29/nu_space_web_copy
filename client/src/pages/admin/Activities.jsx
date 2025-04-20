@@ -1,8 +1,9 @@
 import React, {  useEffect, useMemo, useState } from 'react'
 import {  useNavigate } from 'react-router-dom';
-import { Searchbar } from '../../components';
+import { Searchbar, Button } from '../../components';
 
 function Activities() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activities, setActivities] = useState([]);
 
@@ -25,23 +26,36 @@ function Activities() {
 
   return (
   <>
-  
-    <div className="flex  justify-start mb-4  p-6 bg-card-bg rounded-lg shadow-md">
-      <div className='w-1/2'>
-        <Searchbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} placeholder="Find an Activity"/>
+      {/* back button */}
+      <div className='flex flex-row items-center justify-start mb-4'>
+        <Button
+          style='secondary'
+          className='px-4'
+          onClick={() => navigate(-1)}
+        >
+          <div className='flex flex-row items-center gap-2'>
+            <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-current text-off-black' viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+            <h1>
+              Back
+            </h1>
+          </div>
+        </Button>
       </div>
-    </div>
-    
-    {/* information and row count */}
-    <div className="flex justify-between items-center mb-4">
-        <span className="text-gray-700 font-semibold">
-          Showing {filteredActivities.length} result{filteredActivities.length !== 1 ? "s" : ""}
-          {searchQuery && ` of ${searchQuery}`}
-        </span>
 
-      </div>
+    <div className=' rounded-lg bg-card-bg p-4 shadow-md'>
+        <div className='w-1/2 mb-2'>
+          <Searchbar searchQuery={searchQuery} setSearchQuery={setSearchQuery} placeholder="Find an Activity"/>
+        </div>
 
-    <div className=' max-h-[600px] overflow-y-auto  border border-gray-300 rounded-lg  bg-card-bg'>
+        {/* information and row count */}
+        <div className="flex justify-between items-center mb-4">
+            <span className="text-gray-700 font-semibold">
+              Showing {filteredActivities.length} result{filteredActivities.length !== 1 ? "s" : ""}
+              {searchQuery && ` of ${searchQuery}`}
+            </span>
+
+          </div>
+
         <ActivitiesTable activities={filteredActivities}  />
     </div>
         </>
@@ -56,7 +70,7 @@ function Activities() {
       return (
       
       <table className="min-w-full border-collapse pl-6 pr-6">
-      <thead className='bg-card-bg sticky top-0 z-10 shadow-md' >
+      <thead className='bg-card-bg sticky top-0 z-10' >
         <tr className=" text-gray-700 ">
           <th className="px-4 py-4 text-center font-light">Number</th>
           <th className="px-4 py-4 text-center font-light">Activity Name</th>

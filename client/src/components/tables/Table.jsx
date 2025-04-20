@@ -223,7 +223,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
  
 
   return (
-    <div className=' min-w-full mt-6 sm:min-w-1/2 '>
+    <div className=' min-w-full mt-2 sm:min-w-1/2 '>
     <AnimatePresence
         initial={false}
         exitBeforeEnter={true}
@@ -271,7 +271,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
       </div>
 
       {data.length > 0 ? (
-        <div className="border border-mid-gray rounded-md mb-4 rounded-md p-6 bg-card-bg">
+        <div className="w-full">
           <div className=' overflow-x-auto w-full'>
         <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
           <thead className="bg-card-bg rounded-md border-b border-gray-400">

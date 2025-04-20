@@ -1,18 +1,22 @@
 import { useState, useRef, useEffect } from 'react';
+import { Backdrop, CloseButton, TextInput, Button } from "../components"
 import { Link } from 'react-router-dom';
 import defaultPic from '../assets/images/default-profile.jpg';
-import  TagSelector  from '../components/TagSelector';
-import  useSearchQuery  from "../hooks/useSearchQuery";
+import TagSelector from '../components/TagSelector';
+import useSearchQuery from "../hooks/useSearchQuery";
 import useTagSelector from '../hooks/useTagSelector';
+import { AnimatePresence } from "framer-motion";
+import { DropIn } from "../animations/DropIn";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-//TODO: Make the tag into a separate component and use it in the RSOForm component - done
-//Once created, find a way to pass the component if it is for ready and update, or create
 
 export default function RSOForm({ createRSO, onSubmit }) {
-    
-    const [ tags, setTags ] = useState([]);
+    const [tags, setTags] = useState([]);
     const [showSearch, setShowSearch] = useState([]);
-
+    const [showModal, setShowModal] = useState(false);
+    const [selectedTag, setSelectedTag] = useState("");
+    const [selectedModalTag, setSelectedModalTag] = useState(null);
 
     const {
         selectedTags,
@@ -26,8 +30,6 @@ export default function RSOForm({ createRSO, onSubmit }) {
         handleApiTagRemove
     } = useTagSelector();
 
-
-    // State for RSO picture and form data
     const [RSO_picture, setRSOPicture] = useState(null);
     const [formData, setFormData] = useState({
         RSO_name: "",
@@ -39,38 +41,31 @@ export default function RSOForm({ createRSO, onSubmit }) {
         RSO_description: "",
     });
 
-
-
-    console.log("Searched Data:", searchedData);
-    console.log("Tags:", tags);
-
-    
-    useEffect(() => {
-        console.log("Current search query:", searchQuery);
-    }, [searchQuery]);
-
-    
-
+    const onTagEdit = (tag) => {
+        setSelectedTag(tag); // Set the clicked tag as the selected tag
+      };
 
     const fileInputRef = useRef(null);
 
-    /**
-     * Handles changes in form inputs and updates the state.
-     * @param {Object} e - The event object.
-     */
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    /**
-     * Handles form submission.
-     * @param {Object} e - The event object.
-     */
+    const handleTagModal = (tag) => {
+        setSelectedModalTag(tag);
+        setShowModal(true);
+    }
+
+    const handleTagDelete = (tag) => {
+        console.log("Deleting tag:", tag);
+        // Call the API to delete the tag
+        setSelectedTags((prevTags) => prevTags.filter((t) => t !== tag));
+        setShowModal(false);
+        setSelectedModalTag(null);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Form Data:", formData);
-
-        // Generate ID if not present and prepare the new organization data
         const newOrg = {
             id: formData.id || Date.now(),
             ...formData,
@@ -78,12 +73,8 @@ export default function RSOForm({ createRSO, onSubmit }) {
             RSO_picture: RSO_picture || "No RSO_picture uploaded"
         };
 
-        console.log("Form Data to be sent:", newOrg);
-
-        // Call the createRSO function passed as a prop
         await createRSO(newOrg);
 
-        // Reset form data and picture
         setFormData({
             RSO_name: "",
             RSO_acronym: "",
@@ -97,19 +88,13 @@ export default function RSOForm({ createRSO, onSubmit }) {
         setSelectedTags([]);
         setSearchQuery("");
 
-        // Reset file input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
 
-        // Call the onSubmit callback if provided
         onSubmit && onSubmit("Organization added successfully!");
     };
 
-    /**
-     * Handles image file selection and updates the RSO picture state.
-     * @param {Object} event - The event object.
-     */
     const handleImageChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -117,116 +102,115 @@ export default function RSOForm({ createRSO, onSubmit }) {
             setRSOPicture(imageUrl);
         }
     };
-    
-    
 
+    useEffect(() => {
+        if (showModal) {
+            
+            if (formData.RSO_tags?.length) {
+                setSelectedTags(formData.RSO_tags);
+            }
+        }
+    }, [showModal]);
+    
+    
     return (
-        <>
+        <div className="max-w-3xl mx-auto dark:bg-gray-800">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Create New RSO</h1>
+            
             {/* Image Upload Section */}
-            <div className="flex items-center space-x-4 mb-6">
+            <div className="flex items-center space-x-6 mb-8">
                 <div
-                    className="bg-mid-gray border border-mid-gray mx-auto flex-none size-20 aspect-square shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-20 hover:bg-gray-300 transition duration-300 cursor-pointer"
+                    className="border-2 border-gray-200 mx-auto flex-none size-24 aspect-square shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-28 hover:bg-gray-100 transition duration-300 cursor-pointer overflow-hidden"
                     style={{
                         backgroundImage: RSO_picture ? `url(${RSO_picture})` : `url(${defaultPic})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                     }}
                 ></div>
-                <div>
-                    <label className="block mb-2 text-sm font-medium rounded-lg text-gray-900 border-none dark:text-white">Upload Profile Picture</label>
-                    <input
-                        className="block w-full text-sm text-gray-900 border border-mid-gray cursor-pointer rounded-sm bg-textfield dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
-                        aria-describedby="file_input_help"
-                        type="file"
-                        id="file_input"
-                        accept="image/*"
-                        ref={fileInputRef}
-                        onChange={handleImageChange}
-                        required
-                    />
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">SVG, PNG, JPG or GIF (MAX. 800x800px).</p>
+                <div className="flex-1">
+                    <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Upload Profile Picture</label>
+                    <div className="flex items-center">
+                        <label className="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg border border-blue-200 transition duration-200">
+                            Choose File
+                            <input
+                                className="hidden"
+                                type="file"
+                                id="file_input"
+                                accept="image/*"
+                                ref={fileInputRef}
+                                onChange={handleImageChange}
+                                required
+                            />
+                        </label>
+                        <span className="ml-3 text-sm text-gray-500 dark:text-gray-400">
+                            {RSO_picture ? "Image selected" : "No file chosen"}
+                        </span>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x800px)</p>
                 </div>
             </div>
 
             {/* Form Section */}
-            <form onSubmit={handleSubmit}>
-                {/* Organization Name */}
-                <div className='mb-4'>
-                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Organization Name</label>
-                    <input
-                        type="text"
-                        name='RSO_name'
-                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="Organization Name"
-                        required
-                        onChange={handleChange}
-                        value={formData.RSO_name}
-                    />
-                </div>
+            <form onSubmit={handleSubmit} className="gap-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                    {/* Organization Name */}
+                    <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Organization Name *</label>
+                        <input
+                            type="text"
+                            name='RSO_name'
+                            className="w-full px-4 py-2.5 text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                            placeholder="e.g. Computer Science Society"
+                            required
+                            onChange={handleChange}
+                            value={formData.RSO_name}
+                        />
+                    </div>
 
-                {/* Organization Acronym */}
-                <div className='mb-4'>
-                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Organization Acronym</label>
-                    <input
-                        type="text"
-                        name="RSO_acronym"
-                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="Acronym"
-                        required
-                        onChange={handleChange}
-                        value={formData.RSO_acronym}
-                    />
+                    {/* Organization Acronym */}
+                    <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Organization Acronym *</label>
+                        <input
+                            type="text"
+                            name="RSO_acronym"
+                            className="w-full px-4 py-2.5 text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                            placeholder="e.g. CSS"
+                            required
+                            onChange={handleChange}
+                            value={formData.RSO_acronym}
+                        />
+                    </div>
                 </div>
 
                 {/* Tags Management */}
-                <TagSelector
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    setShowSearch={setShowSearch}
-                    setIsFocused={setIsFocused}
-                    searchedData={searchedData}
-                    handleTagClick={handleTagClick}
-                    selectedTags={selectedTags}
-                    handleApiTagRemove={handleApiTagRemove}
-                />
-
-                {/* Status Checkbox */}
-                {/* <div className="mb-4">
-                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
-                    <div className='flex flex-row'>
-                        <input
-                            id="default-checkbox-true"
-                            type="radio"
-                            checked={formData.RSO_status === true}
-                            onChange={() => setFormData({ ...formData, RSO_status: true })}
-                            className="w-4 h-4 text-blue-600 bg-blue-600 border-blue-600 rounded-sm"
-                        />
-                        <label htmlFor="default-checkbox-true" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">True</label>
-                    </div>
-                    <div className="flex items-center">
-                        <input
-                            id="default-checkbox-false"
-                            type="radio"
-                            checked={formData.RSO_status === false}
-                            onChange={() => setFormData({ ...formData, RSO_status: false })}
-                            className="w-4 h-4 text-blue-600 bg-blue-600 border-blue-600 rounded-sm"
-                        />
-                        <label htmlFor="default-checkbox-false" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">False</label>
-                    </div>
-                </div> */}
+                <div>
+                    <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
+                    <TagSelector
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        setShowSearch={setShowSearch}
+                        setIsFocused={setIsFocused}
+                        searchedData={searchedData}
+                        handleTagClick={handleTagClick}
+                        selectedTags={selectedTags}
+                        handleApiTagRemove={handleApiTagRemove}
+                        setShowModal={setShowModal}
+                        handleTagModal={handleTagModal}
+                    />
+                </div>
 
                 {/* Grid for RSO Colleges & Organization Type */}
-                <div className="grid gap-4 mb-4 md:grid-cols-2">
-                    <div className='mb-4'>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Colleges</label>
+                <div className="grid gap-6 md:grid-cols-2">
+                    <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">College *</label>
                         <select
                             name='RSO_College'
-                            className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-lg focus:ring-blue-500 placeholder-gray-300 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            className="w-full px-4 py-2.5 text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                             required
                             onChange={handleChange}
                             value={formData.RSO_College}
                         >
-                            <option value="" disabled className='text-gray-300'>Select College</option>
+                            <option value="" disabled className='text-gray-400'>Select College</option>
                             <option value="CAH">CAH</option>
                             <option value="CA">CA</option>
                             <option value="CBA">CBA</option>
@@ -236,16 +220,16 @@ export default function RSOForm({ createRSO, onSubmit }) {
                             <option value="CTHM">CTHM</option>
                         </select>
                     </div>
-                    <div className='mb-4'>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Type of Organization</label>
+                    <div>
+                        <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Organization Type *</label>
                         <select
                             name='RSO_category'
-                            className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-lg focus:ring-blue-500 placeholder-gray-300 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            className="w-full px-4 py-2.5 text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                             required
                             onChange={handleChange}
                             value={formData.RSO_category}
                         >
-                            <option value="" disabled className='text-gray-300'>Select an organization type</option>
+                            <option value="" disabled className='text-gray-400'>Select organization type</option>
                             <option value="Probationary">Probationary</option>
                             <option value="Professional and Affiliates">Professional & Affiliates</option>
                             <option value="Professional">Professional</option>
@@ -255,41 +239,104 @@ export default function RSOForm({ createRSO, onSubmit }) {
                 </div>
 
                 {/* Description */}
-                <div className='mb-4'>
-                    <label htmlFor="large-input" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Simple Description</label>
+                <div>
+                    <label htmlFor="large-input" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
                     <textarea
-                        type="text"
                         rows="4"
                         name="RSO_description"
-                        className="block w-full p-4 text-gray-900 border border-mid-gray rounded-lg bg-textfield text-base focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        className="w-full px-4 py-3 text-gray-900 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                        placeholder="Tell us about your organization..."
                         onChange={handleChange}
                         value={formData.RSO_description}
                     />
                 </div>
 
-                {/* Remember Me Checkbox */}
-                <div className="flex items-start mb-6">
+                {/* Terms and Conditions */}
+                <div className="flex items-start">
                     <div className="flex items-center h-5">
                         <input
                             id="remember"
                             type="checkbox"
-                            className="w-4 h-4 border border-mid-gray rounded-sm bg-textfield focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
+                            className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600"
                             required
                         />
                     </div>
-                    <label htmlFor="remember" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-                        I agree with the <Link to="#" className="text-[#314095] hover:underline dark:text-blue-500">terms and conditions</Link>.
+                    <label htmlFor="remember" className="ms-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        I agree with the <Link to="#" className="text-blue-600 hover:underline dark:text-blue-500">terms and conditions</Link> *
                     </label>
                 </div>
 
                 {/* Submit Button */}
-                <button
-                    type="submit"
-                    className="text-white bg-[#314095] hover:bg-[#2E3C88] focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-primary"
-                >
-                    Submit
-                </button>
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                        Create Organization
+                    </button>
+                </div>
+
+                {/* Modal for Tag Selection */}
+                <AnimatePresence>
+                    {showModal && (
+                            <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black  bg-opacity-50">
+                            <motion.div
+                                className="bg-white overflow-hidden rounded-lg shadow-lg w-[90%] max-w-[800px] p-6"
+                                variants={DropIn}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                            >
+
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-xl font-bold text-gray-800 dark:text-white">Edit Tag</h2>
+                                        <div>
+                                            <CloseButton
+                                                onClick={() => setShowModal(false)} 
+                                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className='w-full mb-4'>
+                                        <TextInput
+                                        value={selectedModalTag}
+                                        />
+                                    </div>
+                                    <div className='flex justify-between '>
+                                        <button
+                                        className='px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition duration-200 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
+                                        onClick={() => handleTagDelete(selectedModalTag)}
+                                        type="button"
+                                        >
+                                            <span className="text-sm">Delete Tag</span>
+                                        </button>
+                                        <div className='flex items-center gap-2'>
+                                            <Button
+                                                type="button"
+                                                className={"px-2"}
+                                            >
+                                                <span className="text-sm">Edit Tag</span>
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                style={"secondary"}
+                                                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+                                                onClick={() => setShowModal(false)}
+                                            >
+                                                Cancel
+                                            </Button>
+                                        </div>
+ 
+                                    </div>
+
+
+                                
+                            </motion.div>
+                        </Backdrop>
+                    )}
+                </AnimatePresence>
             </form>
-        </>
+        </div>
     );
 }

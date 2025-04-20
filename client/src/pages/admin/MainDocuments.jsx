@@ -30,18 +30,14 @@ export default function MainDocuments() {
 
 
     return (
-        <>              
-            <div className="w-full bg-card-bg p-6 rounded-lg shadow-md">
-                <div className="lg:w-1/2 md:w-full">
-                    <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>                         
-                </div>
-            </div>            
-
-        {/* Tab content*/}
-        <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-                    
+        <>                  
         {/* Matches the tab content with the selected tab */}
-        <div className="border border-mid-gray bg-white rounded-lg">
+        <div className="border border-mid-gray bg-white rounded-lg p-4">
+        {/* Tab content*/}
+        <div className="w-1/2">
+            <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>                         
+        </div>
+        <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
                  <DocumentTable category={categories[activeTab]} searchQuery={searchQuery} />
             </div>
 
