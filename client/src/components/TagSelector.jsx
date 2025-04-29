@@ -21,6 +21,7 @@ export default function TagSelector({
     
 
     console.log("apiTags",apiTags)
+    console.log("handleTagClick",handleTagClick);
 
 
 

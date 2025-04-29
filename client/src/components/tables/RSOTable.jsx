@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import InputModal from "../modals/InputModal";
 import { AnimatePresence } from "framer-motion";
 import { handleShortenName } from "../../utils/handleShortenName";
+import DefaultPicture from "../../assets/images/default-profile.jpg";
 
 
 //Error on passing data for category, tag, and college. (error for dropdowns and tags)
@@ -78,8 +79,13 @@ export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, 
 
     // Check if tags are present and properly formatted; if not, use the selected user's tags
     const updatedTags = updatedData.RSO_tags && updatedData.RSO_tags.length > 0
-        ? updatedData.RSO_tags.map(tag => tag._id ? tag._id : tag).filter(tag => tag.trim() !== '')  // Extract _id if tag is an object
-        : selectedUser.RSO_tags.map(tag => tag._id); // Use the _id of existing tags if no new ones are provided
+    ? updatedData.RSO_tags.filter(tag => {
+        if (typeof tag === 'string') return tag.trim() !== '';
+        if (typeof tag === 'object' && tag !== null && tag.name) return tag.name.trim() !== '';
+        return false;
+    })
+    : selectedUser.RSO_tags.map(tag => tag.tag);
+
 
     // Map frontend field names to match backend expectations
     const sanitizedData = {
@@ -88,12 +94,12 @@ export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, 
         RSO_acronym: updatedData.RSO_acronym,
         RSO_category: updatedData.RSO_category,
         RSO_description: updatedData.RSO_description,
-        RSO_college: updatedData.RSO_college,
+        RSO_College: updatedData.RSO_College,
         RSO_picture: updatedData.RSO_image || null,
         RSO_status: updatedData.RSO_status ? 1 : 0,
         RSO_tags: updatedTags, // Ensure correct tag format
     };
-    
+        console.log("Updated data", updatedData);
         console.log("Saving or updating entry", sanitizedData);
     
         await updateRSO(id, sanitizedData);
@@ -122,11 +128,11 @@ export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, 
                             <div className="hover:bg-gray-300 border border-mid-gray rounded-lg flex flex-row p-4 justify-between items-center">
                                 <div className="flex items-center gap-4">
                                     <img
-                                        src={org.RSO_picture || ""}
+                                        src={org.RSO_picture || DefaultPicture}
                                         alt={org.RSO_name}
                                         width="50"
                                         height="50"
-                                        className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10"
+                                        className="mx-auto flex size-12 shrink-0 items-center justify-center border border-gray-300 rounded-full sm:mx-0 sm:size-10"
                                     />
                                     <div className="grid grid-col-1">
                                         <div>
@@ -135,7 +141,7 @@ export default function RSOTable({ data = [], searchQuery, onUpdate, updateRSO, 
                                             </h1>
                                         </div>
                                         <div>
-                                            {org.RSO_college}
+                                            {org.RSO_College}
                                         </div>
                                     </div>
                                 </div>

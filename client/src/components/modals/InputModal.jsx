@@ -7,6 +7,8 @@ import { handleShortenName } from "../../utils/handleShortenName";
 import { DropIn } from "../../animations/DropIn";
 import { useTagSelector } from "../../hooks";
 
+//find a way to import category_RSO from server side;
+
 export default function InputModal({
   onClose,
   id,
@@ -64,12 +66,17 @@ export default function InputModal({
 
   // Update state when props change
   useEffect(() => {
+    console.log("tags on modal open:", tags);
     setUserName(name || "");
     setUserAcronym(acronym || "");
     setUserImage(image || "");
     setUserCollege(college || "");
-    setUserStatus(status === true || status === "true" ? true : status === false || status === "false" ? false : status);
-    setUserTags(Array.isArray(tags) ? tags.map(tag => tag.tag).join(", ") : "");
+    setUserStatus(String(status) === "true");
+
+    setUserTags(Array.isArray(tags) 
+    ? tags.filter(tag => tag && tag.tag).map(tag => tag.tag).join(", ") 
+    : ""
+  );
     setUserCategory(category || "");
     setUserDescription(description || "");
   }, [acronym, image, name, category, description, college, status, tags]);
@@ -78,6 +85,12 @@ export default function InputModal({
   useEffect(() => {
     console.log("Selected type received in modal:", category);
   }, [category]);
+
+    // Debugging for college
+    useEffect(() => {
+      console.log("Selected type received in modal:", college);
+    }, [college]);
+  
 
   const handleOpen = () => {
     onClose();
@@ -92,17 +105,22 @@ export default function InputModal({
   };
 
   const handleConfirm = (action) => {
+    console.log("Confirming action:", action);
+    
+
     const updatedData = {
       RSO_id: id,
       RSO_name: userName,
       RSO_acronym: userAcronym,
       RSO_category: userCategory,
       RSO_description: userDescription,
-      RSO_college: userCollege,
+      RSO_College: userCollege,
       RSO_status: userStatus === "true" || userStatus === true,
-      RSO_tags: userTags.split(',').map(tag => tag.trim()),
+      RSO_tags: selectedTags.map(tag => tag.trim()),
+
       RSO_image: userImage || presetImage,
     };
+    console.log("User data:", updatedData);
 
     if (action === "delete") {
       onConfirm(id, null);
@@ -194,11 +212,11 @@ export default function InputModal({
                       onChange={(e) => setUserCategory(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Select a category</option>
-                      <option value="Probationary">Probationary</option>
-                      <option value="Professional and Affiliates">Professional & Affiliates</option>
-                      <option value="Professional">Professional</option>
-                      <option value="Special Interest">Special Interest</option>
+                          <option value="">Select a category</option>
+                          <option value="Probationary">Probationary</option>
+                          <option value="Professional & Affiliates">Professional & Affiliates</option>
+                          <option value="Professional">Professional</option>
+                          <option value="Special Interest">Special Interest</option>
                     </select>
                   </div>
                 </div>
@@ -230,11 +248,11 @@ export default function InputModal({
                   >
                     <option value="">Select college</option>
                     <option value="CAH">CAH</option>
-                    <option value="CA">CA</option>
+                    <option value="COA">COA</option>
+                    <option value="COA">COE</option>
                     <option value="CBA">CBA</option>
                     <option value="CCIT">CCIT</option>
                     <option value="CEAS">CEAS</option>
-                    <option value="CE">CE</option>
                     <option value="CTHM">CTHM</option>
                   </select>
                 </div>

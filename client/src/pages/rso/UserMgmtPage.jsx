@@ -76,8 +76,16 @@ export default function UserMgmtPage() {
                         <CloseButton onClick={() => setShowModal(false)} />
                     </div>
 
-                    <div className="flex gap-4 justify-between overflow-y-auto max-h-[60vh]">
-                    {/* left pane */}
+                    <div className="flex flex-col gap-4 justify-between overflow-y-auto max-h-[60vh]">
+                    <div className="flex justify-center items-center w-full max-h-[200px] bg-light-gray rounded-md p-4">
+                        <h1 className="font-bold">
+                            <div className="flex items-center justify-center gap-2 hover:underline cursor-pointer">
+                            GDSC Forms
+                            <svg xmlns="http://www.w3.org/2000/svg" className="fill-off-black size-4" viewBox="0 0 512 512"><path d="M352 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9L370.7 96 201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L416 141.3l41.4 41.4c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-128c0-17.7-14.3-32-32-32L352 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg>
+                            </div>
+                        </h1>
+                    </div>
+                    
                     <div className="flex flex-col w-full max-h-[200px] justify-start items-start gap-2 sticky top-0">
                         <div className="bg-light-gray w-full max-h-[200px] p-4 flex justify-start flex-col items-start gap-2 rounded-md">
                                 <div className="flex items-center justify-center space-x-2">
@@ -110,13 +118,10 @@ export default function UserMgmtPage() {
                         </div>
                     </div>
 
-                    {/* right pane */}
-                    <div className="overflow-y-auto bg-light-gray w-full p-4 rounded-md h-screen">Forms</div>
+                    {/* right pane
+                    <div className="overflow-y-auto bg-light-gray w-full p-4 rounded-md h-screen">Forms</div> */}
                 </div>
-
-
                 </div>
-                
             </motion.div>
             </Backdrop>
             )}

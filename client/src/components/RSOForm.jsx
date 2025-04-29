@@ -36,7 +36,7 @@ export default function RSOForm({ createRSO, onSubmit }) {
         RSO_acronym: "",
         RSO_category: "",
         RSO_tags: "",
-        RSO_College: "",
+        RSO_college: "",
         RSO_status: "",
         RSO_description: "",
     });
@@ -67,11 +67,13 @@ export default function RSOForm({ createRSO, onSubmit }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const newOrg = {
+            
             id: formData.id || Date.now(),
             ...formData,
             RSO_tags: selectedTags,
             RSO_picture: RSO_picture || "No RSO_picture uploaded"
         };
+        console.log("New Organization Data:", newOrg);
 
         await createRSO(newOrg);
 
@@ -80,7 +82,7 @@ export default function RSOForm({ createRSO, onSubmit }) {
             RSO_acronym: "",
             RSO_category: "",
             RSO_tags: "",
-            RSO_College: "",
+            RSO_college: "",
             RSO_status: "",
             RSO_description: "",
         });
@@ -91,8 +93,6 @@ export default function RSOForm({ createRSO, onSubmit }) {
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
-
-        onSubmit && onSubmit("Organization added successfully!");
     };
 
     const handleImageChange = (event) => {

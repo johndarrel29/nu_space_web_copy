@@ -12,7 +12,7 @@ export default function AdminAccount() {
             <div className="grid grid-cols-2 gap-4">
 
             
-                <div className="bg-white rounded-lg p-4 grid grid-col shadow-md">
+                <div className="bg-white rounded-lg p-4 grid grid-col border border-mid-gray">  
                     <div>
                         <h1 className="font-semibold text-xl mb-6">Profile Picture</h1>
                     </div>
@@ -31,7 +31,7 @@ export default function AdminAccount() {
                     </div>
           
                 </div>
-                <div className="bg-white rounded-lg p-4 shadow-md" >
+                <div className="bg-white rounded-lg p-4 border border-mid-gray">
 
                 </div>
             </div>

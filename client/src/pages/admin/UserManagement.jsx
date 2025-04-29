@@ -116,7 +116,7 @@ useEffect(() => {
             tabName="User Management"
             headingTitle="Monitor Student/RSO and Student accounts"
             > 
-          <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg p-4 shadow-md">
+          <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg p-4 border border-mid-gray">
             <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/>
               
             <Table data={memoizedData} searchQuery={searchQuery} selectedRole={selectedRole}/>
