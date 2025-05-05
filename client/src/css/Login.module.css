@@ -4,11 +4,9 @@
     min-height: 100%;
 }
 
+/* styles.css */
 .left-container {
-    width: 30%;
-    min-height: 100vh;
-    float: left;
-
+    @apply w-[30%] min-h-screen float-left bg-card-bg;
 }
 
 .right-container {

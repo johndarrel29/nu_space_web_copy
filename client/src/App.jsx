@@ -3,18 +3,26 @@ import './App.css';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
+import ErrorPage from './pages/ErrorPage';
 import Dashboard from './pages/admin/Dashboard';
 import UserManagement from './pages/admin/UserManagement';
 import Documents from './pages/admin/Documents';
 import AdminAccount from './pages/admin/AdminAccount';
+import MainActivities from './pages/admin/MainActivities';
 import Activities from './pages/admin/Activities';
 import MainDocuments from './pages/admin/MainDocuments';
 import RSOManagement from './pages/admin/RSOManagement';
+import Requirements from './pages/admin/Requirements';
 import { ThemeProvider } from '@material-tailwind/react';
 import MainRSO from './pages/admin/MainRSO';
 import PreLoader from './components/Preloader';
-import { gsap } from "gsap";
 import { useEffect, useState } from 'react';
+import Review from './pages/admin/Review';
+import { SkeletonTheme } from 'react-loading-skeleton';
+import ActivityPage from './pages/rso/ActivityPage';
+import ProtectedRoutes from './utils/ProtectedRoute';
+import { DocumentPage, RSOAccountPage, UserMgmtPage, ActivityDocuments, MainActivityPage, CreateActivity } from './pages/rso';
+import RSODetails from './pages/admin/RSODetails';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -33,22 +41,49 @@ function App() {
     <BrowserRouter>
       {loading ? (<PreLoader />
       ): (
+      <SkeletonTheme baseColor="#e0e0e0" highlightColor="#f5f5f5">
       <Routes>
         <Route index element={<Login />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/user-management" element={<UserManagement />} />
-        <Route path="/documents" element={<Documents />} >
-          <Route index element={<MainDocuments />} />
-          <Route path="activities" element={<Activities />} />
-        </Route>
-        <Route path="/admin-account" element={<AdminAccount />} />
+
+        {/* Authenticates user and redirects to dashboard if already logged in */}
+          <Route element={<ProtectedRoutes />}>
+          {/* rso */}
+            <Route path="/activity-page" element={<ActivityPage />}> 
+              <Route index element={<MainActivityPage />} />
+              <Route path="activity-documents" element={<ActivityDocuments />} />
+              <Route path="create-activity" element={<CreateActivity />} />
+            </Route>
+            <Route path="/rso-account" element={<RSOAccountPage />} />
+            <Route path="/rso-user-management" element={<UserMgmtPage />} />
+            <Route path="/document-page" element={<DocumentPage />} /> 
+                
+            
+
+          {/* sdao */}
+            <Route path="/error" element={<ErrorPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/user-management" element={<UserManagement />} />
+            <Route path="/documents" element={<Documents />} >
+              <Route index element={<MainDocuments />} />
+              <Route path="main-activities" element={<MainActivities />} >
+                <Route index element={<Activities />} />
+                <Route path="requirements" element={<Requirements />} />
+                <Route path="review" element={<Review/>}/>
+              </Route>
+            </Route>
+            <Route path="/admin-account" element={<AdminAccount />} />
+            
+            <Route path="/rso-management" element={<RSOManagement />} >
+              <Route index element={<MainRSO />} />
+              <Route path="rso-details" element={<RSODetails />} />
+
+            </Route>
+          </Route>
         
-        <Route path="/rso-management" element={<RSOManagement />} >
-          <Route index element={<MainRSO />} />
-        </Route>
       </Routes>
-      )}
+      </SkeletonTheme>
+      )}   
     </BrowserRouter>
     </ThemeProvider>
   );

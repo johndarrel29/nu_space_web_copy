@@ -1,13 +1,16 @@
 import style from "../../css/SidebarLogo.module.css";
 import whiteLogo from "../../assets/images/white-nu-space.png";
+import blueLogo from "../../assets/images/blue-nu-space.png";
 import iconLogo from "../../assets/images/tab-logo.png";
 
-function SidebarLogo () {
+function SidebarLogo (logoStyle) {
+  const user = JSON.parse(localStorage.getItem("user"));
+
   return (
     <div>
     
         <img 
-        src={whiteLogo} 
+        src={user?.role === "student/rso" ? blueLogo : whiteLogo} 
         alt="Logo" className={style.imageStyle}
         draggable="false"
         />

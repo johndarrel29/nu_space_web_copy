@@ -1,19 +1,20 @@
-.container {
-    position: fixed;
-    z-index: 50;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    width: 18%;
-    background-color: #314095;
 
+.container {
+    @apply fixed z-50 top-0 left-0 h-screen w-[18%] bg-[#314095];
 }
 
+.RSOcontainer {
+    @apply fixed z-50 top-0 left-0 h-screen w-[18%] bg-[var(--primary-rso)];
+    border-right: 1px solid var(--primary-rso-border);
+}
 
 .sidebarContainer {
     width: 90%;
     margin-left: 12px;
     margin-top: 20%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .hoverDiv {
@@ -40,12 +41,24 @@
     border-radius: 100%;
     width: 100%;
     height: 1px;
-    background-color: #ffffff; 
-    margin-top: 20px; 
-  }
+    background-color: var(--mid-gray); 
+    margin: 10px 0 10px 0;
+}
+
+.rsoseparator {
+    border-radius: 100%;
+    width: 100%;
+    height: 1px;
+    background-color: var(--primary-rso-border); 
+    margin: 10px 0 10px 0;
+}
 
 .tabName {
     color: #314095;
+}
+
+.disabled {
+    color: rgb(157, 156, 156);
 }
 
 .headingTitle{
@@ -56,6 +69,14 @@
 .activeButton {
     background-color: #1f2e5d; 
     color: #ffffff;
+    border-radius: 5px;  
+  }
+
+  div.activeButtonRSO {
+    border: none;
+    background-color: var(--primary-rso-hover); 
+    color: var(--primary);
+    border: 1px solid var(--primary);
     border-radius: 5px;  
   }
 
