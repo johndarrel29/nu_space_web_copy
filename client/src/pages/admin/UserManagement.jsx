@@ -19,7 +19,7 @@ import { CreateUserModal } from "../../components";
           Search
         </label>
           <Searchbar
-            placeholder="Search an Organization"
+            placeholder="Search a user"
             searchQuery={searchQuery || ''}
             setSearchQuery={setSearchQuery}
           />

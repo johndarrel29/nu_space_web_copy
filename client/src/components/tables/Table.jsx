@@ -267,7 +267,6 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
                 <option value="50">50 rows</option>
               </select>
         </li>
-
       </div>
 
       {data.length > 0 ? (

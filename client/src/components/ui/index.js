@@ -11,3 +11,4 @@ export { default as SearchResultsList } from './SearchResultsList';
 export { default as TabSelector } from './TabSelector';
 export { default as CloseButton } from './CloseButton';
 export { default as ReusableDropdown } from './ReusableDropdown';
+export { default as ActivityCard } from './ActivityCard';

@@ -8,10 +8,14 @@ export default function RSOManagement() {
     <>
       <MainLayout
         tabName="RSO Management"
-        headingTitle="Create RSO Account"
+        headingTitle="Manage RSO Account"
       >
-
-        <Outlet />
+        <div className="grid grid-cols-1 w-full">
+          <div className="border border-mid-gray bg-white rounded-lg p-4">
+          <Outlet />
+          </div>
+        </div>
+    
       </MainLayout>
     </>
   );

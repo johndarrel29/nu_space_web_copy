@@ -36,10 +36,10 @@ function MainLayout({ children, tabName, headingTitle }) {
         </div>
 
         {/* Scrollable Content */}
-        <main className="mt-16 h-[calc(100%-4rem)] overflow-y-auto p-4">
+        <main className="mt-16 h-[calc(100%-4rem)] overflow-y-auto p-4 pl-12 pr-12">
           <div className="mb-6 flex flex-col">
             <Breadcrumb style={style.tabName} unSelected={style.disabled} />
-            <h2 className={style.headingTitle}>{headingTitle}</h2>
+            {/* <h2 className={style.headingTitle}>{headingTitle}</h2> */}
           </div>
 
           {/* Page Content */}

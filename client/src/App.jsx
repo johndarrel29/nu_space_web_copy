@@ -22,6 +22,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import ActivityPage from './pages/rso/ActivityPage';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { DocumentPage, RSOAccountPage, UserMgmtPage, ActivityDocuments, MainActivityPage, CreateActivity } from './pages/rso';
+import RSODetails from './pages/admin/RSODetails';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -75,6 +76,8 @@ function App() {
             
             <Route path="/rso-management" element={<RSOManagement />} >
               <Route index element={<MainRSO />} />
+              <Route path="rso-details" element={<RSODetails />} />
+
             </Route>
           </Route>
         

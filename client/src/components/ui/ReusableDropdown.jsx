@@ -1,10 +1,12 @@
 import React from "react";
-const ReusableDropdown = ({ options, showAllOption }) => {
+const ReusableDropdown = ({ options, showAllOption, value, onChange}) => {
 
     return (
         <select 
-        className="bg-light-gray border border-mid-gray rounded-md p-2 w-full focus:ring-off-black"
+        className="w-full h-10 border border-mid-gray rounded-md p-1 bg-textfield focus:outline-none focus:ring-off-black  focus:ring-1"
         defaultValue=""
+        value={value}
+        onChange={onChange}
         >
         {showAllOption && <option value="all">All</option>}
           {options.map((label, index) => (

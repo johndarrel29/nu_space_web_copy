@@ -1,0 +1,176 @@
+import React, { useState, useCallback } from "react";
+import { ReusableDropdown, Searchbar } from "../ui";
+import DefaultPicture from "../../assets/images/default-profile.jpg";
+
+export default function ReusableTable({columnNumber, tableHeading, tableRow, options, value, onChange, showAllOption, onClick, children}) {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [postsPerPage, setPostsPerPage] = useState(10);
+
+    const lastPostIndex = currentPage * postsPerPage;
+    const firstPostIndex = lastPostIndex - postsPerPage;
+    // const pages = [];
+
+    // for (let i = 1; i <= Math.ceil(totalPosts/postsPerPage); i++) {
+    //     pages.push(i);
+    // }
+    // const filteredRows = (Array.isArray(tableRow) ? tableRow : []).filter((row) =>
+    //     Object.values(row).some(
+    //         (value) =>
+    //             typeof value === "string" &&
+    //             value.toLowerCase().includes(searchQuery.toLowerCase())
+    //     )
+    // );
+
+    const filteredRows = tableRow.filter((row) => {
+        return Object.values(row).some((value) => {
+            if (typeof value === "string") {
+                return value.toLowerCase().includes(searchQuery.toLowerCase());
+            } else if (typeof value === "number") {
+                return value.toString().includes(searchQuery.toLowerCase());
+            }
+            return false;
+        });
+    });
+      
+    const currentPosts = filteredRows.slice(firstPostIndex, lastPostIndex);
+
+    const pages = Array.from({ length: Math.ceil(filteredRows.length / postsPerPage) }, (_, i) => i + 1);
+
+    const currentPageHandler = (selectedPage) => {
+        if (selectedPage < 1 || selectedPage > pages.length) return; // Prevent going out of bounds
+        setCurrentPage(selectedPage);
+    }
+    console.log("searchQUery", searchQuery);
+
+    const handlePostsPerPageChange = (event) => {
+        const value = event.target.value;
+        setPostsPerPage(value); // Reset to the first page when changing posts per page
+    }
+
+    return(
+        <>
+        {/* searchbar and dropdown */}
+            <div className="mt-4 mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
+                <div className="w-full lg:w-full md:w-full">
+                    <Searchbar placeholder="Search an organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
+                </div>
+                <div className="w-full lg:w-1/2 md:w-full">
+                    <ReusableDropdown 
+                    options={options}
+                    showAllOption={showAllOption}
+                    value={value}
+                    onChange={onChange}
+                    />
+                </div>
+            </div>
+
+        <div className="flex justify-between items-center mb-4">
+        <span className="text-gray-700 font-semibold">
+          Showing {filteredRows.length > 0 ? filteredRows.length : "0"} results
+        </span>
+        <li className="flex justify-center ">
+              <select
+                className={`w-24 h-10 rounded-md bg-white border border-mid-gray p-1 font-bold`}
+                value={postsPerPage}
+                onChange={handlePostsPerPageChange}
+              >
+                <option value={10}>10 rows</option>
+                <option value={20}>20 rows</option>
+                <option value={50}>50 rows</option>
+              </select>
+        </li>
+      </div>
+
+        {/* children */}
+        {children ? (
+            <div className="flex justify-center mb-4">
+                {children}
+            </div>
+        ) : (
+        <table className="w-full">
+        <thead className="border-b border-gray-400 ">
+            <tr
+            className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider ">
+            {tableHeading.slice(0, columnNumber).map((heading) => (
+                <th key={heading.id} className="text-left p-3">
+                    <h1 className="text-gray-900 dark:text-white">{heading.name}</h1>
+                </th>
+            ))}
+            </tr>
+        
+        </thead>
+        <tbody>
+            {currentPosts.map((row, index) => (
+                <tr 
+                key={row.id}
+                onClick={() => onClick(row)} 
+                className="border-b border-mid-gray hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+                    
+                    {tableHeading.slice(0, columnNumber).map((heading) => (
+                        <td key={heading.id} className="p-3">
+                        {/* RSO Table Styling */}
+                            {["RSO_name", "RSO_College", "RSO_picture"].includes(heading.key) 
+                            ? (
+                            // Grouping these in one <td> with custom layout
+                            <div className="flex items-center space-x-3">
+                            <div className="text-sm font-medium text-gray-900">{firstPostIndex + index + 1}</div>
+                            {/* If it's the name column and image exists, show it */}
+                            {heading.key === "RSO_name" && (
+                                <img
+                                src={
+                                row.RSO_picture && 
+                                !row.RSO_picture.includes("example.com") && // Avoid placeholder URLs
+                                row.RSO_picture.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) // Check if it's an image URL
+                                    ? row.RSO_picture
+                                    : DefaultPicture
+                                }
+                                alt={row.RSO_name}
+                                className="w-10 h-10 rounded-full object-cover"
+                                onError={(e) => {
+                                e.target.src = DefaultPicture; // Fallback if image fails to load
+                                }}
+                            />
+                            )}
+                            <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.RSO_name}</span>
+                                <span className="text-xs text-gray-500">{row.RSO_College}</span>
+                            </div>
+                            </div>
+                            ) : (
+                            typeof row[heading.key] === 'string' && row[heading.key].match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) ? (
+                                <img src={row[heading.key] || row.RSO_picture} alt="table content" className="w-12 h-12 object-cover rounded-full" />
+                                ) : (
+                                <p className="text-gray-900 dark:text-white">{row[heading.key]}</p>
+                                )
+                            )
+                           }
+                        </td>
+                    ))}
+                </tr>
+            ))}
+        </tbody>
+    </table>
+        )}
+
+        
+        {/* pagination */}
+            <div className='w-full bottom-20 mt-4'>
+            <nav>
+            <ul className="flex justify-center space-x-2">
+
+                <li className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded`}>
+                <button className='page-link' onClick={() => currentPageHandler(currentPage-1)}>Prev</button>
+                </li>
+                <div className="px-4 py-2 font-semibold">
+                    {pages.length > 0 ? `${currentPage} of ${pages.length}` : "0 of 0"}
+                </div>
+                <li className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded`}>
+                    <button className='page-link' onClick={() => currentPageHandler(currentPage+1)}>Next</button>
+                </li>
+            </ul>
+            </nav>  
+        </div>
+        </>
+    );
+}
