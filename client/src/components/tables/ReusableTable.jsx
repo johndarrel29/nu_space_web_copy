@@ -52,20 +52,20 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
         <>
         {/* searchbar and dropdown */}
             <div className="mt-4 mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
-                <div className="w-full lg:w-full md:w-full">
-                    <Searchbar placeholder="Search an organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
-                </div>
-                <div className="w-full lg:w-1/2 md:w-full">
-                    <ReusableDropdown 
-                    options={options}
-                    showAllOption={showAllOption}
-                    value={value}
-                    onChange={onChange}
-                    />
-                </div>
+                    <div className="w-full lg:w-full md:w-full">
+                        <Searchbar placeholder="Search an organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
+                    </div>
+                    <div className="w-full lg:w-1/2 md:w-full">
+                        <ReusableDropdown 
+                        options={options}
+                        showAllOption={showAllOption}
+                        value={value}
+                        onChange={onChange}
+                        />
+                    </div>
             </div>
 
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 w-full">
         <span className="text-gray-700 font-semibold">
           Showing {filteredRows.length > 0 ? filteredRows.length : "0"} results
         </span>

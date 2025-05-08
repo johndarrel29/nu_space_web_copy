@@ -5,11 +5,14 @@ import DefaultPicture from "../../assets/images/default-profile.jpg";
 import { ReusableTable, TabSelector, ActivityCard, Button } from '../../components';
 import TagSelector from '../../components/TagSelector'
 import { useTagSelector } from '../../hooks';
+import { useNavigate } from 'react-router-dom';
 
 function RSODetails() {
   const location = useLocation()
   const { user } = location.state || {}; // Destructure rsoDetails from location.state
   const [activeTab, setActiveTab] = useState(0);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const navigate = useNavigate();
 
     const {
       selectedTags,
@@ -23,6 +26,12 @@ function RSODetails() {
     } = useTagSelector();
 
     console.log("Selected tags:", user.RSO_tags);
+
+    const handleActivityClick = (activity) => {
+      setSelectedActivity(activity);
+      console.log("Selected Activity:", activity);
+      navigate(`../../documents/main-activities`, { state: { activity }}); // Navigate to the activity details page
+  };
 
   const handleIcon = (icon) => {
     switch (icon) {
@@ -41,6 +50,9 @@ function RSODetails() {
    
       }
     }
+
+    console.log("User data:", user);
+    console.log("User tags:", user.RSO_activities);
 
     const tabs = [
       { label: "Requirements" },
@@ -137,7 +149,23 @@ function RSODetails() {
 
         )}
         {activeTab === 1 && (
-        <ActivityCard></ActivityCard>
+      <div className="grid grid-cols-3 gap-3 mt-4">
+          {user.RSO_activities && user.RSO_activities.length > 0 ? (user.RSO_activities.map((activity) => (
+            <ActivityCard
+                key={activity._id}
+                activity={activity}
+                Activity_name={activity.Activity_name}
+                Activity_description={activity.Activity_description}
+                Activity_image={activity.Activity_image}
+                Activity_registration_total={activity.Activity_registration_total}
+                onClick={handleActivityClick} // Add onClick handler if needed
+            />
+          )))
+          : (
+            <p>No activities available.</p>
+          )}
+        
+      </div>
         )}
         {activeTab === 2 && (
           <div className='bg-gray-100 p-4 rounded-lg w-1/3'>
