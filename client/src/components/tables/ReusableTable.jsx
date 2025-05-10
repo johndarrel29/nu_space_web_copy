@@ -9,18 +9,6 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
 
     const lastPostIndex = currentPage * postsPerPage;
     const firstPostIndex = lastPostIndex - postsPerPage;
-    // const pages = [];
-
-    // for (let i = 1; i <= Math.ceil(totalPosts/postsPerPage); i++) {
-    //     pages.push(i);
-    // }
-    // const filteredRows = (Array.isArray(tableRow) ? tableRow : []).filter((row) =>
-    //     Object.values(row).some(
-    //         (value) =>
-    //             typeof value === "string" &&
-    //             value.toLowerCase().includes(searchQuery.toLowerCase())
-    //     )
-    // );
 
     const filteredRows = tableRow.filter((row) => {
         return Object.values(row).some((value) => {
@@ -28,7 +16,7 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
                 return value.toLowerCase().includes(searchQuery.toLowerCase());
             } else if (typeof value === "number") {
                 return value.toString().includes(searchQuery.toLowerCase());
-            }
+            } 
             return false;
         });
     });
@@ -88,8 +76,9 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
                 {children}
             </div>
         ) : (
-        <table className="w-full">
-        <thead className="border-b border-gray-400 ">
+            <div className="border border-mid-gray rounded-md overflow-hidden">
+        <table className="w-full ">
+        <thead className="border-b border-mid-gray bg-textfield ">
             <tr
             className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider ">
             {tableHeading.slice(0, columnNumber).map((heading) => (
@@ -110,7 +99,7 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
                     {tableHeading.slice(0, columnNumber).map((heading) => (
                         <td key={heading.id} className="p-3">
                         {/* RSO Table Styling */}
-                            {["RSO_name", "RSO_College", "RSO_picture"].includes(heading.key) 
+                            {["RSO_name", "RSO_College", "RSO_picture", "title"].includes(heading.key) 
                             ? (
                             // Grouping these in one <td> with custom layout
                             <div className="flex items-center space-x-3">
@@ -133,14 +122,25 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
                             />
                             )}
                             <div className="flex flex-col">
-                                <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.RSO_name}</span>
-                                <span className="text-xs text-gray-500">{row.RSO_College}</span>
+                                {heading.key === "RSO_name" && row.RSO_picture && (
+                                    <>                                    
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.RSO_name}</span>
+                                    <span className="text-xs text-gray-500">{row.RSO_College}</span>
+                                    </>
+                                )}
+                                {heading.key === "title" && (
+                                    <>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.title}</span>
+                                    </>
+                                )}
+
                             </div>
                             </div>
                             ) : (
-                            typeof row[heading.key] === 'string' && row[heading.key].match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) ? (
-                                <img src={row[heading.key] || row.RSO_picture} alt="table content" className="w-12 h-12 object-cover rounded-full" />
-                                ) : (
+                            // typeof row[heading.key] === 'string' && row[heading.key].match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) ? (
+                            //     <img src={row[heading.key] || row.RSO_picture} alt="table content" className="w-12 h-12 object-cover rounded-full" />
+                            //     ) : 
+                                (
                                 <p className="text-gray-900 dark:text-white">{row[heading.key]}</p>
                                 )
                             )
@@ -151,6 +151,7 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
             ))}
         </tbody>
     </table>
+    </div>
         )}
 
         

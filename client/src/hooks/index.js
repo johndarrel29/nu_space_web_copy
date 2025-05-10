@@ -4,3 +4,4 @@ export { default as useRSO } from './useRSO';
 export { default as useSearchQuery } from './useSearchQuery';
 export { default as useActivities } from './useActivities';
 export { default as useUser } from './useUser';
+export { default as useDocumentManagement } from './useDocumentManagement';

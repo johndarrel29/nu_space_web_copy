@@ -1,15 +1,46 @@
 import { MainLayout, Searchbar, ReusableDropdown, Button, Backdrop, CloseButton, TabSelector } from "../../components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import  { DropIn }  from "../../animations/DropIn";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import {useDocumentManagement} from "../../hooks";
+import useNotification from "../../utils/useNotification";
 
 export default function DocumentPage() {
     const [activeTab, setActiveTab] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
     const [modalType, setModalType] = useState("");
+    const [file, setFile] = useState(null);
+    const [title, setTitle] = useState("");
+    const { documents, fetchDocuments, submitDocument } = useDocumentManagement();
+    const { handleNotification } = useNotification();
+
+    useEffect(() => {
+        console.log("Fetching documents on component mount...");
+        fetchDocuments();
+    }, [fetchDocuments]);
+
+    console.log("Documents fetched:", documents);
+
+    const handleSubmit = async () => {
+        console.log("Submitting document:", file, title);
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("title", title);
+
+        try {
+            console.log("Calling submitDocument with formData...");
+            await submitDocument(formData);
+            handleNotification("Document submitted successfully!");
+            setShowModal(false);
+        } catch (error) {
+            console.error("Error submitting document:", error);
+            handleNotification("Error submitting document. Please try again.");
+        }
+    };
 
     const tabs = [
         { label: "All" },
@@ -33,11 +64,6 @@ export default function DocumentPage() {
         },
     ];
 
-    const documents = [
-        { name: "Event Proposal.pdf", date: "16/04/2025", status: "Pending", remarks: "Under review" },
-        { name: "Budget Plan.xlsx", date: "10/04/2025", status: "Approved", remarks: "Approved with notes" },
-        { name: "Participant List.docx", date: "05/04/2025", status: "Declined", remarks: "Incomplete data" }
-    ];
 
     return (
         <MainLayout
@@ -79,22 +105,7 @@ export default function DocumentPage() {
                     </div>
 
                 </div>
-                {/* <table className="w-full mt-4">
-                    <tr className="flex justify-between w-full bg-light-gray p-2 rounded-md mt-4">
-                        <td>
-                            Document Name
-                        </td>
-                        <td>
-                            16/04/2025
-                        </td>
-                        <td>
-                            Pending
-                        </td>
-                        <td>
-                            Remarks
-                        </td>
-                    </tr>
-                </table> */}
+
                  {/* Documents Section */}
                 <div className="w-full">
                     <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
@@ -221,7 +232,7 @@ export default function DocumentPage() {
                         type="file"
                         id="file-upload"
                         className="hidden"
-                        onChange={(e) => console.log(e.target.files[0])} 
+                        onChange={(e) => setFile(e.target.files[0])} 
                     />
                     <label
                         htmlFor="file-upload"
@@ -235,7 +246,7 @@ export default function DocumentPage() {
 
                     <div className="flex justify-end mt-4">
                         <div className="flex space-x-2">
-                            <Button className="p-2 bg-blue-500 text-white rounded-md" onClick={() => setShowModal(false)}>
+                            <Button className="p-2 bg-blue-500 text-white rounded-md" onClick={handleSubmit}>
                             Upload
                             </Button>
                             <Button style="secondary" className="p-2 rounded-md" onClick={() => setShowModal(false)}>
@@ -249,63 +260,6 @@ export default function DocumentPage() {
             </Backdrop>
                 )}
             </AnimatePresence>
-
-            {/* <AnimatePresence
-                    initial={false}
-                    exitBeforeEnter={true}
-                    onExitComplete={() => null}
-                >
-            {showModal && (
-            <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <motion.div
-                className="bg-white overflow-hidden rounded-lg shadow-lg w-[90%] max-w-[600px] p-4"
-                variants={DropIn}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-            >
-                    
-                    <div className="w-full ">
-                        <div className="flex items-center justify-between ">
-                            <h2 className="text-lg font-bold">File Upload</h2>
-                            <CloseButton
-                            onClick={() => setShowModal(false)}
-                            />
-                        </div>
-                    
-                    <div className="flex flex-col gap-2 items-center justify-center mt-4 border-2 border-dashed border-primary rounded-lg h-[200px] bg-[#BAC1E3]">
-                    <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden"
-                        onChange={(e) => console.log(e.target.files[0])} 
-                    />
-                    <label
-                        htmlFor="file-upload"
-                        className="flex flex-col items-center justify-center cursor-pointer"
-                    >
-                        
-                        <svg className="fill-primary size-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
-                        <h1 className="text-primary">Upload a file</h1>
-                    </label>
-                    </div>
-
-                    <div className="flex justify-end mt-4">
-                        <div className="flex space-x-2">
-                            <Button className="p-2 bg-blue-500 text-white rounded-md" onClick={() => setShowModal(false)}>
-                            Upload
-                            </Button>
-                            <Button style="secondary" className="p-2 rounded-md" onClick={() => setShowModal(false)}>
-                            Cancel
-                            </Button>
-                        </div>
-                    </div>
-                    </div>
-                
-            </motion.div>
-            </Backdrop>
-            )}
-        </AnimatePresence> */}
         </MainLayout>
     );
 }
