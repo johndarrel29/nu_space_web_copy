@@ -6,6 +6,7 @@ import { CreateUserModal } from "../../components";
 
   // function to handle the search and filter
   const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole, openModal }) => {
+    
 
     return (
       <>
@@ -57,6 +58,7 @@ import { CreateUserModal } from "../../components";
   const [selectedRole, setSelectedRole] = useState("");
   const { isOpen, openModal, closeModal } = useModal();
   const {data = [], loading, error, fetchData } = useUser(); // Fetch data from the custom hook
+  const user = JSON.parse(localStorage.getItem("user"));
 
 
     // Memoize the data to prevent unnecessary re-renders
@@ -71,9 +73,19 @@ import { CreateUserModal } from "../../components";
             headingTitle="Monitor Student/RSO and Student accounts"
             > 
           <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg p-4 border border-mid-gray">
-            <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/>
+            {user && user.role === "admin" && (
+              <>
+             <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/>
               
-            <Table data={memoizedData} searchQuery={searchQuery} selectedRole={selectedRole}/>
+            <Table data={memoizedData} searchQuery={searchQuery} selectedRole={selectedRole}/>             
+              </>
+              )}
+
+            {user && user.role === "student/rso" && (
+              <h1>user that joined rso</h1>
+              
+            )}
+
           </div>
 
 

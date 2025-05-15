@@ -1,6 +1,6 @@
 
 import defaultPic from '../../assets/images/default-picture.png';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ReusableTable, Backdrop, Button } from '../../components';
 import   { useModal }  from "../../hooks";
 import { useState } from 'react';
@@ -11,6 +11,7 @@ import axios, { Axios } from 'axios';
 
 
 export default function Activities() {
+  const navigate = useNavigate();
   const location = useLocation()
   const { activity } = location.state || {}; 
   const { isOpen, openModal, closeModal } = useModal();
@@ -123,28 +124,104 @@ export default function Activities() {
       setModalType("upload"); // Set the modal type to "upload"
     }
 
+      // Format date for display
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   
 
   return (
     <>
       <div className="flex flex-col items-start ">
-        <div className="flex flex-row gap-4 items-center">
-            <div className="w-32 h-32 bg-card-bg border border-gray-400 rounded-md"
-            style={{
-                backgroundImage: `url(${defaultPic})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-            }}></div>
-              <div className="flex flex-col">
-                <div className="font-semibold text-xl">{activity.Activity_name}</div>
-                <div className="font-light text-mid_gray">{activity.RSO_id.RSO_name}</div>
-            </div>
+        <div className='flex justify-between w-full'>
+          <div className="flex flex-row gap-4 items-center">
+              <div className="w-32 h-32 bg-card-bg border border-gray-400 rounded-md"
+              style={{
+                  backgroundImage: `url(${defaultPic})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+              }}></div>
+                <div className="flex flex-col">
+                  <div className="font-semibold text-xl">{activity.Activity_name}</div>
+                  <div className="font-light text-mid_gray">{activity.RSO_id.RSO_name}</div>
+              </div>
 
 
+          </div>
+          <div>
+            <Button style={"secondary"} onClick={() => navigate("../document-action")}>Edit Activity</Button>
+          </div>
         </div>
-        <div className='w-full h-[300px] flex flex-row justify-center items-center border border-mid-gray mt-2 rounded-md'>
-              Activity Details
+
+<div className='w-full h-[300px] flex flex-row justify-center items-center border border-mid-gray mt-2 rounded-md p-4 overflow-auto'>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+        {/* Left Column */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-semibold text-sm">Description</h3>
+            <p className="text-sm">{activity.Activity_description}</p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-sm">Date & Time</h3>
+            <p className="text-sm">
+              {formatDate(activity.Activity_date)} at {activity.Activity_time}
+            </p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-sm">Location</h3>
+            <p className="text-sm">{activity.Activity_place}</p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-sm">Status</h3>
+            <p className="text-sm capitalize">{activity.Activity_status}</p>
+          </div>
         </div>
+
+        {/* Right Column */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-semibold text-sm">Document Status</h3>
+            <p className="text-sm capitalize">{activity.Activity_document_status}</p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-sm">Participants</h3>
+            <p className="text-sm">{activity.Activity_registration_total} registered</p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-sm">Organization</h3>
+            <p className="text-sm">
+              {activity.RSO_id.RSO_name} ({activity.RSO_id.RSO_acronym})
+            </p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-sm">Created By</h3>
+            <p className="text-sm">
+              {activity.CreatedBy.firstName} {activity.CreatedBy.lastName}
+            </p>
+            <p className="text-sm text-gray-600">{activity.CreatedBy.email}</p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-sm">Last Updated</h3>
+            <p className="text-sm">{formatDate(activity.updatedAt)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
         {user?.role === "student/rso" ? (
           <div className="flex justify-end w-full mt-4">
@@ -156,6 +233,7 @@ export default function Activities() {
         ) : (
           null
         )}
+        <div className="w-full mt-4">
         <ReusableTable
             columnNumber={3}
             tableHeading={tableHeading}
@@ -166,6 +244,7 @@ export default function Activities() {
             showAllOption={true}
             onClick={handleDocumentClick} // Add onClick handler for document rows
           />
+        </div>
         
     </div>
 <AnimatePresence>

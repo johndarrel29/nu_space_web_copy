@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ActivityCard, Searchbar, ReusableDropdown } from "../../components";
+import { ActivityCard, Searchbar, ReusableDropdown, Button } from "../../components";
 import { useActivities, useUser } from "../../hooks";
 import { useNavigate } from "react-router-dom";
 import { ActivitySkeleton } from '../../components';
@@ -29,7 +29,13 @@ export default function MainDocuments() {
 
     return (
         <> 
-        <div className="border border-mid-gray bg-white rounded-lg p-4">
+
+        {user.role === "student/rso" && (
+            <div className="w-full flex justify-end mb-4">
+                <Button onClick={() => navigate("document-action")}>
+                Create an Activity</Button>
+            </div>
+        )}
         <div className=" mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
                 <div className="w-full lg:w-full md:w-full">
                     <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
@@ -65,7 +71,7 @@ export default function MainDocuments() {
                       Activity_description={activity.Activity_description}
                       Activity_image={activity.Activity_image}
                       Activity_registration_total={activity.Activity_registration_total}
-                      onClick={handleActivityClick} // Add onClick handler if needed
+                      onClick={handleActivityClick} 
                   />
                 ))}
              
@@ -110,9 +116,7 @@ export default function MainDocuments() {
             </>    
 
         )} 
-        </div>   
-           
-        
+      
 
         </>
     );

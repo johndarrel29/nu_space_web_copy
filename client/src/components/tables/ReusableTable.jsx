@@ -6,6 +6,7 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(10);
+    const [showSearch, setShowSearch] = useState(false);
 
     const lastPostIndex = currentPage * postsPerPage;
     const firstPostIndex = lastPostIndex - postsPerPage;
@@ -122,7 +123,7 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
                             />
                             )}
                             <div className="flex flex-col">
-                                {heading.key === "RSO_name" && row.RSO_picture && (
+                                {heading.key === "RSO_name" &&  (
                                     <>                                    
                                     <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.RSO_name}</span>
                                     <span className="text-xs text-gray-500">{row.RSO_College}</span>

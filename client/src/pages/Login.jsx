@@ -22,8 +22,6 @@ export default function Login () {
             return;
           }
         
-    // store url in .env
-    // api endpoint to .env
         try {
             const response = await axios.post(`${process.env.REACT_APP_LOGIN_URL}`, 
                 {
@@ -52,7 +50,7 @@ export default function Login () {
                     navigate("/dashboard"); 
                 }
                 else if (role === "student/rso") {
-                    navigate("/document-page"); 
+                    navigate("/document"); 
                 }
 
             } else {

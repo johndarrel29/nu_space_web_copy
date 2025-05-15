@@ -77,8 +77,9 @@ function useDocumentManagement() {
             console.log("Response from server:", json);
 
             if (json.success) {
-                setDocuments((prev) => [...prev, json.document]);
-                console.log("Document successfully submitted and state updated:", json.document);
+                const newDocuments = Array.isArray(json.documents) ? json.documents : [];
+                setDocuments((prev) => [...prev, ...newDocuments]);
+                console.log("Document successfully submitted and state updated with:", newDocuments);
             } else {
                 throw new Error(json.message || "Failed to submit document");
             }

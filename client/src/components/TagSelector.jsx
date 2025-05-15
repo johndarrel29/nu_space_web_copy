@@ -14,11 +14,15 @@ export default function TagSelector({
     handleApiTagRemove,
     setShowModal,
     handleTagModal,
+    style
 }) {
 
     const hasApiTags = apiTags && apiTags.length > 0;
     const hasTagData = selectedTags && selectedTags.length > 0;
-    
+
+
+    const normalizedTags = Array.isArray(apiTags) ? apiTags : [apiTags];
+
 
     console.log("apiTags",apiTags)
     console.log("handleTagClick",handleTagClick);
@@ -32,8 +36,8 @@ export default function TagSelector({
     <div className='flex flex-row items-center justify-start space-x-2 mb-2'>
         <label className="text-sm font-medium text-gray-900 dark:text-white">Tag</label>
     </div>
-    
-    <div className='p-2 pl-4 pr-4'>
+    {style === "crud" && (
+    <div className='w-full'>
         <div className=' relative'>
             <Searchbar
             placeholder="Search a tag"
@@ -107,6 +111,34 @@ export default function TagSelector({
         </div>                       
     </div>
     </div>
+    )}
+    {style === "view" && (
+        <>
+         <div className='flex flex-wrap items-center justify-start gap-2 w-[400px]'>
+            {/* If there are no tags at all */}
+
+            {!hasApiTags && !hasTagData && (
+                <h1 className='text-sm text-dark-gray'><em>No tags selected.</em></h1>
+            )}
+
+            {normalizedTags.map((tagObj, index) => (
+            <div
+                key={tagObj._id || `api-${index}`}
+                className="rounded-md bg-gray-200 p-1 px-2 font-light"
+            >
+                <h1>{tagObj.tag || tagObj}</h1> {/* handle both strings and objects */}
+            </div>
+            ))}
+
+
+
+
+         </div>
+
+        </>
+       
+    )}
+
 
 
 

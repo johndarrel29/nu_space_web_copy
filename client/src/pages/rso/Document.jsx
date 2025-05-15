@@ -21,6 +21,7 @@ const { documents, fetchDocuments, submitDocument, loading } = useDocumentManage
     const [ modalType, setModalType ] = useState("");
     const [ msg, setMsg ] = useState(null);
     const [ selectedDocument, setSelectedDocument ] = useState(null);
+    const [ searchQuery, setSearchQuery ] = useState("");
 
   useEffect(() => {
       console.log("Fetching documents on component mount...");
@@ -33,8 +34,8 @@ const { documents, fetchDocuments, submitDocument, loading } = useDocumentManage
     return date.toLocaleDateString(undefined, options);
     };
 
+const tableRow = documents.map((doc) => ({
 
-  const filteredDocuments = documents.map((doc) => ({
         id: doc._id,
         contentType: doc.contentType || '',
         createdAt: formatDate(doc.createdAt) || '',
@@ -45,9 +46,22 @@ const { documents, fetchDocuments, submitDocument, loading } = useDocumentManage
         title: doc.title || '',
         url: doc.url || '',
         __v: doc.__v || 0
+    }));
 
-    }
-  ));  
+
+  const filteredDocuments = () => {
+    if (activeTab === 0 && searchQuery === "") {
+      return tableRow; 
+    };
+
+    let filteredList = tableRow.filter((doc) => {
+      const matchesTab = activeTab === 0 || doc.status.toLowerCase() === tabs[activeTab].label.toLowerCase();
+      const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesTab && matchesSearch;
+    });
+
+    return filteredList;
+  }  
 
 
 
@@ -92,6 +106,20 @@ const { documents, fetchDocuments, submitDocument, loading } = useDocumentManage
         console.log("Selected document:", document);
     }
 
+    const handleFileChange = (e) => {
+  const fileArray = Array.from(e.target.files);
+  setFiles(fileArray); 
+};
+
+
+    const removeFile = (index) => {
+    const updatedFiles = [...files];
+    updatedFiles.splice(index, 1);
+    setFiles(updatedFiles); 
+    };
+
+
+
     const handleSubmit = async () => {
         try {
         if (!files ) {
@@ -110,7 +138,7 @@ const { documents, fetchDocuments, submitDocument, loading } = useDocumentManage
 
             const fd = new FormData();
             for (let i = 0; i < files.length; i++) {
-                fd.append(`file${i+1}`, files[i]);
+                fd.append(`files`, files[i]);
                 fd.append(`title${i+1}`, titles[i]);
             }
             console.log("FormData:", fd);
@@ -145,7 +173,7 @@ const { documents, fetchDocuments, submitDocument, loading } = useDocumentManage
             onClick={handleDocumentView}
             value={""}
             showAllOption={false}
-            tableRow={filteredDocuments}
+            tableRow={filteredDocuments()}
             tableHeading={[
                 { name: "Title", key: "title" },
                 // { name: "File", key: "file" },
@@ -250,7 +278,43 @@ const { documents, fetchDocuments, submitDocument, loading } = useDocumentManage
                         <h1 className="text-primary">Upload a file</h1>
                     </label>
                     </div> */}
-                    <input type="file" onChange={(e) => { setFiles(e.target.files) }} multiple/>
+                    
+                    {/* <input type="file" onChange={handleFileChange} multiple/> */}
+
+                    <div className="file-upload-container">
+                    <input
+                        type="file"
+                        id="file-upload"
+                        className="hidden" // Hide the default file input
+                        onChange={handleFileChange}
+                        multiple
+                    />
+                    <label
+                        htmlFor="file-upload"
+                        className="file-upload-button bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600"
+                    >
+                        Select Files
+                    </label>
+                    </div>
+                        {files && files.map((file, index) => (
+                        <div key={index} className="p-2 border rounded mb-2 mt-2">
+                            <div className='flex items-start justify-between'>
+                                <div className='flex flex-col gap-2'>
+                                    <p className='truncate'><strong>Name:</strong> {file.name}</p>
+                                    <p className='truncate'><strong>Size:</strong> {(file.size / 1024).toFixed(2)} KB</p>
+                                </div>
+                                <div
+                                    onClick={() => removeFile(index)}
+                                    className='flex flex-row items-center bg-gray-500 p-1 h-4 w-4 rounded-sm hover:bg-gray-600 cursor-pointer'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5 fill-white" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        ))}
+
+                    {console.log("Files:", files)}
                     <div>Message: {msg}</div>
 
                     <div className="flex justify-end mt-4">

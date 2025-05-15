@@ -271,10 +271,10 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
 
       {data.length > 0 ? (
         <div className="w-full">
-          <div className=' overflow-x-auto w-full'>
+          <div className=' overflow-x-auto w-full border border-mid-gray rounded-md'>
         <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
-          <thead className="bg-card-bg rounded-md border-b border-gray-400">
-            <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider'>
+          <thead className="border-b border-mid-gray bg-textfield ">
+            <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider '>
               <th scope="col" className='px-6 py-3'>
                   <div className="flex items-center justify-center">
                     Name
@@ -320,7 +320,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
         </div>
       ) : <CardSkeleton/>}
 
-      <div className='w-full bottom-20'>
+      <div className='w-full bottom-20 mt-4'>
         <nav>
           <ul className="flex justify-center space-x-2">
 

@@ -49,6 +49,8 @@ export default function MainRSO() {
     }));
 
     console.log("tableRow", tableRow);
+    const allTags = tableRow.map((row) => row.RSO_tags);
+console.log("All RSO Tags:", allTags);
 
       const tabs = [
           { label: "All" },
@@ -160,13 +162,20 @@ export default function MainRSO() {
     }
   };
 
-
+  const handleCreate = () => {
+    navigate("rso-action", {
+      state: { 
+        mode: "create",
+      },
+    });
+    console.log("Selected user:", selectedUser);
+  }
 
   return (
     <>
       <div className="flex justify-between items-center">
         <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-        <Button className={"px-4"}>Create RSO</Button>         
+        <Button className={"px-4"} onClick={handleCreate}>Create RSO</Button>         
       </div>
             <ReusableTable 
             options={["All", "A-Z", "Most Popular"]}

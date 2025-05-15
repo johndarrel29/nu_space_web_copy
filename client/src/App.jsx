@@ -1,28 +1,16 @@
 
 import './App.css';
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
 import ErrorPage from './pages/ErrorPage';
-import Dashboard from './pages/admin/Dashboard';
-import UserManagement from './pages/admin/UserManagement';
-import Documents from './pages/admin/Documents';
-import AdminAccount from './pages/admin/AdminAccount';
-import MainActivities from './pages/admin/MainActivities';
-import Activities from './pages/admin/Activities';
-import MainDocuments from './pages/admin/MainDocuments';
-import RSOManagement from './pages/admin/RSOManagement';
-import Requirements from './pages/admin/Requirements';
 import { ThemeProvider } from '@material-tailwind/react';
-import MainRSO from './pages/admin/MainRSO';
 import PreLoader from './components/Preloader';
 import { useEffect, useState } from 'react';
-import Review from './pages/admin/Review';
 import { SkeletonTheme } from 'react-loading-skeleton';
-import ActivityPage from './pages/rso/ActivityPage';
 import ProtectedRoutes from './utils/ProtectedRoute';
-import { DocumentPage, RSOAccountPage, UserMgmtPage, ActivityDocuments, MainActivityPage, CreateActivity, Document } from './pages/rso';
-import RSODetails from './pages/admin/RSODetails';
+import { DocumentPage, RSOAccountPage, UserMgmtPage, ActivityDocuments, MainActivityPage, CreateActivity, Document, ActivityPage } from './pages/rso';
+import { Activities, AdminAccount, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, Requirements, Review, RSODetails, RSOManagement, UserManagement, RSOAction} from './pages/admin';
+
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -56,7 +44,6 @@ function App() {
             </Route>
             <Route path="/rso-account" element={<RSOAccountPage />} />
             <Route path="/rso-user-management" element={<UserMgmtPage />} />
-            <Route path="/document-page" element={<DocumentPage />} /> 
             <Route path="/document" element={<Document />} /> 
                 
             
@@ -67,16 +54,19 @@ function App() {
             <Route path="/user-management" element={<UserManagement />} />
             <Route path="/documents" element={<Documents />} >
               <Route index element={<MainDocuments />} />
+              <Route path="document-action" element={<DocumentAction />} />
               <Route path="main-activities" element={<MainActivities />} >
                 <Route index element={<Activities />} />
                 <Route path="requirements" element={<Requirements />} />
                 <Route path="review" element={<Review/>}/>
               </Route>
+              
             </Route>
             <Route path="/admin-account" element={<AdminAccount />} />
             
             <Route path="/rso-management" element={<RSOManagement />} >
               <Route index element={<MainRSO />} />
+              <Route path="rso-action" element={<RSOAction />} />
               <Route path="rso-details" element={<RSODetails />} />
 
             </Route>

@@ -1,6 +1,7 @@
 import  editIcon  from '../../assets/icons/pen-to-square-solid.svg';
 import  deleteIcon  from '../../assets/icons/trash-solid.svg';
 import  { FormatDate }  from '../../utils';
+import  { Badge }  from '../ui';
 
 const TableRow = ({ user, onOpenModal, index }) => {
   const handleActionClick = (action) => () => {
@@ -11,20 +12,36 @@ const TableRow = ({ user, onOpenModal, index }) => {
 
   const formattedDate = FormatDate(user.createdAt);
 
-  let roleClass = 'bg-gray-100 text-gray-800'; 
+  function handleStyle  (userRole) {
+    console.log("user role: " + userRole)
 
-  switch (user.role) {
-    case 'student':
-      roleClass = 'bg-green-100 text-green-800';
-      break;
-    case 'student/rso':
-      roleClass = 'bg-blue-100 text-blue-800';
-      break;
-    case 'admin':
-      roleClass = 'bg-yellow-100 text-yellow-800';
-      break;
+    switch (userRole) {
+      case 'admin':
+        return 'primary';
+      case 'student/rso':
+        return 'secondary';
+      case 'student':
+        return 'tertiary'; 
+      default:
+        return '';
+        
+    }
   }
 
+  //   let roleClass = 'bg-gray-100 text-gray-800'; 
+
+  // switch (user.role) {
+  //   case 'student':
+  //     roleClass = 'bg-green-100 text-green-800';
+  //     break;
+  //   case 'student/rso':
+  //     roleClass = 'bg-blue-100 text-blue-800';
+  //     break;
+  //   case 'admin':
+  //     roleClass = 'bg-yellow-100 text-yellow-800';
+  //     break;
+  // }
+    
 
   return (
     <tr className='hover:bg-gray-200 transition duration-300 ease-in-out' >
@@ -42,16 +59,16 @@ const TableRow = ({ user, onOpenModal, index }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center justify-center">
-          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}`}>
-            {user.role}
-          </span>
+          <Badge style={handleStyle(user.role)} text={user.role}/>
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center justify-center">
-          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}`}>
+          {/* <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}`}>
             {user.role === 'student' ? 'student' : user.assigned_rso?.RSO_acronym || 'N/A'}
-          </span>
+          </span> */}
+          {console.log("results: " + handleStyle(user.role))}
+          <Badge style={handleStyle(user.role)} text={user.role === 'student' ? 'student' : user.assigned_rso?.RSO_acronym || 'N/A'}/>
         </div>
 
       </td>

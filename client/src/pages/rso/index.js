@@ -6,3 +6,4 @@ export { default as ActivityDocuments } from './ActivityDocuments';
 export { default as MainActivityPage } from './MainActivityPage';
 export { default as CreateActivity } from './CreateActivity';
 export { default as Document } from './Document';
+export { default as ActivityPage } from './ActivityPage';

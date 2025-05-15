@@ -1,4 +1,5 @@
 import { MainLayout, NumberPane } from "../../components";
+import  RenderLineChart  from "../../components/charts/RenderLineChart";
 
 
 export default function Dashboard() {
@@ -13,7 +14,10 @@ export default function Dashboard() {
                     <NumberPane title="Pending Activities" number="70"> </NumberPane>
                     <NumberPane title="Pending Activities" number="70"> </NumberPane>
                 </div>
+            <div className="border border-mid-gray bg-white rounded-lg p-4 mt-4">
+                <RenderLineChart></RenderLineChart>
 
+            </div>
             </MainLayout>
 
         </>
