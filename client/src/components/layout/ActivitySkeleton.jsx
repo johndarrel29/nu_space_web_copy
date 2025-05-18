@@ -1,22 +1,41 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css'; // Ensure the skeleton styles are imported
+import 'react-loading-skeleton/dist/skeleton.css';
 
-function ActivitySkeleton() {
+function ActivitySkeleton({ count = 3 }) {
   return (
-    <div className="flex flex-col md:flex-row md:space-x-3 space-y-2 md:space-y-0 rounded-lg p-2 w-full max-w-sm mx-auto bg-white hover:bg-gray-200 cursor-pointer">
-      {/* Skeleton for the image */}
-      <div className="w-full md:w-2/5">
-        <Skeleton className="h-32 w-full rounded-lg" />
-      </div>
+    <>
+      {Array.from({ length: count }).map((_, index) => (
+        <div
+          key={index}
+          className="w-full max-w-md mx-auto mb-4 bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden animate-pulse"
+        >
+          {/* Image Section with Badge */}
+          <div className="relative h-40 w-full">
+            <div className="absolute top-2 left-2 px-2 py-1 rounded-full w-16">
+              <Skeleton height={20} />
+            </div>
+            <Skeleton className="h-full w-full object-cover" />
+          </div>
 
-      {/* Skeleton for the text */}
-      <div className="w-full md:w-3/5 flex flex-col space-y-2">
-        <Skeleton className="h-6 w-3/4 rounded-md" />
-        <Skeleton className="h-4 w-1/2 rounded-md" />
-        <Skeleton className="h-4 w-2/3 rounded-md" />
-      </div>
-    </div>
+          {/* Content Section */}
+          <div className="p-4 space-y-3">
+            <div className="flex justify-between items-start">
+              <Skeleton height={20} width="60%" />
+              <Skeleton height={20} width="20%" />
+            </div>
+
+            <Skeleton height={14} width="100%" />
+            <Skeleton height={14} width="80%" />
+
+            <div className="flex justify-between text-sm pt-2">
+              <Skeleton height={16} width="40%" />
+              <Skeleton height={16} width="30%" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
 

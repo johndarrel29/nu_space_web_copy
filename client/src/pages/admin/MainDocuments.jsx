@@ -1,123 +1,140 @@
-import React, { useState, useEffect } from "react";
-import { ActivityCard, Searchbar, ReusableDropdown, Button } from "../../components";
+import React, { useState } from "react";
+import { ActivityCard, Searchbar, ReusableDropdown, Button, ActivitySkeleton } from "../../components";
 import { useActivities, useUser } from "../../hooks";
 import { useNavigate } from "react-router-dom";
-import { ActivitySkeleton } from '../../components';
-
-{/* make this page to be used in rso page. */}
 
 export default function MainDocuments() {
   const { activities, loading, error } = useActivities();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeTab, setActiveTab] = useState(0);
-    const [selectedActivity, setSelectedActivity] = useState(null);
-    const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem("user"));
-    const { data, fetchData } = useUser();
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
+  const { data } = useUser();
 
-    console.log("User data:", data);
+  const handleActivityClick = (activity) => {
+    navigate(`main-activities`, { state: { activity }});
+  };
 
-    const handleActivityClick = (activity) => {
-        setSelectedActivity(activity);
-        console.log("Selected Activity:", activity);
-        navigate(`main-activities`, { state: { activity }}); // Navigate to the activity details page
-    };
-
-    console.log("Activities:", activities);
-    console.log("User data:", user.assigned_rso);
-
-
-    return (
-        <> 
-
-        {user.role === "student/rso" && (
-            <div className="w-full flex justify-end mb-4">
-                <Button onClick={() => navigate("document-action")}>
-                Create an Activity</Button>
-            </div>
-        )}
-        <div className=" mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
-                <div className="w-full lg:w-full md:w-full">
-                    <Searchbar placeholder="Search an Organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
-                </div>
-                <div className="w-full lg:w-1/2 md:w-full">
-                    <ReusableDropdown 
-                    options={[ "A-Z", "Most Joined", "Recently Added"]}
-                    showAllOption={true}
-                    />
-                </div>
-            </div>
-        {user?.role === "admin" ? (
-            <>
-            {loading && (
-                <div className="grid grid-cols-3 gap-3 mt-4">
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                <ActivitySkeleton/>
-                </div>)
-                }
-              {error && <p>Error: {error.message}</p>}
-              {!loading && !error && (
-            <div className="grid grid-cols-3 gap-3 mt-4">
-                {activities.map((activity) => (
-                  <ActivityCard
-                      key={activity._id}
-                      activity={activity}
-                      Activity_name={activity.Activity_name}
-                      Activity_description={activity.Activity_description}
-                      Activity_image={activity.Activity_image}
-                      Activity_registration_total={activity.Activity_registration_total}
-                      onClick={handleActivityClick} 
-                  />
-                ))}
-             
-            </div>
-             )}
-                    
-            
-
-        
-            </>
-        ) : (
-            <>
-            {loading && (
-                <div className="grid grid-cols-3 gap-3 mt-4">
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                    <ActivitySkeleton/>
-                <ActivitySkeleton/>
-                </div>)
-                }
-              {error && <p>Error: {error.message}</p>}
-              {!loading && !error && (
-            <div className="grid grid-cols-3 gap-3 mt-4">
-                {activities.map((activity) => (
-                  <ActivityCard
-                      key={activity._id}
-                      activity={activity}
-                      Activity_name={activity.Activity_name}
-                      Activity_description={activity.Activity_description}
-                      Activity_image={activity.Activity_image}
-                      Activity_registration_total={activity.Activity_registration_total}
-                      onClick={handleActivityClick} // Add onClick handler if needed
-                  />
-                ))}
-             
-            </div>
-             )}
-                    
-            </>    
-
-        )} 
-      
-
-        </>
+  const filterSearch = (activities) => {
+    if (!searchQuery) return activities;
+    return activities.filter((activity) =>
+      activity.Activity_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    }
+  };
+
+  // Filter activities for RSO members to only show their RSO's activities
+  const filteredActivities = user?.role === "student/rso" 
+    ? activities.filter(activity => 
+        user.assigned_rso?.some(rso => rso._id === activity.RSO_id._id))
+    : activities;
+
+  return (
+    <div className="p-4 bg-white rounded-lg shadow-sm">
+      {/* Header and Create Button */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#312895]">Activities</h1>
+          <p className="text-sm text-gray-600">
+            {user?.role === "student/rso" ? "Your RSO Activities" : "All Activities"}
+          </p>
+        </div>
+        
+        {user?.role === "student/rso" && (
+          <Button 
+            onClick={() => navigate("document-action")}
+            className="bg-[#312895] hover:bg-[#312895]/90 text-white px-4 py-2"
+          >
+            Create an Activity
+          </Button>
+        )}
+      </div>
+
+      {/* Search and Filter Section */}
+      <div className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="md:col-span-2">
+            <Searchbar 
+              placeholder="Search an Activity"  
+              searchQuery={searchQuery} 
+              setSearchQuery={setSearchQuery}
+            />
+          </div>
+          <div>
+            <ReusableDropdown
+              icon={true}
+              options={["A-Z", "Most Joined", "Recently Added"]}
+              showAllOption={true}
+              buttonClass="border-[#312895] text-[#312895]"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="RSO" className="text-sm font-medium text-[#312895]">
+              RSO
+            </label>
+            <ReusableDropdown
+              id="RSO"
+              options={["All", "College of Engineering", "College of Arts and Sciences", "College of Business Administration"]}
+              showAllOption={true}
+              buttonClass="border-[#312895] text-[#312895]"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="college" className="text-sm font-medium text-[#312895]">
+              College
+            </label>
+            <ReusableDropdown
+              id="college"
+              options={["All", "College of Engineering", "College of Arts and Sciences", "College of Business Administration"]}
+              showAllOption={true}
+              buttonClass="border-[#312895] text-[#312895]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Cards Section */}
+      {loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <ActivitySkeleton count={8} />
+        </div>
+      )}
+
+      {error && (
+        <div className="p-4 bg-red-50 text-red-600 rounded-lg">
+          Error: {error.message}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filterSearch(filteredActivities).map((activity) => (
+            <ActivityCard
+              key={activity._id}
+              activity={activity}
+              Activity_name={activity.Activity_name}
+              Activity_description={activity.Activity_description}
+              Activity_image={activity.Activity_image}
+              Activity_registration_total={activity.Activity_registration_total}
+              onClick={handleActivityClick}
+              statusColor={activity.Activity_status === 'approved' ? 'bg-green-500' : 
+                          activity.Activity_status === 'pending' ? 'bg-[#FFCC33]' : 
+                          'bg-red-500'}
+            />
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && filterSearch(filteredActivities).length === 0 && (
+        <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#312895]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="mt-2 text-lg font-medium text-[#312895]">No activities found</h3>
+          <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+        </div>
+      )}
+    </div>
+  );
+}

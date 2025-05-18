@@ -1,22 +1,19 @@
 import { useRef, useEffect } from "react";
+import { useKeyBinding } from "../../hooks";
 
 
 function Searchbar({ placeholder, searchQuery, setSearchQuery, style, setShowSearch = () => {}, onFocus, onBlur }) {
   const inputRef = useRef(null);
 
-    useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Check if '/' is pressed (and not inside another input/textarea)
-      if (e.key === '/' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
-        e.preventDefault(); // Prevent '/' from being typed elsewhere
-        inputRef.current?.focus(); // Focus the input
-        setShowSearch(true); // Optional: Show search UI
-      }
-    };
+useKeyBinding({
+  key: '/',
+  callback: () => {
+    inputRef.current?.focus();
+    setShowSearch(true);
+  },
+  dependencies: [setShowSearch] 
+});
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [setShowSearch]);
 
 
   const handleSearchModeChange =

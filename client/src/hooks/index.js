@@ -5,3 +5,4 @@ export { default as useSearchQuery } from './useSearchQuery';
 export { default as useActivities } from './useActivities';
 export { default as useUser } from './useUser';
 export { default as useDocumentManagement } from './useDocumentManagement';
+export { default as useKeyBinding } from './useKeyBinding';

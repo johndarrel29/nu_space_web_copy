@@ -5,7 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import 'react-loading-skeleton/dist/skeleton.css'
 import { CardSkeleton } from '../../components'; 
 import  useSearchQuery from "../../hooks/useSearchQuery";
-import  useRSO from "../../hooks/useRSO";
+import  {useRSO, useKeyBinding} from "../../hooks";
 import { useNotification } from "../../utils";
 import { useNavigate } from 'react-router-dom';
 
@@ -19,6 +19,7 @@ export default function MainRSO() {
   const [sort, setSort] = useState("All");
   const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
+
 
   const checkSpace = (str) => {
     if (str && str.length > 0) {
@@ -171,11 +172,29 @@ console.log("All RSO Tags:", allTags);
     console.log("Selected user:", selectedUser);
   }
 
+    useKeyBinding(
+    {key: "c", 
+        callback: () => {
+          handleCreate();
+        },
+        dependencies: [handleCreate]
+
+    });
+
+
   return (
     <>
       <div className="flex justify-between items-center">
         <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-        <Button className={"px-4"} onClick={handleCreate}>Create RSO</Button>         
+        <Button className={"px-4"} onClick={handleCreate}>
+          <div className="flex items-center gap-2">
+            <h1>Create RSO</h1>
+            <div className="h-6 w-6 border border-gray-200 rounded flex items-center justify-center font-light active:bg-primary-rso active:text-white transition duration-200 ease-in-out">
+              c
+            </div>
+          </div>
+          
+          </Button>         
       </div>
             <ReusableTable 
             options={["All", "A-Z", "Most Popular"]}

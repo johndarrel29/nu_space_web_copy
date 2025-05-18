@@ -188,153 +188,173 @@ const tableRow = documents.map((doc) => ({
 
         </div>
 
-                    {/* Modal */}
-            <AnimatePresence>
-            {showModal && modalType === "view" && (
-                    <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                        <motion.div
-                            className="bg-white overflow-hidden rounded-lg shadow-lg w-[90%] max-w-2xl"
-                            variants={DropIn}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                        >
-                            <div className="p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <h2 className="text-xl font-bold">Document Details</h2>
-                                    <CloseButton 
-                                        onClick={handleCloseModal}
-                                    />
-                                </div>
-                                
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between border-b pb-2">
-                                        <span className="text-gray-600">Document Name:</span>
-                                        <span className="font-medium">{selectedDocument.title}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between border-b pb-2">
-                                        <span className="text-gray-600">Upload Date:</span>
-                                        <span className="font-medium">{selectedDocument.createdAt}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between border-b pb-2">
-                                        <span className="text-gray-600">Status:</span>
-                                        <span className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm">{selectedDocument.status}</span>
-                                    </div>
-                                    <div className="flex items-start justify-between pt-2">
-                                        <span className="text-gray-600">URL:</span>
-                                        <span
-                                        onClick={() => window.open(selectedDocument.url, "_blank")} 
-                                        className="font-medium text-right max-w-xs truncate hover:underline cursor-pointer">{selectedDocument.url}</span>
-                                    </div>
-                                </div>
-
-                                <div className="mt-6 flex justify-end space-x-3">
-                                    <Button 
-                                        style="secondary"
-                                        onClick={handleCloseModal}
-                                        className="px-4 py-2"
-                                    >
-                                        Close
-                                    </Button>
-                                    <Button className="px-4 py-2">
-                                        Download
-                                    </Button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </Backdrop>
-                )} 
-                {(showModal && modalType === "upload") && (
-                    <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <motion.div
-                className="bg-white overflow-hidden rounded-lg shadow-lg w-[90%] max-w-[600px] p-4"
-                variants={DropIn}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
+<AnimatePresence>
+  {/* View Document Modal */}
+  {showModal && modalType === "view" && (
+    <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <motion.div
+        className="bg-white rounded-lg shadow-lg w-[90%] max-w-2xl border border-[#312895]/20"
+        variants={DropIn}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-2xl font-bold text-[#312895]">Document Details</h2>
+            <button 
+              onClick={handleCloseModal}
+              className="text-[#312895] hover:text-[#312895]/70"
             >
-                    
-                    <div className="w-full ">
-                        <div className="flex items-center justify-between ">
-                            <h2 className="text-lg font-bold">File Upload</h2>
-                            <CloseButton
-                            onClick={handleCloseModal}
-                            />
-                        </div>
-                    
-                    {/* <div className="flex flex-col gap-2 items-center justify-center mt-4 border-2 border-dashed border-primary rounded-lg h-[200px] bg-[#BAC1E3]">
-                    <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden"
-                        onChange={(e) => setFile(e.target.files[0])} 
-                    />
-                    <label
-                        htmlFor="file-upload"
-                        className="flex flex-col items-center justify-center cursor-pointer"
-                    >
-                        
-                        <svg className="fill-primary size-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
-                        <h1 className="text-primary">Upload a file</h1>
-                    </label>
-                    </div> */}
-                    
-                    {/* <input type="file" onChange={handleFileChange} multiple/> */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
+              <span className="text-[#312895]/70 font-medium">Document Name:</span>
+              <span className="text-[#312895] font-semibold">{selectedDocument.title}</span>
+            </div>
+            
+            <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
+              <span className="text-[#312895]/70 font-medium">Upload Date:</span>
+              <span className="text-[#312895]">{new Date(selectedDocument.createdAt).toLocaleDateString()}</span>
+            </div>
+            
+            <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
+              <span className="text-[#312895]/70 font-medium">Status:</span>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                selectedDocument.status === 'approved' ? 'bg-green-100 text-green-800' :
+                selectedDocument.status === 'pending' ? 'bg-[#FFCC33]/20 text-[#FFCC33]/90' :
+                'bg-red-100 text-red-800'
+              }`}>
+                {selectedDocument.status}
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between py-3">
+              <span className="text-[#312895]/70 font-medium">URL:</span>
+              <span
+                onClick={() => window.open(selectedDocument.url, "_blank")} 
+                className="text-[#312895] hover:underline cursor-pointer max-w-xs truncate"
+              >
+                {selectedDocument.url}
+              </span>
+            </div>
+          </div>
 
-                    <div className="file-upload-container">
-                    <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden" // Hide the default file input
-                        onChange={handleFileChange}
-                        multiple
-                    />
-                    <label
-                        htmlFor="file-upload"
-                        className="file-upload-button bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600"
-                    >
-                        Select Files
-                    </label>
-                    </div>
-                        {files && files.map((file, index) => (
-                        <div key={index} className="p-2 border rounded mb-2 mt-2">
-                            <div className='flex items-start justify-between'>
-                                <div className='flex flex-col gap-2'>
-                                    <p className='truncate'><strong>Name:</strong> {file.name}</p>
-                                    <p className='truncate'><strong>Size:</strong> {(file.size / 1024).toFixed(2)} KB</p>
-                                </div>
-                                <div
-                                    onClick={() => removeFile(index)}
-                                    className='flex flex-row items-center bg-gray-500 p-1 h-4 w-4 rounded-sm hover:bg-gray-600 cursor-pointer'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5 fill-white" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
-                                </div>
-                            </div>
+          <div className="mt-8 flex justify-end space-x-3">
+            <Button 
+              onClick={handleCloseModal}
+              className="px-6 py-2 border border-[#312895] text-[#312895] hover:bg-[#312895]/10"
+            >
+              Close
+            </Button>
+            <Button 
+              className="px-6 py-2 bg-[#312895] hover:bg-[#312895]/90 text-white"
+            >
+              Download
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </Backdrop>
+  )} 
 
+  {/* Upload Document Modal */}
+  {showModal && modalType === "upload" && (
+    <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <motion.div
+        className="bg-white rounded-lg shadow-lg w-[90%] max-w-[600px] border border-[#312895]/20"
+        variants={DropIn}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-[#312895]">Upload Documents</h2>
+            <button 
+              onClick={handleCloseModal}
+              className="text-[#312895] hover:text-[#312895]/70"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="file-upload-container">
+            <input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              onChange={handleFileChange}
+              multiple
+            />
+            <label
+              htmlFor="file-upload"
+              className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#312895]/30 rounded-lg bg-[#312895]/5 hover:bg-[#312895]/10 cursor-pointer transition-colors"
+            >
+              <svg className="fill-[#312895] size-12 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                <path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/>
+              </svg>
+              <span className="text-[#312895] font-medium">Click to browse or drag files here</span>
+              <span className="text-sm text-[#312895]/70 mt-1">Supports: PDF, DOCX, XLSX (Max 10MB)</span>
+            </label>
+          </div>
 
-                        </div>
-                        ))}
+          {files && files.length > 0 && (
+            <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+              {files.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-[#312895]/5 rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[#312895] font-medium truncate">{file.name}</p>
+                    <p className="text-sm text-[#312895]/70">{(file.size / 1024).toFixed(2)} KB</p>
+                  </div>
+                  <button
+                    onClick={() => removeFile(index)}
+                    className="p-1 text-[#312895] hover:text-red-500"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 384 512">
+                      <path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
-                    {console.log("Files:", files)}
-                    <div>Message: {msg}</div>
+          {msg && (
+            <div className={`mt-4 p-3 rounded-lg text-sm ${
+              msg.includes("failed") ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
+            }`}>
+              {msg}
+            </div>
+          )}
 
-                    <div className="flex justify-end mt-4">
-                        <div className="flex space-x-2">
-                            <Button className="p-2 bg-blue-500 text-white rounded-md" onClick={handleSubmit}>
-                                Upload
-                            </Button>
-                            <Button style="secondary"
-                                onClick={handleCloseModal}
-                                className="p-2 rounded-md">
-                                Cancel
-                            </Button>
-                        </div>
-                    </div>
-                    </div>
-                
-            </motion.div>
-            </Backdrop>
-                )}
-            </AnimatePresence>
+          <div className="mt-6 flex justify-end space-x-3">
+            <Button 
+              onClick={handleCloseModal}
+              className="px-6 py-2 border border-[#312895] text-[#312895] hover:bg-[#312895]/10"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              className="px-6 py-2 bg-[#312895] hover:bg-[#312895]/90 text-white"
+              disabled={!files || files.length === 0}
+            >
+              Upload
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </Backdrop>
+  )}
+</AnimatePresence>
     </MainLayout>
     
   )

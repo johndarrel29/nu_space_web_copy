@@ -34,7 +34,7 @@ export default function TagSelector({
     {/* Tag */}
     <div className=' mb-4'>
     <div className='flex flex-row items-center justify-start space-x-2 mb-2'>
-        <label className="text-sm font-medium text-gray-900 dark:text-white">Tag</label>
+        <label className="text-sm font-medium text-gray-900 dark:text-white">Tags</label>
     </div>
     {style === "crud" && (
     <div className='w-full'>
@@ -124,7 +124,7 @@ export default function TagSelector({
             {normalizedTags.map((tagObj, index) => (
             <div
                 key={tagObj._id || `api-${index}`}
-                className="rounded-md bg-gray-200 p-1 px-2 font-light"
+                className="rounded-md bg-gray-200 p-1 px-2 font-light text-sm"
             >
                 <h1>{tagObj.tag || tagObj}</h1> {/* handle both strings and objects */}
             </div>

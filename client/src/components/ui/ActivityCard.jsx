@@ -1,73 +1,97 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import DefaultPicture from "../../assets/images/default-picture.png";
 
-function ActivityCard({ onClick, activity }) {
-  const {
-    Activity_name,
-    Activity_description,
-    Activity_image,
-    Activity_registration_total,
-  } = activity;
-
+function ActivityCard({ 
+  onClick, 
+  activity,
+  Activity_name,
+  Activity_description,
+  Activity_image,
+  Activity_registration_total,
+  statusColor = "bg-gray-400" // Default color if not provided
+}) {
   return (
-      <div 
-        onClick={() => onClick(activity)}
-      className="flex flex-col md:flex-row md:space-x-3 space-y-2 md:space-y-0 rounded-lg p-2 w-full max-w-sm mx-auto  bg-white hover:bg-gray-200 cursor-pointer">
-        <div className="w-full md:w-2/5 grid place-items-center">
-          <img 
-            src={Activity_image || DefaultPicture}
-            alt="Mountain waterfall" 
-            className="rounded-lg w-full h-auto object-cover aspect-[2/3]" 
-          />
+    <div 
+      className="w-full bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => onClick(activity)}
+      title={Activity_name}
+    >
+      {/* Image with status badge */}
+      <div className="relative h-40 w-full">
+        <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-semibold text-white ${statusColor}`}>
+          {activity.Activity_status || 'Ongoing'}
         </div>
-        <div className="w-full md:w-3/5 flex flex-col space-y-1 p-2">
-          {/* <div className="flex justify-between items-center">
-            <p className="text-gray-500 text-xs font-medium hidden md:block">Vacations</p>
-            <div className="flex items-center">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-4 w-4 text-yellow-500" 
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" 
-                />
-              </svg>
-              <p className="text-gray-600 font-bold text-xs ml-1">
-                4.96
-                <span className="text-gray-500 font-normal">(76)</span>
-              </p>
-            </div>
-            <div>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-4 w-4 text-pink-500" 
-                viewBox="0 0 20 20" 
-                fill="currentColor"
-              >
-                <path 
-                  fillRule="evenodd"
-                  d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                  clipRule="evenodd" 
-                />
-              </svg>
-            </div>
-            <div className="bg-gray-200 px-2 py-0.5 rounded-full text-2xs font-medium text-gray-800 hidden md:block">
-              Superhost
-            </div>
-          </div> */}
-          <h3 className="font-bold text-gray-800 text-sm md:text-base">{Activity_name}</h3>
-          <p className="text-gray-500 text-xs line-clamp-2">
-            {Activity_description}
-          </p>
-          <p className="text-sm font-bold text-gray-800">
-            {Activity_registration_total}
-            <span className="font-normal text-gray-600 text-xs"> Members joined</span>
-          </p>
+        <img 
+          src={Activity_image || DefaultPicture}
+          alt={Activity_name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-bold text-[#312895] text-lg line-clamp-1">
+            {Activity_name}
+          </h3>
+          <div className="flex items-center bg-[#312895]/10 px-2 py-1 rounded-full">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-4 w-4 text-[#312895]" 
+              viewBox="0 0 20 20" 
+              fill="currentColor"
+            >
+              <path 
+                fillRule="evenodd"
+                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                clipRule="evenodd" 
+              />
+            </svg>
+            <span className="text-xs font-medium text-[#312895] ml-1">
+              {Activity_registration_total}
+            </span>
+          </div>
+        </div>
+
+        <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+          {Activity_description}
+        </p>
+
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center text-[#312895]">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-4 w-4 mr-1" 
+              viewBox="0 0 20 20" 
+              fill="currentColor"
+            >
+              <path 
+                fillRule="evenodd"
+                d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                clipRule="evenodd" 
+              />
+            </svg>
+            <span>{new Date(activity.Activity_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+          </div>
+
+          <div className="flex items-center text-[#312895]">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-4 w-4 mr-1" 
+              viewBox="0 0 20 20" 
+              fill="currentColor"
+            >
+              <path 
+                fillRule="evenodd"
+                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                clipRule="evenodd" 
+              />
+            </svg>
+            <span className="truncate max-w-[100px]">{activity.Activity_place}</span>
+          </div>
         </div>
       </div>
+    </div>
   );
 }
 

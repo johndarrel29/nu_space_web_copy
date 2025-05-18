@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { ReusableDropdown, Searchbar } from "../ui";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 
-export default function ReusableTable({columnNumber, tableHeading, tableRow, options, value, onChange, showAllOption, onClick, children}) {
+export default function ReusableTable({columnNumber, tableHeading, tableRow, options, value, onChange, showAllOption, onClick, children, placeholder}) {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(10);
@@ -42,10 +42,11 @@ export default function ReusableTable({columnNumber, tableHeading, tableRow, opt
         {/* searchbar and dropdown */}
             <div className="mt-4 mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
                     <div className="w-full lg:w-full md:w-full">
-                        <Searchbar placeholder="Search an organization"  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
+                        <Searchbar placeholder={placeholder || "Search an organization"}  searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
                     </div>
                     <div className="w-full lg:w-1/2 md:w-full">
-                        <ReusableDropdown 
+                        <ReusableDropdown
+                        icon={true}
                         options={options}
                         showAllOption={showAllOption}
                         value={value}
