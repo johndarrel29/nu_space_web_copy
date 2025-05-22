@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 //NOTE: Multiple file upload is not supported yet on the backend. but the frontend now uppends multiple files to the formData
 
 function Document() {
-const { documents, fetchDocuments, submitDocument, loading } = useDocumentManagement();
+const { documents, fetchDocuments, submitDocument, loading, error } = useDocumentManagement();
     const [files, setFiles] = useState(null);
     const [titles, setTitles] = useState("");
     const { handleNotification } = useNotification();
@@ -58,6 +58,7 @@ const tableRow = documents.map((doc) => ({
       const matchesTab = activeTab === 0 || doc.status.toLowerCase() === tabs[activeTab].label.toLowerCase();
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesTab && matchesSearch;
+
     });
 
     return filteredList;
@@ -165,7 +166,12 @@ const tableRow = documents.map((doc) => ({
             <div className='w-full flex justify-between items-center mb-4'>
                 <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab}/>
                 <div>
-                  <Button onClick={handleDocumentUpload}>Upload a document</Button>
+                  <Button onClick={handleDocumentUpload}>
+                    <div className='flex items-center gap-2'>
+                      <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 512 512"><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
+                    Upload a document
+                    </div>
+                  </Button>
                 </div>
             </div>
             <ReusableTable
@@ -174,16 +180,21 @@ const tableRow = documents.map((doc) => ({
             value={""}
             showAllOption={false}
             tableRow={filteredDocuments()}
+            error={error}
+            isLoading={loading}
             tableHeading={[
                 { name: "Title", key: "title" },
                 // { name: "File", key: "file" },
                 { name: "Status", key: "status" },
                 { name: "Submitted By", key: "submittedBy" },
                 { name: "Created At", key: "createdAt" },
-                { name: "Updated At", key: "updatedAt" }
+                {name: "Action", key: "actions"}
             ]}
+              onActionClick={(row) => {
+              console.log("Delete clicked for:", row);
+              // handleDeleteItem(row._id); 
+            }}
             >
-            {loading && <CardSkeleton/>}
             </ReusableTable>
 
         </div>
@@ -202,20 +213,21 @@ const tableRow = documents.map((doc) => ({
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
             <h2 className="text-2xl font-bold text-[#312895]">Document Details</h2>
-            <button 
+            <CloseButton 
               onClick={handleCloseModal}
-              className="text-[#312895] hover:text-[#312895]/70"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            </CloseButton>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
               <span className="text-[#312895]/70 font-medium">Document Name:</span>
               <span className="text-[#312895] font-semibold">{selectedDocument.title}</span>
+            </div>
+
+            <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
+              <span className="text-[#312895]/70 font-medium">Document For:</span>
+              <span className="text-[#312895] font-semibold">Requirements Renewal Request</span>
             </div>
             
             <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
@@ -247,8 +259,8 @@ const tableRow = documents.map((doc) => ({
 
           <div className="mt-8 flex justify-end space-x-3">
             <Button 
+            style={"secondary"}
               onClick={handleCloseModal}
-              className="px-6 py-2 border border-[#312895] text-[#312895] hover:bg-[#312895]/10"
             >
               Close
             </Button>
@@ -276,14 +288,10 @@ const tableRow = documents.map((doc) => ({
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[#312895]">Upload Documents</h2>
-            <button 
+            <CloseButton 
               onClick={handleCloseModal}
-              className="text-[#312895] hover:text-[#312895]/70"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            </CloseButton>
           </div>
           
           <div className="file-upload-container">
@@ -337,8 +345,8 @@ const tableRow = documents.map((doc) => ({
 
           <div className="mt-6 flex justify-end space-x-3">
             <Button 
+            style={"secondary"}
               onClick={handleCloseModal}
-              className="px-6 py-2 border border-[#312895] text-[#312895] hover:bg-[#312895]/10"
             >
               Cancel
             </Button>

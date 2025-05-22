@@ -208,8 +208,10 @@ console.log("All RSO Tags:", allTags);
             ]}
             tableRow={filteredOrgs()}
             onClick={handleSelectedUser}
+            error={error}
+            isLoading={loading}
             >
-            {loading && <CardSkeleton/>}
+            {/* {loading && <CardSkeleton/>} */}
           </ReusableTable>
     </>
   );

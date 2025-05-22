@@ -115,7 +115,9 @@ export default function Login () {
                 value={password}
                 onChange={(e) => {
                     setPassword(e.target.value);
-                    setError("");}}/>
+                    setError("");
+                    setIsLoading(false);
+                    }}/>
 
                 {/* Error Message */}
                 {error && (

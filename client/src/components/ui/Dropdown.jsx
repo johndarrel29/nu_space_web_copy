@@ -6,18 +6,18 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
   const handleMenuItemClick = (item) => {
 
     // Allow changing the role only if it's not 'admin'
-    if (selectedRole !== 'admin') {
+
       setSelectedRole(item);
-    }
+    
   };
 
   return (
     
     <Menu as="div" className="relative inline-block text-left">
       <div>
-      <MenuButton className={`inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 ${selectedRole === 'admin' ? 'cursor-not-allowed' : ''}`}>
+      <MenuButton className={`inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50`}>
         {selectedRole === 'admin' ? (
-          <span className="text-gray-400">Admin</span>
+          <span className="text-gray-900">Admin</span>
         ) : (
           <span className="text-gray-900">{selectedRole}</span>
         )}
@@ -30,24 +30,38 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
         className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
       >
         <div className="py-1">
-
-          <MenuItem>
-            <a
-              
-              onClick={() => handleMenuItemClick("student")}
-              className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
-            >
-              student
-            </a>
-          </MenuItem>
+        {['student', 'student/rso'].includes(selectedRole) && (
+          <>
+            <MenuItem>
+              <a
+                
+                onClick={() => handleMenuItemClick("student")}
+                className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
+              >
+                student
+              </a>
+            </MenuItem>
+            <MenuItem>
+              <a
+                onClick={() => handleMenuItemClick("student/rso")}
+                className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
+              >
+                student/rso
+              </a>
+            </MenuItem>
+          </>
+        )}
+        {selectedRole === 'admin' && (
           <MenuItem>
             <a
               onClick={() => handleMenuItemClick("student/rso")}
               className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
             >
-              student/rso
+              Superadmin
             </a>
           </MenuItem>
+        )}
+
  
         </div>
       </MenuItems>

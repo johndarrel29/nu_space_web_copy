@@ -93,9 +93,24 @@ export default function Activities() {
     });
   };
 
+    const handleEditClick = () => {
+    navigate(`../document-action`, { state: { mode: "edit", data: activity, from: user.RSO_name} });
+    console.log("Edit button clicked", activity);
+  }
+
   return (
     <>
-      <div className="flex flex-col items-start bg-white p-6 rounded-lg shadow-sm">
+      <div className="flex flex-col items-start bg-white rounded-lg shadow-sm">
+      <div className='mb-8'>
+        <Button
+        style={"secondary"}
+        onClick={() => {
+          navigate(-1);
+
+        }}
+        >Go Back</Button>
+      </div>
+
         {/* Header Section */}
         <div className='flex items-start justify-start w-full'>
           <div className='h-12 w-12 bg-[#312895] rounded-full flex items-center justify-center text-white font-bold'>
@@ -203,13 +218,15 @@ export default function Activities() {
                   </div>
                 </div>
               </div>
-
+            {user.role === "student/rso" && (
               <Button 
                 className="w-full mt-4 bg-[#312895] hover:bg-[#312895]/90 text-white"
-                onClick={() => console.log("Edit clicked")}
+                onClick={handleEditClick}
               >
                 Edit Event
               </Button>
+            )}
+
             </div>
           </div>
 

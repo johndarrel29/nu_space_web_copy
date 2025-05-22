@@ -139,6 +139,28 @@ import { CreateUserModal, ReusableTable } from "../../components";
   }
 ];
 
+const tableRowFiltered = useMemo(() => {
+  return tableRow.filter((row) => {
+    const fullName = `${row.firstName} ${row.lastName}`.toLowerCase();
+    const email = row.email.toLowerCase();
+    const college = row.college.toLowerCase();
+    const search = searchQuery.toLowerCase();
+    
+    // Add this filtering logic
+    return search === '' || 
+      fullName.includes(search) || 
+      email.includes(search) || 
+      college.includes(search);
+  }).map(row => ({
+    fullName: `${row.firstName} ${row.lastName}`,
+    email: row.email,
+    college: row.college,
+    rsoMemberships: row.rsoMemberships,
+    activitiesParticipated: row.activitiesParticipated,
+    id: row.id
+  }));
+}, [tableRow, searchQuery]);
+
 
 
     return (
@@ -147,12 +169,15 @@ import { CreateUserModal, ReusableTable } from "../../components";
             tabName="User Management"
             headingTitle="Monitor Student/RSO and Student accounts"
             > 
-          <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg p-4 pt-0 border border-mid-gray">
+          <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg  border border-mid-gray p-4 pt-0">
             {user && user.role === "admin" && (
               <>
-             <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/>
-              
-            <Table data={memoizedData} searchQuery={searchQuery} selectedRole={selectedRole}/>             
+                <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/> 
+                <Table 
+                error={error}
+                data={memoizedData} 
+                searchQuery={searchQuery} 
+                selectedRole={selectedRole}/>             
               </>
               )}
 
@@ -161,18 +186,16 @@ import { CreateUserModal, ReusableTable } from "../../components";
               <ReusableTable 
               options={["All", "Student", "RSO"]}
               showAllOption={true}
-              tableRow={tableRow} 
+              tableRow={tableRowFiltered} 
               searchQuery={searchQuery}
               placeholder={"Search a user"}
+              onClick={(row => console.log(row))}
               tableHeading={[
-                { name: "Name", key: "firstName" },
+                { name: "Name", key: "fullName" },
                 { name: "Email", key: "email" },
                 { name: "College", key: "college" },
-                { name: "Role", key: "role" },
                 { name: "RSO Memberships", key: "rsoMemberships" },
                 { name: "Activities Participated", key: "activitiesParticipated" },
-                { name: "Interests", key: "interests" },
-                { name: "Created At", key: "createdAt" }
             ]}
               columnNumber={9}
               >

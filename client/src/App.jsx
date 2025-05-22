@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { DocumentPage, RSOAccountPage, UserMgmtPage, ActivityDocuments, MainActivityPage, CreateActivity, Document, ActivityPage } from './pages/rso';
-import { Activities, AdminAccount, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, Requirements, Review, RSODetails, RSOManagement, UserManagement, RSOAction} from './pages/admin';
+import { Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, Requirements, Review, RSODetails, RSOManagement, UserManagement, RSOAction} from './pages/admin';
 
 
 function App() {
@@ -62,7 +62,7 @@ function App() {
               </Route>
               
             </Route>
-            <Route path="/admin-account" element={<AdminAccount />} />
+            <Route path="/account" element={<Account />} />
             
             <Route path="/rso-management" element={<RSOManagement />} >
               <Route index element={<MainRSO />} />

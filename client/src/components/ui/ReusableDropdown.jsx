@@ -13,6 +13,11 @@ const ReusableDropdown = ({ options, showAllOption, value, onChange, icon}) => {
         value={value}
         onChange={onChange}
         >
+        <option value="" disabled>
+          {icon === false ? "Select an option" : "Select an option"}
+        </option>
+          {/* Show "All" option if showAllOption is true */}
+
         {showAllOption && <option value="all">All</option>}
           {options.map((label, index) => (
             <option key={index} value={label}>

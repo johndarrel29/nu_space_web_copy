@@ -47,23 +47,24 @@ const [organizations, setOrganizations] = useState([]);
         
 
   const createRSO = async (newOrg) => {
+    setLoading(true);
+    setError(null);
+    
     try {
       const token = localStorage.getItem("token");
       const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
       console.log("Submitting new RSO:", newOrg);
       console.log("Request URL:", process.env.REACT_APP_CREATE_RSO_URL);
       
-      const response = await fetch(`${process.env.REACT_APP_CREATE_RSO_URL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization":  token ? `Bearer ${formattedToken}` : "",
-          
-        },
-        
-        body: JSON.stringify(newOrg),
-        
-      });
+
+    const response = await fetch(`${process.env.REACT_APP_CREATE_RSO_URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization":  token ? `Bearer ${formattedToken}` : "",
+      },
+      body: JSON.stringify(newOrg),
+    });
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status} - ${response.statusText}`);
@@ -74,13 +75,16 @@ const [organizations, setOrganizations] = useState([]);
 
       // Update the state with the new organization
       setOrganizations((prevOrgs) => [...prevOrgs, result]);
-    } catch (err) {
-      console.error("Error creating RSO:", err);
-      setError(`Error: ${err.message}`);
+    } catch (error) {
+      console.error("Error creating RSO:", error);
+      setError(`Error: ${error.message}`);
     }
   };
 
-  const updateRSO = async (id, updatedOrg) => {
+    const updateRSO = async (id, updatedOrg) => {
+    setLoading(true);
+    setError(null);
+
     try {
       const token = localStorage.getItem("token");
       const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -114,6 +118,9 @@ const [organizations, setOrganizations] = useState([]);
   };
 
   const deleteRSO = async (id) => {
+  setLoading(true);
+  setError(null);
+
     try {
       const token = localStorage.getItem("token");
       const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;

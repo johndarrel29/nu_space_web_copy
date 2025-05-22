@@ -2,19 +2,23 @@ import React from 'react'
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import DefaultPicture from "../../assets/images/default-profile.jpg";
-import { ReusableTable, TabSelector, ActivityCard, Button } from '../../components';
+import { ReusableTable, TabSelector, ActivityCard, Button, CloseButton, TextInput } from '../../components';
 import TagSelector from '../../components/TagSelector'
-import { useTagSelector } from '../../hooks';
+import { useTagSelector, useModal } from '../../hooks';
 import { useNavigate, Link } from 'react-router-dom';
 
 function RSODetails() {
   const location = useLocation()
+  const { isOpen, openModal, closeModal } = useModal();
   const { user } = location.state || {};
   const [activeTab, setActiveTab] = useState(0);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const navigate = useNavigate();
-  const [ selected, setselected ] = useState(null);
+  const [ selected, setSelected ] = useState("");
   const [showLink, setShowLink] = useState(true);
+  const [modalMode, setModalMode] = useState("officers");
+  const [selectedDocument, setSelectedDocument] = useState(null);
+const [profileImage, setProfileImage] = useState(null);
 
   console.log("user: ", user);
 
@@ -62,22 +66,34 @@ function RSODetails() {
 
   const handleEditClick = () => {
     navigate(`../../rso-management/rso-action`, { state: { mode: "edit", data: user, from: user.RSO_name} });
+    console.log("Edit button clicked", user);
   }
 
   return (
-    <div className="bg-white min-h-screen p-6">
+    <div className="bg-white min-h-screen ">
+      <div className='mb-8'>
+        <Button
+        style={"secondary"}
+        onClick={() => {
+          navigate(-1);
+
+        }}
+        >Back to Table</Button>
+      </div>
+
       <div className='flex items-start justify-start'>
         {/* <div className='h-12 w-12 bg-[#312895] rounded-full flex items-center justify-center text-white font-bold'>
-          
+        
 
         </div> */}
+
         <img className='h-12 w-12 bg-[#312895] rounded-full object-cover' src={user.RSO_picture || DefaultPicture} alt="RSO Picture" />
         <div className='flex flex-col justify-start ml-4'>
           <div className='flex items-center gap-2'>
             <h1 className='text-xl font-bold text-[#312895]'>{user.RSO_name || "RSO Name"}</h1>
-            <div className='px-4 py-1 bg-white text-[#312895] rounded-full text-sm border border-[#312895] hover:bg-[#312895] hover:text-white transition-colors'>
+            <div className='px-4 py-1 bg-white text-[#312895] rounded-full text-sm border border-[#312895] hover:bg-[#312895] hover:text-white  transition-colors group'>
               <div className='flex items-center gap-2 cursor-pointer' onClick={handleEditClick}>
-                <svg xmlns="http://www.w3.org/2000/svg" className='size-3 fill-[#312895] hover:fill-white' viewBox="0 0 512 512"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" className='size-3 fill-[#312895] group-hover:fill-white' viewBox="0 0 512 512"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>
                 Edit
               </div>
             </div>
@@ -187,7 +203,7 @@ function RSODetails() {
                   <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 448 512"><path d="M159.3 5.4c7.8-7.3 19.9-7.2 27.7 .1c27.6 25.9 53.5 53.8 77.7 84c11-14.4 23.5-30.1 37-42.9c7.9-7.4 20.1-7.4 28 .1c34.6 33 63.9 76.6 84.5 118c20.3 40.8 33.8 82.5 33.8 111.9C448 404.2 348.2 512 224 512C98.4 512 0 404.1 0 276.5c0-38.4 17.8-85.3 45.4-131.7C73.3 97.7 112.7 48.6 159.3 5.4zM225.7 416c25.3 0 47.7-7 68.8-21c42.1-29.4 53.4-88.2 28.1-134.4c-4.5-9-16-9.6-22.5-2l-25.2 29.3c-6.6 7.6-18.5 7.4-24.7-.5c-16.5-21-46-58.5-62.8-79.8c-6.3-8-18.3-8.1-24.7-.1c-33.8 42.5-50.8 69.3-50.8 99.4C112 375.4 162.6 416 225.7 416z"/></svg>
                 </div>
                 <div>
-                  <h1 className='text-lg font-bold text-[#312895]'>{user.RSO_popularityScoreCount || 0}</h1>
+                  <h1 className='text-lg font-bold text-[#312895]'>{Math.floor(user.RSO_popularityScoreCount) + "%" || 0}</h1>
                   <p className='text-xs text-gray-600'>Popularity Score</p>
                 </div>
               </div>
@@ -201,22 +217,44 @@ function RSODetails() {
         </div>
 
         <div className='flex flex-wrap items-center justify-start gap-4 w-full mt-3'>
-          <div className='cursor-pointer flex items-center justify-center gap-2 bg-white border border-[#312895] rounded-md h-full p-3 hover:bg-[#312895] transition-colors group'>
+          <div
+            onClick={() => {
+            setModalMode("officers-create");
+            openModal();
+          }} 
+          className='cursor-pointer flex items-center justify-center gap-2 bg-white border border-[#312895] rounded-md h-full p-3 hover:bg-[#312895] transition-colors group'>
             <div className='h-8 w-8 bg-[#312895] rounded-full flex items-center justify-center group-hover:bg-white'>
               <svg xmlns="http://www.w3.org/2000/svg" className='size-5 fill-white group-hover:fill-[#312895]' viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/></svg>
             </div>
-            <div className='flex flex-col justify-start'>
+            <div
+            className='flex flex-col justify-start'>
               <h1 className='text-sm font-medium text-[#312895] group-hover:text-white'>Add Officer</h1>
             </div>
           </div>
 
           {/* officer cards */}
           {[
-            { name: "Rodrigo Roa Dela Cruz", position: "President" },
-            { name: "Jinggoy Dela Cruz", position: "Vice-President" },
-            { name: "Camille Dela Cruz", position: "Secretary" }
+            { name: "Officer 1", position: "President" },
+            { name: "Officer 2", position: "Vice-President" },
+            { name: "Officer 3", position: "Secretary" }
           ].map((officer, index) => (
-            <div key={index} className='flex items-center justify-center gap-3 bg-white p-3 rounded-md shadow-sm border border-gray-100'>
+            <div 
+            key={index}
+            onClick={() => {
+
+              console.log("clicked: ", officer);
+              setModalMode("officers-edit");
+              openModal();
+              setSelected(
+                prevSelected => {
+                    console.log("Previous selected:", prevSelected);
+                    console.log("New selected will be:", officer);
+                    return officer;
+                }
+              )
+            }}
+
+            className='flex items-center justify-center gap-3 bg-white p-3 rounded-md shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-200'>
               <div className='h-10 w-10 bg-[#312895] rounded-full flex items-center justify-center text-white font-medium'>
                 {officer.name.split(' ').map(n => n[0]).join('')}
               </div>
@@ -240,6 +278,12 @@ function RSODetails() {
                 { name: "Document", key: "label" },
               ]}
               tableRow={tableDocuments}
+              onClick={(document) => {
+                setSelectedDocument(document);
+                setModalMode("documents");
+                openModal();
+                console.log("Selected document: ", selectedDocument);
+              }}
             />
           )}
           
@@ -264,7 +308,178 @@ function RSODetails() {
           )}
         </div>
       </div>
-    </div>
+
+
+      {/* modal for rso officers */}
+      { isOpen && (
+      <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50`}>
+        <div className='flex items-center justify-center h-screen'>
+          <div className='bg-white rounded-lg w-1/3 p-4 shadow-md'>
+            <div className='flex justify-between'>
+              <h1 className='text-lg font-bold text-[#312895]'>RSO Officers</h1>
+                <CloseButton onClick={() => {
+                setModalMode("");
+                closeModal();
+              }}/>
+            </div>
+
+            {/* rso details */}
+            <div className='flex flex-col items-start justify-start mt-4 gap-2'>
+               <div className='w-full mb-4'>
+    <label htmlFor="profilePicture">Profile Picture</label>
+    <div className="flex items-center gap-4">
+      <div className="relative group">
+        <div className="h-16 w-16 bg-[#312895] rounded-full flex items-center justify-center text-white overflow-hidden border-2 border-[#312895]">
+          {profileImage ? (
+            <img 
+              src={profileImage} 
+              alt="Officer preview" 
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="size-8" viewBox="0 0 448 512" fill="currentColor">
+              <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/>
+            </svg>
+          )}
+        </div>
+        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
+          <svg xmlns="http://www.w3.org/2000/svg" className="size-6" viewBox="0 0 512 512" fill="white">
+            <path d="M149.1 64.8L138.7 96H64C28.7 96 0 124.7 0 160V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H373.3L362.9 64.8C356.4 45.2 338.1 32 317.4 32H194.6c-20.7 0-39 13.2-45.5 32.8zM256 192a96 96 0 1 1 0 192 96 96 0 1 1 0-192z"/>
+          </svg>
+        </div>
+        <input 
+          type="file"
+          id="profilePicture"
+          accept="image/*"
+          className="absolute inset-0 opacity-0 cursor-pointer"
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                setProfileImage(event.target?.result);
+              };
+              reader.readAsDataURL(e.target.files[0]);
+            }
+          }}
+        />
+      </div>
+      
+      <div className="flex flex-col">
+        <p className="text-sm text-gray-600">Upload a profile picture</p>
+        <p className="text-xs text-gray-500">JPG, PNG or GIF (max 2MB)</p>
+        {profileImage && (
+          <button 
+            type="button"
+            onClick={() => setProfileImage(null)}
+            className="text-xs text-red-500 hover:text-red-700 mt-1"
+          >
+            Remove image
+          </button>
+        )}
+              </div>
+            </div>
+          </div>
+
+          {/* Existing form fields */}
+          <div className='w-full'>
+            <label htmlFor="name">Officer Name</label>
+            <TextInput id={"name"} type={"text"} placeholder={"Firstname M.I., Lastname"}></TextInput>
+          </div>
+          <div className='w-full'>
+            <label htmlFor="position">Position</label>
+            <TextInput id={"position"} type={"text"} placeholder={"Officer Position"}></TextInput>
+          </div>
+
+            </div>
+            <div className='flex items-center justify-end mt-4 gap-2'>
+              {modalMode === "officers-create" && isOpen && (
+                <>
+                  <Button>Assign Officer</Button>
+                  <Button style={"secondary"}>Cancel</Button>
+                </>
+              )}
+              {modalMode === "officers-edit" && isOpen && (
+                <>
+                  <Button>Edit Officer</Button>
+                  <Button style={"secondary"}>Cancel</Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
+
+            {/* modal for rso officers */}
+      {/* {modalMode === "officers-edit" && isOpen && (
+      <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50 ${modalMode === "officers-edit" ? "block" : "hidden"}`}>
+        <div className='flex items-center justify-center h-screen'>
+          <div className='bg-white rounded-lg w-1/3 p-4 shadow-md'>
+            <div className='flex justify-between'>
+              <h1 className='text-lg font-bold text-[#312895]'>Edit RSO Officer</h1>
+                <CloseButton onClick={() => {
+                setModalMode("");
+                closeModal();
+              }}/>
+            </div>
+
+            <div>{selected.name}</div>
+            <div className='flex items-center justify-end mt-4 gap-2'>
+                <Button>Assign Officer</Button>
+                <Button style={"secondary"}>Cancel</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+      )} */}
+
+         {/* modal for reviewing documents */}
+   {modalMode === "documents" && isOpen && (
+    <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50 ${modalMode === "documents" ? "block" : "hidden"}`}>
+        <div className='flex items-center justify-center h-screen'>
+          <div className='bg-white rounded-lg w-1/3 p-4 shadow-md'>
+          <div className='flex flex-col '>
+
+            {/* title */}
+            <div className='flex justify-between'>
+              <h1 className='text-lg font-bold text-[#312895]'>RSO Documents</h1>
+              <CloseButton onClick={() => {
+                setModalMode("");
+                closeModal();
+              }}/>
+            </div>
+
+            <div className='flex flex-col gap-2 mt-4'>
+              <div className='w-full border border-primary bg-background rounded-md p-2'>
+                <h1 className='text-primary hover:underline cursor-pointer pl-4'>{selectedDocument?.label || "No document selected"}</h1>
+              </div>
+              <div>
+                <label className='text-sm font-mid-gray' htmlFor="remarks">Remarks</label>
+                <textarea
+                id='remarks'
+                rows="4"
+                name="RSO_description"
+                className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Add remarks here..."
+              />
+              </div>
+            </div>
+            <div className='flex items-center justify-end mt-4'>
+
+            <div className='flex items-center justify-end gap-2 mt-4'>
+              <Button >Accept</Button>
+              <Button style={"secondary"}>Reject</Button>
+            </div>
+          </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
+
+</div>
+
   )
 }
 

@@ -1,5 +1,5 @@
 export { default as Activities } from './Activities';
-export { default as AdminAccount } from './AdminAccount';
+export { default as Account } from './Account';
 export { default as Dashboard } from './Dashboard';
 export { default as DocumentAction } from './DocumentAction';
 export { default as Documents } from './Documents';

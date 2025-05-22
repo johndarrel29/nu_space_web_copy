@@ -12,7 +12,7 @@ import axios from "axios";
 //make a way to display that if the user contains assigned_rso, then display it in the dropdownsearch.
 
 // Table Component
-const Table = React.memo(({ searchQuery, data, selectedRole }) => {
+const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   const [mode, setMode] = useState('delete');
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
@@ -32,7 +32,6 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   }, [data]);
 
 
-  
   console.log("Users data before filtering:", users);
 
   // Makes the search query debounced so that it doesn't render on every key stroke
@@ -269,7 +268,29 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
         </li>
       </div>
 
-      {data.length > 0 ? (
+      {error ? (
+            <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center">
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-12 w-12 text-red-500 mb-2" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                >
+                    <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                    />
+                </svg>
+                <p className="text-red-500 font-medium text-center max-w-md px-4">
+                    {error}
+                </p>
+            </div>
+      )
+      :
+      data.length > 0 ? (
         <div className="w-full">
           <div className=' overflow-x-auto w-full border border-mid-gray rounded-md'>
         <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
