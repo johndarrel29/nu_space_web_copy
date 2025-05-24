@@ -109,6 +109,7 @@ useEffect(() => {
           )
               :
               userProfile?.user.role  === "student/rso" ? (
+                
                 <img
                   src={userProfile?.user.assigned_rso.RSO_picture || DefaultPicture}
                   alt="Profile"

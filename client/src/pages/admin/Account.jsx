@@ -41,7 +41,6 @@ export default function Account() {
               {user?.role === "admin" && (
                 <Badge text="Admin" style="primary" />
               )}
-
               {user?.role === "student/rso" && (
                 <Badge text="RSO" style="secondary" />
               )}

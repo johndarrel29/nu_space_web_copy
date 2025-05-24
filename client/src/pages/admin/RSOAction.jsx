@@ -108,95 +108,90 @@ console.log("Location state:", location.state);
           setSelectedModalTag(null);
       };
   
-const handleSubmit = async (e) => {
-  e.preventDefault();
+      const handleSubmit = async (e) => {
+        e.preventDefault();
 
-  const payload = {
-    ...formData,
-    RSO_tags: selectedTags,
-  };
+        const payload = {
+          ...formData,
+          RSO_tags: selectedTags,
+        };
 
-    // Remove RSO_status if it's empty or null
-  if (formData.RSO_status === "" || formData.RSO_status === null) {
-    delete payload.RSO_status;
-  }
+        if (formData.RSO_status === "" || formData.RSO_status === null) {
+          delete payload.RSO_status;
+        }
+
+        let result;
+        if (isEdit) {
+          console.log("Sending to updateRSO:", payload);
+          result = await updateRSO(data.id, payload); 
+          console.log("RSO updated:", result);
+        } else {
+          console.log("Sending to createRSO:", payload);
+          result = await createRSO(payload, selectedTags, RSO_picture);
+          console.log("RSO created:", result);
+        } 
+        
+          console.log("RSO created:", result);
+
+          setFormData({
+              RSO_name: "",
+              RSO_acronym: "",
+              RSO_category: "",
+              RSO_tags: "",
+              RSO_forms: "",
+              RSO_College: "",
+              RSO_status: "",
+              RSO_description: "",
+          },
+          console.log("clearing after submit: ", formData)
+        );
+          setRSOPicture(null);
+          setSelectedTags([]);
+          setSearchQuery("");
+
+          if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+          }
+      };
 
 
-
-
-  let result;
-  if (isEdit) {
-    result = await updateRSO(data.id, payload); 
-    console.log("RSO updated:", result);
-  } else {
-    result = await createRSO(payload, selectedTags, RSO_picture);
-    console.log("RSO created:", result);
-  } 
-  
-
-  
- {
-  console.error("Error creating/updating RSO");
-  // Handle error (e.g., show a message to the user)
-}
-
-
-
-    console.log("RSO created:", result);
-
-    setFormData({
-        RSO_name: "",
-        RSO_acronym: "",
-        RSO_category: "",
-        RSO_tags: "",
-        RSO_forms: "",
-        RSO_College: "",
-        RSO_status: "",
-        RSO_description: "",
-    },
-    console.log("clearing after submit: ", formData)
-  );
-    setRSOPicture(null);
-    setSelectedTags([]);
-    setSearchQuery("");
-    navigate('/rso-management'); 
-
-    if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-    }
-};
-
-  
 // const handleImageChange = (event) => {
 //   const file = event.target.files[0];
 //   if (file) {
-//     setFormData(prev => ({
-//       ...prev,
-//       RSO_picture: file,
-//       RSO_picturePreview: URL.createObjectURL(file), 
-//     }));
+//     // Still create the preview using URL.createObjectURL
+//     const preview = URL.createObjectURL(file);
+    
+//     // Convert file to Base64 string
+//     const reader = new FileReader();
+//     reader.onloadend = () => {
+//       const base64String = reader.result;
+//       setFormData(prev => ({
+//         ...prev,
+//         RSO_picture: base64String,
+//         RSO_picturePreview: preview
+//       }));
+//     };
+//     reader.readAsDataURL(file); 
 //   }
 // };
 
 const handleImageChange = (event) => {
   const file = event.target.files[0];
   if (file) {
-    // Still create the preview using URL.createObjectURL
+    // Generate a preview URL
     const preview = URL.createObjectURL(file);
-    
-    // Convert file to Base64 string
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result;
-      setFormData(prev => ({
-        ...prev,
-        RSO_picture: base64String, // Store base64 string instead of file object
-        RSO_picturePreview: preview
-      }));
-    };
-    reader.readAsDataURL(file); // This reads the file as a data URL (Base64)
+
+
+    // Store the file directly and use file.name as a stand-in for file.path
+    setFormData(prev => ({
+      ...prev,
+      RSO_picture: file, 
+      RSO_picturePreview: preview,
+      RSO_pictureFilename: JSON.stringify(file.name) // optional: mock 'file.path' as filename string
+    }));
   }
 };
+
 
 const handleDelete = async () => {
   const confirmed = window.confirm("Are you sure you want to delete this RSO?");
@@ -204,20 +199,13 @@ const handleDelete = async () => {
     try {
       const result = await deleteRSO(data.id);
       console.log("RSO deleted:", result);
-      navigate('/rso-management'); // Redirect after deletion
+      navigate('/rso-management'); 
     } catch (error) {
       console.error("Error deleting RSO:", error);
-      // Handle error (e.g., show a message to the user)
     }
   }
 };
 
-
-
-
-
-
-  
       useEffect(() => {
           if (showModal) {
               
@@ -417,7 +405,7 @@ const handleDelete = async () => {
               setIsFocused={setIsFocused}
               searchedData={searchedData}
               handleTagClick={handleTagClick}
-              selectedTags={selectedTags}  // Use the same state as create mode
+              selectedTags={selectedTags}  
               handleApiTagRemove={handleApiTagRemove}
               setShowModal={setShowModal}
               handleTagModal={handleTagModal}

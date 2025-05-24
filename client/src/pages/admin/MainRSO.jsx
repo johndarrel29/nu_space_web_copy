@@ -196,7 +196,7 @@ console.log("All RSO Tags:", allTags);
           
           </Button>         
       </div>
-            <ReusableTable 
+          <ReusableTable 
             options={["All", "A-Z", "Most Popular"]}
             showAllOption={false}
             value={sort}

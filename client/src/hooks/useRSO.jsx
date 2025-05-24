@@ -5,6 +5,7 @@ const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem("token");
     console.log("Stored token:", token);
@@ -81,41 +82,97 @@ const [organizations, setOrganizations] = useState([]);
     }
   };
 
-    const updateRSO = async (id, updatedOrg) => {
-    setLoading(true);
-    setError(null);
+  //   const updateRSO = async (id, updatedOrg) => {
+  //   setLoading(true);
+  //   setError(null);
 
-    try {
-      const token = localStorage.getItem("token");
-      const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+  //   const isFormData = updatedOrg instanceof FormData;
 
-      const headers = {
-        "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
-      };
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-      const response = await fetch(`${process.env.REACT_APP_UPDATE_RSO_URL}/${id}`, {
-        method: "PUT",
-        headers,
-        body: JSON.stringify(updatedOrg),
+  //     const headers = {
+  //       // "Content-Type": "application/json",
+  //       "Authorization": token ? `Bearer ${formattedToken}` : "",
+  //       ...(isFormData ? {} : { "Content-Type": "application/json" }),
+  //     };
+
+  //     const response = await fetch(`${process.env.REACT_APP_UPDATE_RSO_URL}/${id}`, {
+  //       method: "PATCH",
+  //       headers,
+  //       body: isFormData ? updatedOrg : JSON.stringify(updatedOrg),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`Error: ${response.status} - ${response.statusText}`);
+  //     }
+
+  //     const result = await response.json();
+  //     console.log("RSO updated:", result);
+
+  //     // Update the state with the updated organization
+  //     setOrganizations((prevOrgs) =>
+  //       prevOrgs.map((org) => (org._id === id ? result.updatedRSO : org))
+  //     );
+  //   } catch (err) {
+  //     console.error("Error updating RSO:", err);
+  //     setError(`Error: ${err.message}`);
+  //   }
+  // };
+
+const updateRSO = async (id, updatedOrg) => {
+  setLoading(true);
+  setError(null);
+
+  try {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    // Create FormData if RSO_picture exists (file upload)
+    const isFileUpload = updatedOrg.RSO_picture instanceof File;
+    const formData = new FormData();
+
+    if (isFileUpload) {
+      // Append all fields (including the file) to FormData
+      Object.keys(updatedOrg).forEach((key) => {
+        if (key === "RSO_picture") {
+          formData.append(key, updatedOrg[key]);
+        } else {
+          formData.append(key, updatedOrg[key]);
+        }
       });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log("RSO updated:", result);
-
-      // Update the state with the updated organization
-      setOrganizations((prevOrgs) =>
-        prevOrgs.map((org) => (org._id === id ? result.updatedRSO : org))
-      );
-    } catch (err) {
-      console.error("Error updating RSO:", err);
-      setError(`Error: ${err.message}`);
     }
-  };
+
+    const headers = {
+      "Authorization": token ? `Bearer ${formattedToken}` : "",
+      // Let the browser set Content-Type automatically for FormData (includes boundary)
+      ...(!isFileUpload && { "Content-Type": "application/json" }),
+    };
+
+    const response = await fetch(`${process.env.REACT_APP_UPDATE_RSO_URL}/${id}`, {
+      method: "PATCH",
+      headers,
+      body: isFileUpload ? formData : JSON.stringify(updatedOrg),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log("RSO updated:", result);
+
+    setOrganizations((prevOrgs) =>
+      prevOrgs.map((org) => (org._id === id ? result.updatedRSO : org))
+    );
+  } catch (err) {
+    console.error("Error updating RSO:", err);
+    setError(`Error: ${err.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const deleteRSO = async (id) => {
   setLoading(true);

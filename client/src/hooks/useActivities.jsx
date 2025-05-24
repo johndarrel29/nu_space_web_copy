@@ -89,7 +89,7 @@ function useActivities() {
         try {
             const response = await fetch(`${process.env.REACT_APP_UPDATE_ACTIVITIES_URL}/${activityId}`, {
                 method: "PUT",
-                headers,
+                headers,    
                 body: JSON.stringify(updatedData),
             });
             if (!response.ok) {

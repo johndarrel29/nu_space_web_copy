@@ -72,14 +72,16 @@ const [profileImage, setProfileImage] = useState(null);
   return (
     <div className="bg-white min-h-screen ">
       <div className='mb-8'>
-        <Button
-        style={"secondary"}
+        <div
         onClick={() => {
           navigate(-1);
 
         }}
-        >Back to Table</Button>
+        className='flex items-center justify-center rounded-full h-8 w-8 cursor-pointer border border-gray-300 group'>
+          <svg xmlns="http://www.w3.org/2000/svg" className='fill-gray-600 size-4 group-hover:fill-off-black' viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+        </div>
       </div>
+
 
       <div className='flex items-start justify-start'>
         {/* <div className='h-12 w-12 bg-[#312895] rounded-full flex items-center justify-center text-white font-bold'>
@@ -91,13 +93,15 @@ const [profileImage, setProfileImage] = useState(null);
         <div className='flex flex-col justify-start ml-4'>
           <div className='flex items-center gap-2'>
             <h1 className='text-xl font-bold text-[#312895]'>{user.RSO_name || "RSO Name"}</h1>
-            <div className='px-4 py-1 bg-white text-[#312895] rounded-full text-sm border border-[#312895] hover:bg-[#312895] hover:text-white  transition-colors group'>
+
+            <div className='px-4 py-1 bg-white text-[#312895] rounded-full text-sm border border-[#312895] hover:bg-[#312895] hover:text-white group cursor-pointer'>
               <div className='flex items-center gap-2 cursor-pointer' onClick={handleEditClick}>
                 <svg xmlns="http://www.w3.org/2000/svg" className='size-3 fill-[#312895] group-hover:fill-white' viewBox="0 0 512 512"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>
                 Edit
               </div>
             </div>
           </div>
+
           <h2 className='text-sm font-light text-gray-600'>{user.RSO_category || "RSO Category"}</h2>
           <div className='mt-4'>
             <TagSelector
@@ -118,12 +122,12 @@ const [profileImage, setProfileImage] = useState(null);
         {/* profile details */}
         <div className='w-full flex items-center justify-center'>          
           <div className='flex items-start gap-4 w-full'>
-            <div className='h-auto w-full bg-white rounded-md p-4 shadow-sm border border-gray-100'>
+            <div className='h-auto w-full bg-white rounded-md p-4 border border-mid-gray'>
               <h1 className='text-sm font-semibold text-[#312895]'>Description</h1>
               <p className='text-sm font-light text-gray-700 mt-2'>{user.RSO_description || "No RSO description provided."}</p>
             </div>
 
-            <table className="w-full bg-white rounded-md p-4 border-separate border-spacing-0 shadow-sm border border-gray-100">
+            <table className="w-full bg-white rounded-md p-4 border-separate border-spacing-0 border border-mid-gray">
               <tbody>
                 <tr>
                   <td className="text-sm font-light text-gray-500 py-1">College</td>
@@ -172,7 +176,7 @@ const [profileImage, setProfileImage] = useState(null);
         {/* profile stats */}
         <div className='flex w-full items-center justify-center mt-2 gap-4 h-32'>
           {/* members count */}
-          <div className='w-full h-full bg-gradient-to-br from-[#312895] to-[#5a4ca8] rounded-md shadow-sm flex items-center justify-center text-white'>
+          <div className='w-full h-full bg-gradient-to-br from-[#312895] to-[#5a4ca8] rounded-md flex items-center justify-center text-white'>
             <div className='flex items-center justify-center gap-4'>
               <div className='flex items-center justify-center h-12 w-12 bg-white/20 rounded-full backdrop-blur-sm'>
                 <svg xmlns="http://www.w3.org/2000/svg" className='fill-white size-6' viewBox="0 0 640 512"><path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192l42.7 0c15.9 0 31 3.5 44.6 9.7c-1.3 7.2-1.9 14.7-1.9 22.3c0 38.2 16.8 72.5 43.3 96c-.2 0-.4 0-.7 0L21.3 320C9.6 320 0 310.4 0 298.7zM405.3 320c-.2 0-.4 0-.7 0c26.6-23.5 43.3-57.8 43.3-96c0-7.6-.7-15-1.9-22.3c13.6-6.3 28.7-9.7 44.6-9.7l42.7 0C592.2 192 640 239.8 640 298.7c0 11.8-9.6 21.3-21.3 21.3l-213.3 0zM224 224a96 96 0 1 1 192 0 96 96 0 1 1 -192 0zM128 485.3C128 411.7 187.7 352 261.3 352l117.3 0C452.3 352 512 411.7 512 485.3c0 14.7-11.9 26.7-26.7 26.7l-330.7 0c-14.7 0-26.7-11.9-26.7-26.7z"/></svg>
@@ -185,7 +189,7 @@ const [profileImage, setProfileImage] = useState(null);
           </div>
           
           <div className='flex flex-col h-full gap-4 w-full'>
-            <div className='h-full bg-white rounded-md shadow-sm border border-gray-100 flex items-center justify-center'>
+            <div className='h-full bg-white rounded-md border border-mid-gray flex items-center justify-center'>
               <div className='flex items-center justify-center gap-3'>
                 <div className='flex items-center justify-center rounded-full bg-[#FFCC33] h-8 w-8'>
                   <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 576 512"><path d="M88.7 223.8L0 375.8 0 96C0 60.7 28.7 32 64 32l117.5 0c17 0 33.3 6.7 45.3 18.7l26.5 26.5c12 12 28.3 18.7 45.3 18.7L416 96c35.3 0 64 28.7 64 64l0 32-336 0c-22.8 0-43.8 12.1-55.3 31.8zm27.6 16.1C122.1 230 132.6 224 144 224l400 0c11.5 0 22 6.1 27.7 16.1s5.7 22.2-.1 32.1l-112 192C453.9 474 443.4 480 432 480L32 480c-11.5 0-22-6.1-27.7-16.1s-5.7-22.2 .1-32.1l112-192z"/></svg>
@@ -197,7 +201,7 @@ const [profileImage, setProfileImage] = useState(null);
               </div>
             </div>
 
-            <div className='h-full bg-white rounded-md shadow-sm border border-gray-100 flex items-center justify-center'>
+            <div className='h-full bg-white rounded-md border border-mid-gray flex items-center justify-center'>
               <div className='flex items-center justify-center gap-3'>
                 <div className='flex items-center justify-center rounded-full bg-[#312895] h-8 w-8'>
                   <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 448 512"><path d="M159.3 5.4c7.8-7.3 19.9-7.2 27.7 .1c27.6 25.9 53.5 53.8 77.7 84c11-14.4 23.5-30.1 37-42.9c7.9-7.4 20.1-7.4 28 .1c34.6 33 63.9 76.6 84.5 118c20.3 40.8 33.8 82.5 33.8 111.9C448 404.2 348.2 512 224 512C98.4 512 0 404.1 0 276.5c0-38.4 17.8-85.3 45.4-131.7C73.3 97.7 112.7 48.6 159.3 5.4zM225.7 416c25.3 0 47.7-7 68.8-21c42.1-29.4 53.4-88.2 28.1-134.4c-4.5-9-16-9.6-22.5-2l-25.2 29.3c-6.6 7.6-18.5 7.4-24.7-.5c-16.5-21-46-58.5-62.8-79.8c-6.3-8-18.3-8.1-24.7-.1c-33.8 42.5-50.8 69.3-50.8 99.4C112 375.4 162.6 416 225.7 416z"/></svg>
@@ -254,7 +258,7 @@ const [profileImage, setProfileImage] = useState(null);
               )
             }}
 
-            className='flex items-center justify-center gap-3 bg-white p-3 rounded-md shadow-sm border border-gray-100 cursor-pointer hover:bg-gray-200'>
+            className='flex items-center justify-center gap-3 bg-white p-3 rounded-md border border-mid-gray cursor-pointer hover:bg-gray-200'>
               <div className='h-10 w-10 bg-[#312895] rounded-full flex items-center justify-center text-white font-medium'>
                 {officer.name.split(' ').map(n => n[0]).join('')}
               </div>
@@ -311,7 +315,7 @@ const [profileImage, setProfileImage] = useState(null);
 
 
       {/* modal for rso officers */}
-      { isOpen && (
+      {['officers-create', 'officers-edit'].includes(modalMode ) && isOpen && (
       <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50`}>
         <div className='flex items-center justify-center h-screen'>
           <div className='bg-white rounded-lg w-1/3 p-4 shadow-md'>
