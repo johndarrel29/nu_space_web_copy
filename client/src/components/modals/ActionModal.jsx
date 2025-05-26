@@ -32,11 +32,11 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
         // category: selectedCategory,
               // Only include the category if the role is not "student"
       ...(selectedRole !== "student" && { category: selectedCategory }),
-        assignedRSO: selectedCategory, 
+        assignedRSO: selectedCategory,  
       };
       console.log("category: ", selectedCategory);
       console.log("Inside ActionModal: Data before calling onConfirm:", updatedData);
-      console.log("ID being sent:", id);
+      console.log("ID being sent:", id);  
       onConfirm(id, updatedData);
     } else if (mode === "delete") {
       console.log("Inside ActionModal (DELETE MODE): Calling onConfirm with:", id);

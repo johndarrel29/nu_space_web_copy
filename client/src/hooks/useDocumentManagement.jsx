@@ -1,9 +1,13 @@
 import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-function useDocumentManagement() {
+function useDocumentManagement(rsoID, documentId, reviewedById) {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const baseURL = process.env.REACT_APP_FETCH_RSO_DOCUMENTS_BASE_URL; 
+    const queryClient = useQueryClient();
+
 
     const fetchDocuments = useCallback(async () => {
         const token = localStorage.getItem("token");
@@ -92,12 +96,145 @@ function useDocumentManagement() {
         }
     };
 
+    const fetchRSODocuments = async (rsoID) => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+        console.log("Stored token for RSO documents:", localStorage.getItem("token"));
+
+        console.log("Fetching URL:", `${baseURL}/${rsoID}/general-documents`);
+
+        const res = await fetch(`${baseURL}/${rsoID}/general-documents`, {
+            method: "GET",
+            headers: {
+                'Authorization':  formattedToken,
+                'Content-Type': 'application/json' 
+
+            },
+        });
+
+                // Log all response headers for debugging
+        console.log("Response headers:");
+        res.headers.forEach((value, key) => {
+            console.log(`${key}: ${value}`);
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Fetch failed: ${errorText}`);
+        }
+
+        const json = await res.json();
+
+        if (json.success && Array.isArray(json.documents)) {
+            return json.documents || [];  
+        }
+
+    throw new Error("Unexpected response structure");
+    }
+
+    const approveRSODocument = async (documentId, reviewedById) => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        const res = await fetch(`REACT_APP_APPROVE_DOCUMENT_URL/${documentId}`, {
+            method: "POST",
+            headers: {
+                'Authorization': formattedToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reviewedById }),
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Approval failed: ${errorText}`);
+        }
+
+        return res.json();
+    };
+
+    const rejectRSODocument = async (documentId, reviewedById) => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        const res = await fetch(`REACT_APP_REJECT_DOCUMENT_URL/${documentId}`, {
+            method: "POST",
+            headers: {
+                'Authorization': formattedToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reviewedById }),
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Rejection failed: ${errorText}`);
+        }
+
+        return res.json();
+    }
+
+    // Query to fetch RSO documents
+    const {
+        data: rsoDocuments,
+        isLoading: rsoDocumentsLoading,
+        isError: rsoDocumentsError,
+        error: rsoQueryError
+    } = useQuery({
+        queryKey: ["rso-documents", rsoID],
+        queryFn: () => fetchRSODocuments(rsoID),
+        enabled: !!rsoID,
+    });
+
+    //Query to approve RSO documents
+    const {
+        data: approveData,
+        isLoading: approveLoading,
+        isError: approveError,
+        error: approveQueryError,
+    } = useMutation({
+        mutationFn: (documentId, reviewedById) => approveRSODocument(documentId, reviewedById),
+        onSuccess: () => {
+        queryClient.invalidateQueries(["rso-documents", rsoID]); // Refetch updated documents
+    },
+    });
+
+    //Query to reject RSO documents
+    const {
+        data: rejectData,
+        isLoading: rejectLoading,
+        isError: rejectError,
+        error: rejectQueryError,
+    } = useMutation({
+        mutationFn: (documentId, reviewedById) => rejectRSODocument(documentId, reviewedById),
+        onSuccess: () => {
+        queryClient.invalidateQueries(["rso-documents", rsoID]); // Refetch updated documents
+    },
+    });
+
     return {
         documents,
         loading,
         error,
         fetchDocuments,
         submitDocument,
+        rsoDocuments,
+        rsoDocumentsLoading,
+        rsoDocumentsError,
+        rsoQueryError,
+
+        // approve props
+        approveData,
+        approveLoading,
+        approveError,
+        approveQueryError,
+        // reject props
+        rejectData,
+        rejectLoading,
+        rejectError,
+        rejectQueryError,
+        approveRSODocument,
+        rejectRSODocument,
     };
 }
 

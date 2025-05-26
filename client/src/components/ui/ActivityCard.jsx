@@ -7,17 +7,19 @@ function ActivityCard({
   Activity_name,
   Activity_description,
   Activity_image,
+  Activity_datetime,
+  Activity_place,
   Activity_registration_total,
   statusColor = "bg-gray-400" // Default color if not provided
 }) {
   return (
     <div 
-      className="w-full bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      className="w-full bg-white rounded-md overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => onClick(activity)}
       title={Activity_name}
     >
       {/* Image with status badge */}
-      <div className="relative h-40 w-full">
+      <div className="relative h-60 w-full">
         <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-semibold text-white ${statusColor}`}>
           {activity.Activity_status || 'Ongoing'}
         </div>
@@ -31,10 +33,10 @@ function ActivityCard({
       {/* Content */}
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-[#312895] text-lg line-clamp-1">
+          <h3 className="font-bold text-off-black text-lg line-clamp-1">
             {Activity_name}
           </h3>
-          <div className="flex items-center bg-[#312895]/10 px-2 py-1 rounded-full">
+          <div className="flex items-center bg-background px-2 py-1 rounded-full">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-4 w-4 text-[#312895]" 
@@ -58,7 +60,7 @@ function ActivityCard({
         </p>
 
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center text-[#312895]">
+          <div className="flex items-center text-gray-400">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-4 w-4 mr-1" 
@@ -71,10 +73,10 @@ function ActivityCard({
                 clipRule="evenodd" 
               />
             </svg>
-            <span>{new Date(activity.Activity_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+            <span>{Activity_datetime}</span>
           </div>
 
-          <div className="flex items-center text-[#312895]">
+          <div className="flex items-center text-gray-400">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-4 w-4 mr-1" 
@@ -87,7 +89,7 @@ function ActivityCard({
                 clipRule="evenodd" 
               />
             </svg>
-            <span className="truncate max-w-[100px]">{activity.Activity_place}</span>
+            <span className="truncate max-w-[40px]">{activity.Activity_place}</span>
           </div>
         </div>
       </div>

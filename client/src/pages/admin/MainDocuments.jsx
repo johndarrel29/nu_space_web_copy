@@ -6,11 +6,13 @@ import { useEffect } from "react";
 
 
 export default function MainDocuments() {
-  const { activities, loading, error, fetchActivity, fetchLocalActivities } = useActivities();
+
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const { data } = useUser();
+  const activityId = data?.activityId 
+  const { activities, loading, error, fetchActivity, fetchLocalActivities } = useActivities(activityId);
   const [selectedActivity, setSelectedActivity] = useState(null);
 
 
@@ -47,7 +49,7 @@ useEffect(() => {
     const handleActivityClick = (activity) => {
         setSelectedActivity(activity);
         console.log("Selected Activity:", activity);
-        navigate(`main-activities`, { state: { activity }}); // Navigate to the activity details page
+        navigate(`main-activities`, { state: { activity }}); 
     };
 
     console.log("activities:", fetchActivity);
@@ -63,16 +65,22 @@ const filteredActivities = user?.role === "student/rso"
 // Log after the assignment (not inside the filter)
 console.log("Filtered Activities:", filteredActivities);
 
+  const handleDateTime = (dateTime) => {
+    const date = new Date(dateTime);
+    return date.toLocaleString('en-US', {
+      month: 'numeric',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
   return (
-    <div className=" bg-white rounded-lg shadow-sm">
+    <div>
       {/* Header and Create Button */}
       <div >
-        {/* <div>
-          <h1 className="text-2xl font-bold text-[#312895]">Activities</h1>
-          <p className="text-sm text-gray-600">
-            {user?.role === "student/rso" ? "Your RSO Activities" : "All Activities"}
-          </p>
-        </div> */}
         
         {user?.role === "student/rso" && (
           <div className="flex justify-end mb-4">
@@ -173,7 +181,9 @@ console.log("Filtered Activities:", filteredActivities);
               Activity_image={activity.Activity_image}
               Activity_registration_total={activity.Activity_registration_total}
               onClick={handleActivityClick}
-              statusColor={activity.Activity_status === 'approved' ? 'bg-green-500' : 
+              Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
+              Activity_place={activity.Activity_place}
+              statusColor={activity.Activity_status === 'done' ? 'bg-green-500' : 
                           activity.Activity_status === 'pending' ? 'bg-[#FFCC33]' : 
                           'bg-red-500'}
             />

@@ -1,7 +1,7 @@
 import defaultPic from '../../assets/images/default-picture.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ReusableTable, Backdrop, Button, TabSelector } from '../../components';
-import { useModal } from "../../hooks";
+import { useModal, useActivities, useDocumentManagement } from "../../hooks";
 import { useState } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
@@ -20,6 +20,12 @@ export default function Activities() {
   const [progress, setProgress] = useState({ started: false, pc: 0 });
   const [msg, setMsg] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
+  const activityId = activity?._id || location.state?.activityId;
+  const { rsoActivity, errorQuery } = useActivities(activityId);
+
+  console.log("Activity ID:", activityId);
+  console.log("Activity Data:", rsoActivity);
+  console.log("Error Query:", errorQuery);
 
   const tabs = [
     { label: "Documents"},
@@ -100,15 +106,16 @@ export default function Activities() {
 
   return (
     <>
-      <div className="flex flex-col items-start bg-white rounded-lg shadow-sm">
+      <div className="flex flex-col items-start">
       <div className='mb-8'>
-        <Button
-        style={"secondary"}
+        <div
         onClick={() => {
           navigate(-1);
 
         }}
-        >Go Back</Button>
+        className='flex items-center justify-center rounded-full h-8 w-8 cursor-pointer border border-gray-300 group'>
+          <svg xmlns="http://www.w3.org/2000/svg" className='fill-gray-600 size-4 group-hover:fill-off-black' viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+        </div>
       </div>
 
         {/* Header Section */}
@@ -139,12 +146,12 @@ export default function Activities() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
               {/* Left Column */}
               <div className="space-y-4">
-                <div className='bg-white p-4 rounded-lg border border-gray-100 shadow-sm'>
+                <div className='bg-white p-4 rounded-lg border border-mid-gray'>
                   <h3 className="font-semibold text-[#312895] text-sm mb-2">Description</h3>
                   <p className="text-gray-700 text-sm">{activity?.Activity_description}</p>
                 </div>
                 
-                <div className='bg-white p-4 rounded-lg border border-gray-100 shadow-sm'>
+                <div className='bg-white p-4 rounded-lg border border-mid-gray'>
                   <h3 className="font-semibold text-[#312895] text-sm mb-2">Date & Time</h3>
                   <p className="text-gray-700 text-sm">
                     {formatDate(activity?.Activity_date)} at {activity?.Activity_time}
@@ -154,7 +161,7 @@ export default function Activities() {
 
               {/* Right Column */}
               <div className="space-y-4">
-                <div className='bg-white p-4 rounded-lg border border-gray-100 shadow-sm'>
+                <div className='bg-white p-4 rounded-lg border border-mid-gray'>
                   <h3 className="font-semibold text-[#312895] text-sm mb-2">Status</h3>
                   <div className='flex items-center gap-2'>
                     <div className={`h-2 w-2 rounded-full ${
@@ -166,7 +173,7 @@ export default function Activities() {
                   </div>
                 </div>
                 
-                <div className='bg-white p-4 rounded-lg border border-gray-100 shadow-sm'>
+                <div className='bg-white p-4 rounded-lg border border-mid-gray'>
                   <h3 className="font-semibold text-[#312895] text-sm mb-2">Participants</h3>
                   <p className="text-gray-700 text-sm">{activity?.Activity_registration_total} registered</p>
                 </div>
@@ -174,7 +181,7 @@ export default function Activities() {
             </div>
 
             {/* Quick Info Card */}
-            <div className='bg-white rounded-lg border border-gray-100 shadow-sm p-4 lg:w-[300px]'>
+            <div className='bg-white rounded-lg border border-mid-gray p-4 lg:w-[300px]'>
               <div className='space-y-4'>
                 <div className='flex items-center gap-3'>
                   <div className='h-10 w-10 bg-[#312895] rounded-full flex justify-center items-center'>
@@ -266,7 +273,7 @@ export default function Activities() {
               </div>
             )}
             {activeTab === 1 && (
-              <div className='bg-white p-4 rounded-lg border border-gray-100 shadow-sm mt-4'>
+              <div className='bg-white p-4 rounded-lg border border-mid-gray mt-4'>
                 <p className='text-gray-700'>List of participants will appear here</p>
               </div>
             )}
@@ -287,7 +294,7 @@ export default function Activities() {
               exit="exit"
             >
               <div className="fixed inset-0 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 w-1/3 shadow-xl border border-gray-100">
+                <div className="bg-white rounded-lg p-6 w-1/3 shadow-xl border border-mid-gray">
                   <h2 className="text-lg font-semibold text-[#312895] mb-4">Document Details</h2>
                   <div className='space-y-3'>
                     <div>
@@ -328,7 +335,7 @@ export default function Activities() {
               exit="exit"
             >
               <div className="fixed inset-0 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 w-1/3 shadow-xl border border-gray-100">
+                <div className="bg-white rounded-lg p-6 w-1/3 shadow-xl border border-mid-gray">
                   <h2 className="text-lg font-semibold text-[#312895] mb-4">Upload Documents</h2>
                   <div className='space-y-4'>
                     <div className='border border-dashed border-[#312895]/30 rounded-lg p-4'>

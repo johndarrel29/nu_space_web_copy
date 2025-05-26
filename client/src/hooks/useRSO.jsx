@@ -56,15 +56,42 @@ const [organizations, setOrganizations] = useState([]);
       const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
       console.log("Submitting new RSO:", newOrg);
       console.log("Request URL:", process.env.REACT_APP_CREATE_RSO_URL);
+
+          // Create FormData if RSO_picture exists (file upload)
+    const isFileUpload = newOrg.RSO_picture instanceof File;
+
+    
+    let body;
+    let headers = {
+      "Authorization": `Bearer ${formattedToken}`,
+    };
+    
+
+    if (isFileUpload) {
+      const formData = new FormData();
+
+      Object.entries(newOrg).forEach(([key, value]) => {
+        if (key === "RSO_picturePreview") return; // skip frontend-only fields
+
+        if (key === "RSO_tags" && Array.isArray(value)) {
+          value.forEach((tag) => formData.append("RSO_tags[]", tag));
+        } else {
+          formData.append(key, value);
+        }
+      });
+
+      body = formData;
+    } else {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(newOrg);
+    }
+
       
 
     const response = await fetch(`${process.env.REACT_APP_CREATE_RSO_URL}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization":  token ? `Bearer ${formattedToken}` : "",
-      },
-      body: JSON.stringify(newOrg),
+      headers,
+      body,
     });
 
       if (!response.ok) {
@@ -137,7 +164,7 @@ const updateRSO = async (id, updatedOrg) => {
       // Append all fields (including the file) to FormData
       Object.keys(updatedOrg).forEach((key) => {
         if (key === "RSO_picture") {
-          formData.append(key, updatedOrg[key]);
+          formData.append("RSO_image", updatedOrg[key]);
         } else {
           formData.append(key, updatedOrg[key]);
         }

@@ -2,45 +2,43 @@ import  editIcon  from '../../assets/icons/pen-to-square-solid.svg';
 import  deleteIcon  from '../../assets/icons/trash-solid.svg';
 import  { FormatDate }  from '../../utils';
 import  { Badge }  from '../ui';
+import { useUserProfile } from "../../hooks";
+import { Tooltip } from 'react-tooltip';
 
-const TableRow = ({ user, onOpenModal, index }) => {
+const TableRow = ({ userRow, onOpenModal, index }) => {
+  const { user, isLoading, isError, error } = useUserProfile();
+
   const handleActionClick = (action) => () => {
-    onOpenModal(action, user);
+    onOpenModal(action, userRow);
   };
 
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+  // tooltip style dependency
+  const tooltipId = `edit-tooltip-${userRow._id}`;
+  const isRestricted = user?.role === "admin" && (userRow?.role === "admin" || userRow?.role === "superadmin");
 
-  const formattedDate = FormatDate(user.createdAt);
+
+
+  const fullName = [userRow.firstName, userRow.lastName].filter(Boolean).join(' ');
+
+  const formattedDate = FormatDate(userRow.createdAt);
 
   function handleStyle  (userRole) {
-    console.log("user role: " + userRole)
+    console.log("userRow role: " + userRole)
 
     switch (userRole) {
-      case 'admin':
+      case 'superadmin':
         return 'primary';
-      case 'student/rso':
+      case 'admin':
         return 'secondary';
-      case 'student':
+      case 'student/rso':
         return 'tertiary'; 
+      case 'student':
+        return 'quarternary';
       default:
         return '';
         
     }
   }
-
-  //   let roleClass = 'bg-gray-100 text-gray-800'; 
-
-  // switch (user.role) {
-  //   case 'student':
-  //     roleClass = 'bg-green-100 text-green-800';
-  //     break;
-  //   case 'student/rso':
-  //     roleClass = 'bg-blue-100 text-blue-800';
-  //     break;
-  //   case 'admin':
-  //     roleClass = 'bg-yellow-100 text-yellow-800';
-  //     break;
-  // }
     
 
   return (
@@ -50,7 +48,7 @@ const TableRow = ({ user, onOpenModal, index }) => {
           <div className="text-sm font-medium text-gray-900">{index}</div>
           <div className="ml-4">
             <div className="text-sm font-medium text-gray-900">{fullName}</div>
-            <div className="text-sm text-gray-500">{user.email}</div>
+            <div className="text-sm text-gray-500">{userRow.email}</div>
           </div>
         </div>
       </td>
@@ -59,34 +57,53 @@ const TableRow = ({ user, onOpenModal, index }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center justify-center">
-          <Badge style={handleStyle(user.role)} text={user.role}/>
+          <Badge style={handleStyle(userRow.role)} text={userRow.role}/>
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center justify-center">
-          {/* <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${roleClass}`}>
-            {user.role === 'student' ? 'student' : user.assigned_rso?.RSO_acronym || 'N/A'}
-          </span> */}
-          {console.log("results: " + handleStyle(user.role))}
-          <Badge style={handleStyle(user.role)} text={user.role === 'student' ? 'student' : user.assigned_rso?.RSO_acronym || 'N/A'}/>
-        </div>
+
+        {!(userRow.role === 'superadmin' || userRow.role === 'admin') && (
+          <div className="flex items-center justify-center">
+            {console.log("results: " + handleStyle(userRow.role))}
+            <Badge style={handleStyle(userRow.role)} text={userRow.role === 'student' ? 'student' : userRow.assigned_rso?.RSO_acronym || 'N/A'}/>
+          </div>
+        )}
 
       </td>
       <td className="px-6 py-4 whitespace-nowrap ">
       <div className='space-x-2 flex flex-row justify-center items-center'>
-          <div 
-            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer"
-            onClick={handleActionClick('edit')}
+
+        {/* prevents user from editing or deleting their own profile */}
+        { userRow?._id === user?._id ? ( "") :
+        (
+          <>
+          <div
+            data-tooltip-id="global-tooltip"
+            data-tooltip-content={isRestricted ? "You are not allowed to edit" : "edit"}
+            className={
+              `mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer`
+              + (isRestricted ? " bg-gray-400" : "")}
+    
+            onClick={isRestricted ? null :  handleActionClick('edit')}
           >          
-            <img src={editIcon} alt="edit" className="size-4"/>
+            <img src={editIcon} alt="edit" className={`size-4` + (isRestricted ? " opacity-40" : "")}/>
 
           </div>
+          {/* Tooltip component */}
+          <Tooltip id="global-tooltip" className="bg-gray-800 text-white text-xs p-2 rounded shadow-sm opacity-50" />
+
           <div 
-            className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer"
-            onClick={handleActionClick('delete')}
+            data-tooltip-id="global-tooltip"
+            data-tooltip-content={isRestricted ? "You are not allowed to delete" : "delete"}
+            className={
+              `mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer`
+              + (isRestricted ? " bg-gray-400" : "")}
+            onClick={ isRestricted ? null : handleActionClick('delete')}
           >          
-            <img src={deleteIcon} alt="delete" className="size-4"/>
+            <img src={deleteIcon} alt="delete" className={`size-4` + (isRestricted ? " opacity-40" : "")}/>
           </div>
+          </>
+        )}
         </div>
       </td>
     </tr>

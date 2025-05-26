@@ -4,6 +4,7 @@ import   { useModal, useUser }  from "../../hooks";
 import { AnimatePresence } from "framer-motion";
 import { CreateUserModal, ReusableTable } from "../../components";
 
+
   // function to handle the search and filter
   const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole, openModal }) => {
     
@@ -170,7 +171,7 @@ const tableRowFiltered = useMemo(() => {
             headingTitle="Monitor Student/RSO and Student accounts"
             > 
           <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg  border border-mid-gray p-4 pt-0">
-            {user && user.role === "admin" && (
+            {(user && (user.role === "admin" || user.role === "superadmin")) && (
               <>
                 <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/> 
                 <Table 

@@ -6,6 +6,7 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import { CardSkeleton } from '../../components'; 
 import { AnimatePresence } from "framer-motion";
 import   { useModal }  from "../../hooks";
+
 import axios from "axios";
 
 //Even when the data is null in assigned_rso, the data still retains on the server.
@@ -129,20 +130,6 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
   
-    // if (updatedData) {
-    //   console.log("Updated data being sent:", updatedData);
-      
-    //   // Ensure that assigned_rso is part of updatedData
-    //   if (updatedData.category && !updatedData.assignedRSO) {
-    //     updatedData.assigned_rso = updatedData.category; // Add category to assigned_rso
-    //   }
-  
-    //   // Ensure that assigned_rso is in updatedData
-    //   if (!updatedData.assignedRSO) {
-    //     console.error("Missing assignedRSO in updatedData!");
-    //     // Handle this case accordingly (perhaps set a default value)
-    //   }
-    // }
 
     if (updatedData) {
       console.log("Updated data being sent:", updatedData);
@@ -160,6 +147,14 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
       if (updatedData.role === 'student/rso' && updatedData.category) {
         updatedData.assigned_rso = updatedData.category;
       }
+
+      if (updatedData.role === 'superadmin') {
+        await deleteCategory(_id); // Call the delete function
+        // Don't send category data in the update request when role is superadmin
+        updatedData.category = null;
+        updatedData.assignedRSO = null;
+        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'superadmin'
+      }
   
       // Log to check if assigned_rso is being set correctly
       console.log("Final updated data:", updatedData);
@@ -175,8 +170,8 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   
     try {
       if (updatedData) {
-        console.log("ID being sent:", _id); // Should be a valid MongoDB ObjectId
-        console.log("Data being sent:", updatedData); // Should contain type: "student/rso"
+        console.log("ID being sent:", _id); 
+        console.log("Data being sent:", updatedData); 
         console.log("Update API URL:", `${process.env.REACT_APP_UPDATE_USER_URL}/${_id}`);
         
         const response = await axios.patch(
@@ -327,7 +322,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
             {records.length > 0 ? records.map((user, index) => (
               
               
-              <TableRow key={index} user={user} onOpenModal={handleOpenModal} index={(currentPage - 1) * postsPerPage + index + 1}/>
+              <TableRow key={index} userRow={user} onOpenModal={handleOpenModal} index={(currentPage - 1) * postsPerPage + index + 1}/>
             )) : (
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={5}>

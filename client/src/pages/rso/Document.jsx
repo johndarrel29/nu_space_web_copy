@@ -42,7 +42,7 @@ const tableRow = documents.map((doc) => ({
         updatedAt: formatDate(doc.updatedAt) || '',
         file: doc.file || '',
         status: doc.status || '',
-        submittedBy: doc.submittedBy._id || "N/A",
+        submittedBy: doc.submittedBy.firstName + " " + doc.submittedBy.lastName || "N/A",
         title: doc.title || '',
         url: doc.url || '',
         __v: doc.__v || 0

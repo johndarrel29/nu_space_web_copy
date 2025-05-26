@@ -60,6 +60,8 @@ export default function Login () {
                 }
                 else if (role === "student/rso") {
                     navigate("/document"); 
+                } else if (role === "superadmin") {
+                    navigate("/user-management"); 
                 }
 
             } else {

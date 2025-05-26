@@ -5,8 +5,6 @@ import { ChevronDownIcon } from '@heroicons/react/20/solid'
 export default function Dropdown({ selectedRole, setSelectedRole}) {
   const handleMenuItemClick = (item) => {
 
-    // Allow changing the role only if it's not 'admin'
-
       setSelectedRole(item);
     
   };
@@ -54,7 +52,7 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
         {selectedRole === 'admin' && (
           <MenuItem>
             <a
-              onClick={() => handleMenuItemClick("student/rso")}
+              onClick={() => handleMenuItemClick("superadmin")}
               className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
             >
               Superadmin
