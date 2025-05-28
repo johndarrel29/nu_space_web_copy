@@ -10,6 +10,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import DefaultPicture from '../../assets/images/default-picture.png'; // default image for activities
 
 
 // file manipulation
@@ -23,6 +24,7 @@ function DocumentAction() {
   const { mode, data, from } = location.state || {};
   const { createActivity, updateActivity, deleteActivity } = useActivities();
   const fileInputRef = useRef(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
     //file manipulaion
     const [image, setImage] = useState(null);
@@ -30,20 +32,18 @@ function DocumentAction() {
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [readyCropper, setReadyCropper] = useState(false);
-
+  console.log("DocumentAction mode:", mode, "data:", data, "from:", from);
   
+  console.log("data image", data?.Activity_image, "activityImageUrl:", data?.activityImageUrl);
   
   const [activityData, setActivityData] = useState(() => {
     if (mode === 'edit' && data) {
       return {
         Activity_name: data.Activity_name || '',
         Activity_image: data.Activity_image || '',
+        activityImageUrl: data.activityImageUrl || null,
         Activity_datetime: data?.Activity_datetime ? dayjs(data.Activity_datetime) : null,
-      Activity_picturePreview: data.Activity_image 
-        ? (data.Activity_image instanceof File 
-            ? URL.createObjectURL(data.Activity_image)
-            : `${process.env.REACT_APP_API_URL}/uploads/${data.Activity_image}`)
-        : null,
+      Activity_picturePreview: data.activityImageUrl || DefaultPicture, 
         Activity_place: data.Activity_place || '',
         Activity_description: data.Activity_description || '',
         Activity_GPOA: data.Activity_GPOA ?? false
@@ -52,11 +52,12 @@ function DocumentAction() {
     return {
       Activity_name: '',
       Activity_image: '',
+      activityImageUrl: null,
       Activity_datetime: null,
       Activity_place: '',
       Activity_description: '',
       Activity_GPOA: false,
-      Activity_picturePreview: null 
+      Activity_picturePreview: DefaultPicture, 
     };
   });
 
@@ -109,6 +110,7 @@ function DocumentAction() {
     catch (error) {
       console.error("Error submitting form:", error);
     }
+    setHasSubmitted(true);
   };
 
   const handleDelete = async (e) => {
@@ -222,15 +224,22 @@ console.log("Deleting activity with ID:", data?._id);
 
             {/* only show if there's no image */}
             {!activityData.Activity_picturePreview && (
-              <div className='rounded-md h-32 w-32 bg-gray-300 border' />
+              <div className='h-[13rem] w-full lg:w-[13rem] bg-[#312895]/10 rounded-lg overflow-hidden'>
+                <img
+                  src={isEdit && hasSubmitted === false ? activityData?.activityImageUrl : DefaultPicture}
+                  alt="Activity Preview testing"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             )}
 
 
               {/* image input */}
+              {console.log("Activity_picturePreview value:", activityData.Activity_picturePreview)}
               {activityData.Activity_picturePreview && (
                 <img
                   src={activityData.Activity_picturePreview}
-                  alt="Activity Preview"
+                  alt="Activity Preview image input"
                   className="rounded-md h-32 w-32 object-cover border"
                 />
               )}

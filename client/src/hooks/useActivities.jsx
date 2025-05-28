@@ -84,6 +84,23 @@ function useActivities(activityId) {
                 };
     };
 
+    const fetchAdminActivity = async () => {
+        const token = localStorage.getItem("token");
+        console.log("Stored token:", token);
+        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+        const response = await fetch(`${process.env.REACT_APP_FETCH_ADMIN_ACTIVITIES_URL}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token ? `Bearer ${formattedToken}` : "",
+            },
+        });
+
+        return response.json();
+        
+    }
+
 // const { data, error: errorQuery, isLoading, isError } = useQuery(
 //   ["rso-activity", activityId],          
 //   () => fetchRSOActivity(activityId),    
@@ -91,6 +108,16 @@ function useActivities(activityId) {
 //     enabled: !!activityId,               
 //   }
 // );
+const {
+    data: adminActivity,
+    error: adminError,
+} = useQuery ({
+    queryKey: ["adminActivity"],
+    queryFn: fetchAdminActivity,
+})
+
+// console.log("Admin Activity:", adminActivity);
+
 const {
     data: rsoActivity,
     error: errorQuery,
@@ -308,7 +335,22 @@ useEffect(() => {
 
 
 
-    return { activities, fetchActivity, loading, error, createActivity, updateActivity, deleteActivity, rsoActivity, errorQuery, isLoading, isError };
+    return { 
+        activities, 
+        fetchActivity, 
+        loading, 
+        error, 
+        createActivity, 
+        updateActivity, 
+        deleteActivity, 
+        rsoActivity, 
+        errorQuery, 
+        isLoading, 
+        isError,
+
+        adminActivity,
+        adminError,
+    };
 }
 
 export default useActivities;

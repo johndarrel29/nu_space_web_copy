@@ -45,11 +45,11 @@ export default function ReusableTable({
         if (badge === "pending") {
             return <Badge style="primary" text={"Pending"} />
         }
-        if (badge === "approved") {
-            return <Badge style="secondary" text={"Approved"} />
+        if (badge === "Approved") {
+            return <Badge style="success" text={"Approved"} />
         }
-        if (badge === "declined") {
-            return <Badge style="tertiary" text={"Decliend"} />
+        if (badge === "Rejected") {
+            return <Badge style="error" text={"Rejected"} />
         }
     }
       
@@ -132,7 +132,7 @@ export default function ReusableTable({
         )
         :
         (
-        <div className="border border-mid-gray rounded-md overflow-hidden">
+        <div className="border border-mid-gray rounded-md">
         <div className="overflow-x-auto">
                 {isLoading ? (
             <div className="w-full flex justify-center">
@@ -189,7 +189,7 @@ export default function ReusableTable({
                                         <span className="text-sm font-semibold text-gray-900 dark:text-white">{handleBadge(row.status)}</span>
                                     )}
                                     {heading.key === "submittedBy" && (
-                                        <span className="text-sm font-light text-gray-600 dark:text-white flex items-center ">{row.submittedBy}</span>
+                                        <span className="font-light text-gray-600 dark:text-white flex items-center text-xs ">{row.submittedBy}</span>
                                     )}
                                     {heading.key === "createdAt" && (
                                         <span className="text-sm font-light text-gray-600 dark:text-white flex items-center ">{row.createdAt}</span>
@@ -207,7 +207,7 @@ export default function ReusableTable({
                                 </div>                                
 
                             </>
-                        ) : ["RSO_name", "RSO_College", "RSO_picture"].includes(heading.key) 
+                        ) : ["RSO_name", "RSO_College", "picture"].includes(heading.key) 
                             ? (
                             // Grouping these in one <td> with custom layout
                             <div className="flex items-center space-x-3">
@@ -216,10 +216,11 @@ export default function ReusableTable({
                             {heading.key === "RSO_name" && (
                                 <img
                                 src={
-                                row.RSO_picture && 
-                                !row.RSO_picture.includes("example.com") && // Avoid placeholder URLs
-                                row.RSO_picture.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) // Check if it's an image URL
-                                    ? row.RSO_picture
+                                row.picture && 
+                                !row.picture.includes("example.com") 
+                                    // && 
+                                    // row.picture.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) // Check if it's an image URL
+                                    ? row.picture
                                     : DefaultPicture
                                 }
                                 alt={row.RSO_name}

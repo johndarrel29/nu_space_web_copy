@@ -133,11 +133,19 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
     }
 
     const approveRSODocument = async (documentId, reviewedById) => {
+  console.log("approveRSODocument called with:");
+  console.log("documentId:", documentId);
+  console.log("reviewedById:", reviewedById);
+
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
-        const res = await fetch(`REACT_APP_APPROVE_DOCUMENT_URL/${documentId}`, {
-            method: "POST",
+        console.log("request url: " + `${process.env.REACT_APP_APPROVE_DOCUMENT_URL}/${documentId}`);
+        console.log("request body: ", JSON.stringify({ reviewedById }));
+
+
+        const res = await fetch(`${process.env.REACT_APP_APPROVE_DOCUMENT_URL}/${documentId}`, {
+            method: "PATCH",
             headers: {
                 'Authorization': formattedToken,
                 'Content-Type': 'application/json'
@@ -150,6 +158,8 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
             throw new Error(`Approval failed: ${errorText}`);
         }
 
+        
+
         return res.json();
     };
 
@@ -157,8 +167,8 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
-        const res = await fetch(`REACT_APP_REJECT_DOCUMENT_URL/${documentId}`, {
-            method: "POST",
+        const res = await fetch(`${process.env.REACT_APP_REJECT_DOCUMENT_URL}/${documentId}`, {
+            method: "PATCH",
             headers: {
                 'Authorization': formattedToken,
                 'Content-Type': 'application/json'
@@ -188,12 +198,13 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
 
     //Query to approve RSO documents
     const {
+        mutate: approveDocumentMutate,
         data: approveData,
         isLoading: approveLoading,
         isError: approveError,
         error: approveQueryError,
     } = useMutation({
-        mutationFn: (documentId, reviewedById) => approveRSODocument(documentId, reviewedById),
+        mutationFn: ({documentId, reviewedById}) => approveRSODocument(documentId, reviewedById),
         onSuccess: () => {
         queryClient.invalidateQueries(["rso-documents", rsoID]); // Refetch updated documents
     },
@@ -201,12 +212,13 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
 
     //Query to reject RSO documents
     const {
+        mutate: rejectDocumentMutate,
         data: rejectData,
         isLoading: rejectLoading,
         isError: rejectError,
         error: rejectQueryError,
     } = useMutation({
-        mutationFn: (documentId, reviewedById) => rejectRSODocument(documentId, reviewedById),
+        mutationFn: ({documentId, reviewedById}) => rejectRSODocument(documentId, reviewedById),
         onSuccess: () => {
         queryClient.invalidateQueries(["rso-documents", rsoID]); // Refetch updated documents
     },
@@ -228,7 +240,9 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
         approveLoading,
         approveError,
         approveQueryError,
+        approveDocumentMutate,
         // reject props
+        rejectDocumentMutate,
         rejectData,
         rejectLoading,
         rejectError,

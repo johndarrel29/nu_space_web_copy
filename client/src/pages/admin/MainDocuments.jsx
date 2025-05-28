@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 
+
 export default function MainDocuments() {
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,9 +13,15 @@ export default function MainDocuments() {
   const user = JSON.parse(localStorage.getItem("user"));
   const { data } = useUser();
   const activityId = data?.activityId 
-  const { activities, loading, error, fetchActivity, fetchLocalActivities } = useActivities(activityId);
+  const { activities, loading, error, fetchActivity, fetchLocalActivities, adminActivity, adminError } = useActivities(activityId);
   const [selectedActivity, setSelectedActivity] = useState(null);
 
+  useEffect(() => {
+    console.log("Activities Data:", adminActivity);
+  }, [adminActivity, adminError]);
+
+  const activityList = adminActivity?.activities || [];
+  console.log("Activity List:", activityList);
 
 useEffect(() => {
   const loadActivities = async () => {
@@ -172,13 +179,13 @@ console.log("Filtered Activities:", filteredActivities);
       :
       !loading && !error ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filterSearch(activities).map((activity) => (
+          {filterSearch(activityList).map((activity) => (
             <ActivityCard
               key={activity._id}
               activity={activity}
               Activity_name={activity.Activity_name}
               Activity_description={activity.Activity_description}
-              Activity_image={activity.Activity_image}
+              Activity_image={activity.activityImageUrl}
               Activity_registration_total={activity.Activity_registration_total}
               onClick={handleActivityClick}
               Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}

@@ -26,7 +26,7 @@ function ActivityCard({
         <img 
           src={Activity_image || DefaultPicture}
           alt={Activity_name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-b-md"
         />
       </div>
 

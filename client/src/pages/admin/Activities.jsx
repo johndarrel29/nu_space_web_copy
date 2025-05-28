@@ -136,7 +136,7 @@ export default function Activities() {
             {/* Activity Image */}
             <div className='h-[13rem] w-full lg:w-[13rem] bg-[#312895]/10 rounded-lg overflow-hidden'>
               <img 
-                src={activity?.Activity_image || defaultPic} 
+                src={activity?.activityImageUrl || defaultPic} 
                 alt="Activity" 
                 className='w-full h-full object-cover'
               />

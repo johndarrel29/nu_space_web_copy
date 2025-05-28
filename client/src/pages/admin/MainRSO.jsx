@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 export default function MainRSO() {
-  const { organizations, error, loading, fetchData, createRSO, updateRSO, deleteRSO } = useRSO();
+  const { organizations, error, loading, fetchData, createRSO, updateRSO, deleteRSO, queryData } = useRSO();
   const { searchQuery, setSearchQuery } = useSearchQuery();
   const [orgList, setOrgList] = useState(organizations);
   const [activeTab, setActiveTab] = useState(0);
@@ -20,6 +20,10 @@ export default function MainRSO() {
   const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+  console.log("Query Data: ", queryData);
+}, [queryData]);
+
 
   const checkSpace = (str) => {
     if (str && str.length > 0) {
@@ -27,9 +31,13 @@ export default function MainRSO() {
     }
     return str; // Return the original string if it's empty or undefined  
   };
+
+  const rsoList = queryData?.rsos ?? [];
+  console.log("RSO List:", rsoList);
+
   
     // Assuming 'organizations' is an array of organization objects
-    const tableRow = organizations.map((org) => ({
+    const tableRow = rsoList.map((org) => ({
       id: org._id,
       RSO_name: checkSpace(org.RSO_name),
       RSO_acronym: org.RSO_acronym || '',
@@ -40,6 +48,7 @@ export default function MainRSO() {
       RSO_totalMembers: org.RSO_totalMembers || 0, // Added missing field
       RSO_status: org.RSO_status || false, // Added missing field
       RSO_picture: org.RSO_picture || '',
+      picture: org.picture || '', // Added missing field
       RSO_memberCount: org.RSO_members ? org.RSO_members.length : org.RSO_totalMembers || 0,
       RSO_members: org.RSO_members || [],
       RSO_successRate: org.RSO_successRate || 0,

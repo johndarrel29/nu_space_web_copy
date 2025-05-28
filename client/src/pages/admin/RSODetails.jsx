@@ -1,16 +1,17 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 import { ReusableTable, TabSelector, ActivityCard, Button, CloseButton, TextInput } from '../../components';
 import TagSelector from '../../components/TagSelector'
-import { useTagSelector, useModal } from '../../hooks';
+import { useTagSelector, useModal, useUserProfile } from '../../hooks';
 import { useNavigate, Link } from 'react-router-dom';
 import {useDocumentManagement} from '../../hooks';
 
 function RSODetails() {
   const location = useLocation()
   const { isOpen, openModal, closeModal } = useModal();
+  const [ localError, setLocalError ] = useState("");
   const { user } = location.state || {};
   const [activeTab, setActiveTab] = useState(0);
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -20,6 +21,8 @@ function RSODetails() {
   const [modalMode, setModalMode] = useState("officers");
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
+  const { user: userProfile } = useUserProfile();
+  const [successMessage, setSuccessMessage] = useState("");
   const rsoID = user?.id || "default-rso-id"; 
   const {
       rsoDocuments,
@@ -32,8 +35,12 @@ function RSODetails() {
       rejectData,
       rejectLoading,
       rejectError,
+
+      approveDocumentMutate,
+      rejectDocumentMutate,
   } = useDocumentManagement(rsoID);
 
+  console.log("userProfile: ", userProfile);
   console.log("rsoDocuments: ", rsoDocuments);
   console.log("rsoID ", rsoID);
 
@@ -46,9 +53,9 @@ console.log("rsoQueryError:", rsoQueryError);
       month: 'numeric',
       day: 'numeric',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+      // hour: '2-digit',
+      // minute: '2-digit',
+      // hour12: true
     });
   }
 
@@ -70,19 +77,62 @@ console.log("rsoQueryError:", rsoQueryError);
     navigate(`../../documents/main-activities`, { state: { activity }});
   };
 
+useEffect(() => {
+  if ( approveError || rejectError) {
+    const errorMessage = approveError?.message || rejectError?.message || "An error occurred while processing your request.";
+    setLocalError(errorMessage);
+
+    const timeOut = setTimeout(() => {
+      setLocalError("");
+    }, 5000);
+
+    return () => clearTimeout(timeOut);
+  }
+}, [approveError, rejectError]); 
+
+
+
  const handleDocumentAction = (action, documentId) => {
     if (action === "approve") {
+      setSuccessMessage("Document Approved Successfully!");
       // Call the approve function with the documentId
       console.log("Approving document with ID:", documentId);
+      console.log("User Profile ID: ", userProfile?._id);
 
       //add the id of the logged in user to the approveData function
-      approveData(documentId );
+      approveDocumentMutate({documentId: documentId, reviewedById: userProfile?._id} );
     } else if (action === "reject") {
+      setSuccessMessage("Document Rejected Successfully!");
       // Call the reject function with the documentId
-      console.log("Rejecting document with ID:", documentId);
+      console.log("Rejecting document with ID:", documentId, " and ", "userProfile?._id: ", userProfile?._id);
+      rejectDocumentMutate({documentId: documentId, reviewedById: userProfile?._id} );
       // Add your reject logic here
     } 
   }
+
+  useEffect(() => {
+  // if (approveData || rejectData) {
+  //   const successMessage1 = approveData?.success ? "Document approved successfully!" :
+  //     rejectData?.success ? "Document rejected successfully!" : "An error occurred while processing your request.";
+
+  //   setSuccessMessage(successMessage1);
+
+  //   const timeOut = setTimeout(() => {
+  //     setSuccessMessage("");
+  //     closeModal();
+  //   }, 5000);
+  //   return () => clearTimeout(timeOut);
+  // }
+
+  if (successMessage) {
+    const timeOut = setTimeout(() => {
+      setSuccessMessage("");
+      closeModal();
+    }, 3000);
+    return () => clearTimeout(timeOut);
+  }
+
+}, [successMessage, closeModal]);
 
   const tabs = [
     { label: "Requirements" },
@@ -97,7 +147,7 @@ console.log("rsoQueryError:", rsoQueryError);
       file: doc.file,
       url: doc.url,
       contentType: doc.contentType || "no content type",
-      status: doc.status || "pending",
+      status: doc.status || "Pending",
       submittedBy: doc.submittedBy || "Unknown",
       createdAt: handleDateTime(doc.createdAt) || "Unknown",
       updatedAt: handleDateTime(doc.updatedAt) || "Unknown",
@@ -126,13 +176,13 @@ console.log("rsoQueryError:", rsoQueryError);
 
       <div className='flex items-start justify-start'>
 
-        <img className='h-12 w-12 bg-[#312895] rounded-full object-cover' src={user.RSO_picture || DefaultPicture} alt="RSO Picture" />
+        <img className='h-12 w-12 bg-white rounded-full object-cover' src={user.picture || DefaultPicture} alt="RSO Picture" />
         <div className='flex flex-col justify-start ml-4'>
           <div className='flex items-center gap-2'>
             <h1 className='text-xl font-bold text-[#312895]'>{user.RSO_name || "RSO Name"}</h1>
 
-            <div className='px-4 py-1 bg-white text-[#312895] rounded-full text-sm border border-[#312895] hover:bg-[#312895] hover:text-white group cursor-pointer'>
-              <div className='flex items-center gap-2 cursor-pointer' onClick={handleEditClick}>
+            <div onClick={handleEditClick} className='px-4 py-1 bg-white text-[#312895] rounded-full text-sm border border-[#312895] hover:bg-[#312895] hover:text-white group cursor-pointer'>
+              <div className='flex items-center gap-2 cursor-pointer' >
                 <svg xmlns="http://www.w3.org/2000/svg" className='size-3 fill-[#312895] group-hover:fill-white' viewBox="0 0 512 512"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>
                 Edit
               </div>
@@ -314,10 +364,9 @@ console.log("rsoQueryError:", rsoQueryError);
             <ReusableTable
               options={["All", "A-Z"]}
               showAllOption={false}
-              columnNumber={5}
+              columnNumber={4}
               tableHeading={[
                 { name: "Document", key: "title" },
-                { name: "Type", key: "contentType" },
                 { name: "Status", key: "status" },
                 { name: "Submitted By", key: "submittedBy" },
                 { name: "Created At", key: "createdAt" },
@@ -512,7 +561,7 @@ console.log("rsoQueryError:", rsoQueryError);
                     console.error("No URL available for this document.");
                   }
                 }}
-                className='text-primary hover:underline cursor-pointer pl-4'>{selectedDocument?.title || "No document selected"}</h1>
+                className='text-primary hover:underline cursor-pointer pl-4 truncate'>{selectedDocument?.title || "No document selected"}</h1>
               </div>
               )
               :
@@ -520,6 +569,18 @@ console.log("rsoQueryError:", rsoQueryError);
                 <h1 className='text-red-500'>No document selected</h1>
               </div>
             }
+            {localError && (
+              <div className='w-full bg-red-50 rounded-md p-2 flex items-center justify-center'>
+                <h1 className='text-red-500'>{localError || "An error occurred while processing the document."}</h1>
+              </div>
+            )}
+
+            {successMessage && (
+                <p className={"text-green-500"}>
+                  {successMessage}
+                </p>
+            )}
+
               <div>
                 <label className='text-sm font-mid-gray' htmlFor="remarks">Remarks</label>
                 <textarea

@@ -100,11 +100,12 @@ const tableRow = documents.map((doc) => ({
         setMsg(null);
     }
 
-    const handleDocumentView = (document) => {
-        setSelectedDocument(document);
+    const handleDocumentView = (row) => {
+        setSelectedDocument(row);
         setShowModal(true);
         setModalType("view");
-        console.log("Selected document:", document);
+        console.log("Selected row:", row);
+        // console.log("ive been clickend")
     }
 
     const handleFileChange = (e) => {
@@ -123,15 +124,13 @@ const tableRow = documents.map((doc) => ({
 
     const handleSubmit = async () => {
         try {
-        if (!files ) {
+        if (!files || files.length === 0) {
             console.error("No file to upload or title provided.");
             handleNotification("Please select a file and provide a title.");
             setMsg("Please select a file and provide a title.");
         return;
-        } else {
+        } 
             console.log("Submitting document:", files, titles);
-
-
 
             // const formData = new FormData();
             // formData.append("file", files);
@@ -151,7 +150,7 @@ const tableRow = documents.map((doc) => ({
             await submitDocument(fd);
             setMsg("File uploaded successfully!");
             handleNotification("Document submitted successfully!");
-        }
+        
 
         } catch (error) {
             console.error("Error submitting document:", error);
@@ -176,7 +175,7 @@ const tableRow = documents.map((doc) => ({
             </div>
             <ReusableTable
             options={["All", "A-Z", "Most Popular"]}
-            onClick={handleDocumentView}
+            onClick={(row) => handleDocumentView(row)}
             value={""}
             showAllOption={false}
             tableRow={filteredDocuments()}
@@ -232,28 +231,28 @@ const tableRow = documents.map((doc) => ({
             
             <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
               <span className="text-[#312895]/70 font-medium">Upload Date:</span>
-              <span className="text-[#312895]">{new Date(selectedDocument.createdAt).toLocaleDateString()}</span>
+              <span className="text-[#312895]">{selectedDocument?.createdAt || "Document Date"}</span>
             </div>
             
             <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
               <span className="text-[#312895]/70 font-medium">Status:</span>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                selectedDocument.status === 'approved' ? 'bg-green-100 text-green-800' :
-                selectedDocument.status === 'pending' ? 'bg-[#FFCC33]/20 text-[#FFCC33]/90' :
+                selectedDocument?.status === 'approved' ? 'bg-green-100 text-green-800' :
+                selectedDocument?.status === 'pending' ? 'bg-[#FFCC33]/20 text-[#FFCC33]/90' :
                 'bg-red-100 text-red-800'
               }`}>
-                {selectedDocument.status}
+                {selectedDocument?.status || "pending"}
               </span>
             </div>
             
             <div className="flex items-center justify-between py-3">
               <span className="text-[#312895]/70 font-medium">URL:</span>
-              <span
-                onClick={() => window.open(selectedDocument.url, "_blank")} 
+              {/* <span
+                onClick={() => window.open(selectedDocument?.url, "_blank") || null} 
                 className="text-[#312895] hover:underline cursor-pointer max-w-xs truncate"
               >
-                {selectedDocument.url}
-              </span>
+                {selectedDocument?.url || "No Link provided"}
+              </span> */}
             </div>
           </div>
 

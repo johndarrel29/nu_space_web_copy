@@ -3,9 +3,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { tabSelector, Button, TextInput, ReusableDropdown, Backdrop, CloseButton } from '../../components'
 import  TagSelector  from '../../components/TagSelector';
-import { useTagSelector, useRSO } from '../../hooks';
+import { useTagSelector, useRSO, useTags } from '../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
+import DefaultPicture from '../../assets/images/default-profile.jpg';
 
 // file manipulation
 import Cropper from "react-easy-crop";
@@ -13,6 +14,7 @@ import Cropper from "react-easy-crop";
 import getCroppedImg from '../../utils/cropImage';
 
 function RSOAction() {
+  // const { tags } = useTags();
   const { createRSO, updateRSO, deleteRSO } = useRSO();
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,6 +23,9 @@ function RSOAction() {
   const [showModal, setShowModal] = useState(false);
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedModalTag, setSelectedModalTag] = useState(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [tagName, setTagName] = useState("");
+  const [originalTagName, setOriginalTagName] = useState("");
 
   //file manipulaion
   const [image, setImage] = useState(null);
@@ -30,6 +35,8 @@ function RSOAction() {
   const [readyCropper, setReadyCropper] = useState(false);
 
 console.log("Location state:", location.state);
+// console.log("tags from useTags:", tags);
+
 
 
   const isEdit = mode === 'edit';
@@ -37,6 +44,7 @@ console.log("Location state:", location.state);
 
   const {
     selectedTags,
+    tagsData,
     setSelectedTags,
     searchQuery,
     setSearchQuery,
@@ -44,7 +52,16 @@ console.log("Location state:", location.state);
     setIsFocused,
     searchedData,
     handleTagClick,
-    handleApiTagRemove
+    handleApiTagRemove,
+
+    deleteTagMutation,
+    isDeletingTag,
+    deleteTagError,
+
+    updateTagMutation,
+    isUpdatingTag,
+    updateTagError,
+
   } = useTagSelector();
 
   useEffect(() => {
@@ -53,19 +70,23 @@ console.log("Location state:", location.state);
   }
 }, [isEdit]);
 
+// console.log("Selected tags:", selectedTags);
+// console.log("tag inside tags data:", tagsData);
+// console.log("compare ", selectedTags, "with", tagsData?.tags);
 
   useEffect(() => {
   if (isEdit && data) {
     setFormData({
       RSO_name: data.RSO_name || "",
       RSO_acronym: data.RSO_acronym || "",
+      picture: data.picture || null,
       RSO_category: data.RSO_category || "",
       RSO_tags: data.RSO_tags || [],
       RSO_College: data.RSO_College || "",
       RSO_status: data.RSO_status ?? false,
       RSO_description: data.RSO_description || "",
       RSO_picture: data.RSO_picture || null,
-      RSO_picturePreview: data.RSO_picture || null,
+      RSO_picturePreview: data.picture || DefaultPicture,
       RSO_forms: data.RSO_forms || "",
     });
 
@@ -77,6 +98,7 @@ console.log("Location state:", location.state);
     }
   }
 }, [isEdit, data]);
+
 
 
 
@@ -94,7 +116,7 @@ console.log("Location state:", location.state);
           RSO_status: false,
           RSO_description: "",
           RSO_picture: null,
-          RSO_picturePreview: null,
+          RSO_picturePreview: DefaultPicture,
       });
   
       const onTagEdit = (tag) => {
@@ -107,18 +129,115 @@ console.log("Location state:", location.state);
           setFormData({ ...formData, [e.target.name]: e.target.value });
       };
   
+      //move the delete button up top
+      //map the tagsData here then compare that with selectedTags
+      //store the selected tags in a state variable
+      //make sure the output is id from the selectedTags
+
+
+
+      // const handleTagClick = (tag) => {
+      //     console.log("Tag clicked:", tag);
+      //     setSelectedTags((prevTags) =>
+      //         prevTags.includes(tag) ? prevTags.filter((t) => t !== tag) : [...prevTags, tag]
+      //     );
+      //     setSearchQuery("");
+      //     console.log("Selected tags after click:", selectedTags);
+      // };
+
+    const handleTagId = (tag) => {
+      const matchingTag = tagsData?.tags.find(tagObj => tagObj.tag.toLowerCase().trim() === tag.toLowerCase().trim());
+
+      if (matchingTag) {
+        console.log("Matching tag object found:", matchingTag);
+        return matchingTag;
+      } else {
+        console.log("No matching tag found for:", tag);
+        return null;
+      }
+
+        // console.log("Tag String clicked:", tag);
+        // console.log("tagsData: ",  tagsData?.tags.map(tagObj => tagObj.tag));
+        // if (matchingTag) {
+        //   console.log("the if statement is true");
+        //   console.log("Matching tag ID:", matchingTag._id);
+        //   deleteTagMutation(matchingTag._id, {
+        //     onSuccess: () => {
+        //       console.log("Tag deleted successfully:", matchingTag.tag);
+        //       setSelectedTags((prevTags) => prevTags.filter((t) => t !== tag));
+        //       setShowModal(false);
+        //       setSelectedModalTag(null);
+        //     },
+        //     onError: (error) => {
+        //       console.error("Error deleting tag:", error);
+        //     }
+        //   });
+          
+        // } else {
+        //   console.log("No matching tag found for:", tag);
+        // }
+
+        // console.log("Selected tags after ID click:", selectedTags);
+    }
+
+    const handleTagUpdate = () => {
+      const tagId = selectedModalTag?._id;
+      const newTag = selectedModalTag?.tag;
+
+      console.log("Updating tag with ID:", tagId, "to new name:", newTag);
+
+      
+        updateTagMutation({ tagId: tagId, tagName: newTag }, {
+          onSuccess: () => {
+            console.log("Tag updated successfully:", newTag);
+           setSelectedTags((prevTags) =>
+              prevTags.map((t) =>
+                t === originalTagName ? selectedModalTag?.tag : t
+              )
+            );
+            setShowModal(false);
+            setSelectedModalTag(null);
+          },
+          onError: (error) => {
+            console.error("Error updating tag:", error);
+          }
+        });
+
+    }
+
+          const handleTagDelete = (tag) => {
+          console.log("Deleting tag:", tag);
+
+        deleteTagMutation(tag, {
+            onSuccess: () => {
+              console.log("Tag deleted successfully:", tag);
+              setSelectedTags((prevTags) =>
+                prevTags.filter((t) => t !== selectedModalTag.tag)
+              );
+              setShowModal(false);
+              setSelectedModalTag(null);
+            },
+            onError: (error) => {
+              console.error("Error deleting tag:", error);
+            }
+          });
+          
+          // setShowModal(false);
+          // setSelectedModalTag(null);
+      };
+
       const handleTagModal = (tag) => {
-          setSelectedModalTag(tag);
-          setShowModal(true);
-          console.log("Opening modal for tag:", tag);
+        const tagObj = handleTagId(tag);
+          console.log("Tag object for modal:", tagObj);
+
+          if (tagObj) {            
+            setSelectedModalTag(tagObj);
+            setOriginalTagName(tagObj.tag);
+            setShowModal(true);
+          }
       }
   
-      const handleTagDelete = (tag) => {
-          console.log("Deleting tag:", tag);
-          setSelectedTags((prevTags) => prevTags.filter((t) => t !== tag));
-          setShowModal(false);
-          setSelectedModalTag(null);
-      };
+
   
       const handleSubmit = async (e) => {
         e.preventDefault();
@@ -166,6 +285,8 @@ console.log("Location state:", location.state);
           if (fileInputRef.current) {
               fileInputRef.current.value = '';
           }
+
+          setHasSubmitted(true);
       };
 
     const handleImageChange = (event) => {
@@ -269,7 +390,11 @@ console.log("Location state:", location.state);
 
             {/* only show if there's no image */}
             {!formData.RSO_picturePreview && (
-              <div className='rounded-full h-24 w-24 bg-gray-300' />
+                  <img
+                  src={isEdit && !hasSubmitted ? formData?.picture : DefaultPicture}
+                  alt="RSO Preview"
+                  className="rounded-full h-24 w-24 object-cover"
+                />
             )}
 
 
@@ -305,7 +430,7 @@ console.log("Location state:", location.state);
                 setFormData(prev => ({
                   ...prev,
                   RSO_picture: null,
-                  RSO_picturePreview: null,
+                  RSO_picturePreview: DefaultPicture,
                 }));
               }} 
               className='cursor-pointer px-2 py-1 bg-transparent rounded-full border border-gray-400 text-sm flex items-center justify-center'>
@@ -414,7 +539,7 @@ console.log("Location state:", location.state);
               setIsFocused={setIsFocused}
               searchedData={searchedData}
               handleTagClick={handleTagClick}
-              selectedTags={selectedTags}  
+              selectedTags={selectedTags}
               handleApiTagRemove={handleApiTagRemove}
               setShowModal={setShowModal}
               handleTagModal={(tag) => {
@@ -475,31 +600,43 @@ console.log("Location state:", location.state);
                   <label className='text-sm'>Tag Name</label>
                   <TextInput
                     type="text"
-                    value={selectedModalTag || selectedTag}
-                    onChange={(e) => setSelectedModalTag(e.target.value)}
-                    className='border border-gray-300 rounded-md p-2'
+                    placeholder='Enter tag name'
+                    value={selectedModalTag?.tag || "No tag detected"}
+                    onChange={(e) => {
+                          setSelectedModalTag((prev) => ({
+                          ...prev,
+                          tag: e.target.value,
+                        }));
+                    }}
                   />
                   <div className='flex justify-end mt-4'>
+
+                    {/* delete */}
                     <Button
                       onClick={() => {
-                        handleTagDelete(selectedModalTag || selectedTag);
-                        setShowModal(false);
+
+                        handleTagDelete(selectedModalTag?._id);
                       }}
-                      variant="danger"
+                      style={"secondary"}
                     >
                       Delete Tag
                     </Button>
+                    {/* edit */}
                     <Button
-                      onClick={() => {
-                        setSelectedTags((prev) => {
-                          const updatedTags = prev.map((tag) =>
-                            tag === selectedModalTag || tag === selectedTag ? selectedModalTag || selectedTag : tag
-                          );
-                          return updatedTags;
-                        });
-                        setShowModal(false);
-                      }}
-                      className='ml-2'
+                    //   onClick={() => {
+                    //     setSelectedTags((prev) => {
+                    //       const updatedTags = prev.map((tag) =>
+                    //         tag === selectedModalTag || tag === selectedTag ? selectedModalTag || selectedTag : tag
+                    //       );
+                    //       return updatedTags;
+                    //     });
+                    //     setShowModal(false);
+                    //   }}
+                    //   className='ml-2'
+                      onClick={
+                        handleTagUpdate
+                        // updateTagMutation({ tagId: selectedModalTag?._id, tagName: selectedModalTag?.tag })
+                      }
                     >
                       Save Changes
                     </Button>

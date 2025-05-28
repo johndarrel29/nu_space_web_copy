@@ -119,7 +119,13 @@ export default function Login () {
                     setPassword(e.target.value);
                     setError("");
                     setIsLoading(false);
-                    }}/>
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        handleLogin();
+                    }
+                }}
+    />
 
                 {/* Error Message */}
                 {error && (

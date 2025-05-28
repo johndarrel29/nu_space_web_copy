@@ -1,8 +1,10 @@
 import React from 'react'
 import { Button } from '../../components'
+import { useTagSelector } from '../../hooks';
 
 function SearchResultsList({showSearch = [], searchQuery, handleTagClick}) {
     console.log("Search Results: ", showSearch);
+    const { createTagMutation } = useTagSelector();
 
   return (
     <div className=' absolute top-full left-0 w-full bg-white shadow-lg rounded-md z-10 overflow-x-auto max-h-[400px] z-50 overflow-x-auto'>
@@ -31,7 +33,22 @@ function SearchResultsList({showSearch = [], searchQuery, handleTagClick}) {
                 <div className='flex items-center justify-center gap-2'>
                     <h2 className='font-bold'>Create:</h2>
                     <div 
-                        onClick={() => {handleTagClick(searchQuery)}}
+                        onClick={() => {
+                            // handleTagClick(searchQuery);
+                            createTagMutation(
+                                searchQuery, 
+                                {
+                                    onSuccess: (data) => {
+                                        
+                                        handleTagClick(data.tag.tag);
+                                        console.log("Tag created successfully:", data);
+                                    },
+                                    onError: (error) => {
+                                        console.error("Error creating tag:", error);
+                                    }
+                                }
+                            );
+                        } }
                         className='rounded-md bg-mid-gray p-1 hover:bg-gray-200 cursor-pointer'>
                             <div className='flex flex-row items-center justify-between gap-2 p-1'>
                                 <h1>{searchQuery}</h1>

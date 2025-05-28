@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 function useRSO() {
 const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
 
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -71,7 +71,11 @@ const [organizations, setOrganizations] = useState([]);
       const formData = new FormData();
 
       Object.entries(newOrg).forEach(([key, value]) => {
-        if (key === "RSO_picturePreview") return; // skip frontend-only fields
+        if (key === "RSO_picturePreview") return; 
+        if (key === "RSO_picture") {
+          formData.append("RSO_image", value);
+          return;
+        }
 
         if (key === "RSO_tags" && Array.isArray(value)) {
           value.forEach((tag) => formData.append("RSO_tags[]", tag));
@@ -79,6 +83,10 @@ const [organizations, setOrganizations] = useState([]);
           formData.append(key, value);
         }
       });
+      console.log("Final FormData created:");
+for (let pair of formData.entries()) {
+  console.log(`${pair[0]}:`, pair[1]);
+}
 
       body = formData;
     } else {
@@ -233,7 +241,34 @@ const updateRSO = async (id, updatedOrg) => {
     }
   };
 
-  return { organizations, error, loading, createRSO, updateRSO, deleteRSO, fetchData };
-};
+  const fetchWebRSO = async () => {
+    const token = localStorage.getItem("token");
+    console.log("Stored token:", token);
 
-export default useRSO
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    const response = await fetch(`${process.env.REACT_APP_FETCH_RSO_WEB_URL}`, {
+      method: "GET",
+      headers: {
+      "Content-Type": "application/json",
+      "Authorization": token ? `Bearer ${formattedToken}` : "",
+      },
+    });
+    return response.json();
+  }
+
+  const {
+    data
+  } = useQuery({
+    queryKey:["rsoData"],
+    queryFn: fetchWebRSO,
+
+  })
+
+  // console.log("React Query fetched data:", JSON.stringify(data, null, 2));
+
+  return { organizations, error, loading, createRSO, updateRSO, deleteRSO, fetchData,   queryData: data, 
+  };
+}
+
+export default useRSO;

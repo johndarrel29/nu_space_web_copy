@@ -22,6 +22,14 @@ function Badge({ style, text }) {
               // Warm Gray: Neutral, soft contrast for least priority.
               setHandleStyle("bg-gray-200 text-black-700");
               break;
+          case "error":
+              // Red: Urgent, attention-grabbing for errors or critical issues.
+              setHandleStyle("bg-red-100 text-red-800");
+              break;
+          case "success":
+              // Light Green: Positive, success, or completion.
+              setHandleStyle("bg-green-100 text-green-800");
+              break;
           default:
               // Fallback to a calm neutral tone.
               setHandleStyle("bg-slate-400/10 text-slate-700");

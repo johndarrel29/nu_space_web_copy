@@ -3,6 +3,7 @@ import { MainLayout, Table, Searchbar, Button } from "../../components";
 import   { useModal, useUser }  from "../../hooks";
 import { AnimatePresence } from "framer-motion";
 import { CreateUserModal, ReusableTable } from "../../components";
+import { useUserProfile } from "../../hooks";
 
 
   // function to handle the search and filter
@@ -60,7 +61,10 @@ import { CreateUserModal, ReusableTable } from "../../components";
   const { isOpen, openModal, closeModal } = useModal();
   const {data = [], loading, error, fetchData } = useUser(); // Fetch data from the custom hook
   const user = JSON.parse(localStorage.getItem("user"));
+  const { user: profileUser, isLoading, isError, error: useError } = useUserProfile();
 
+  const isUserStatusActive = profileUser?.assigned_rso?.RSO_status === false && profileUser?.role === "student/rso";
+  console.log("isUserStatusActive:", isUserStatusActive);
 
     // Memoize the data to prevent unnecessary re-renders
     const memoizedData = useMemo(() => data, [data]);
