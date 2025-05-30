@@ -14,12 +14,12 @@ function ActivityCard({
 }) {
   return (
     <div 
-      className="w-full bg-white rounded-md overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      className="max-w-[250px] bg-white rounded-md overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => onClick(activity)}
       title={Activity_name}
     >
       {/* Image with status badge */}
-      <div className="relative h-60 w-full">
+      <div className="relative w-full aspect-square">
         <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-semibold text-white ${statusColor}`}>
           {activity.Activity_status || 'Ongoing'}
         </div>

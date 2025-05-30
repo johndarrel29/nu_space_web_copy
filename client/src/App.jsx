@@ -10,10 +10,14 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { DocumentPage, RSOAccountPage, UserMgmtPage, ActivityDocuments, MainActivityPage, CreateActivity, Document, ActivityPage } from './pages/rso';
 import { Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, Requirements, Review, RSODetails, RSOManagement, UserManagement, RSOAction} from './pages/admin';
-
+import { initMaterialTailwind } from '@material-tailwind/html';
 
 function App() {
   const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+    initMaterialTailwind(); 
+  }, []);
 
   useEffect(() => {
     // Simulate loading time (same as GSAP animation delay in Preloader.js)

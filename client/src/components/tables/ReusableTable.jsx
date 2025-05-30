@@ -3,6 +3,7 @@ import { ReusableDropdown, Searchbar } from "../ui";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 import  Badge from "../ui/Badge" 
 import { CardSkeleton } from '../../components'; 
+import { useActivities } from "../../hooks";
 
 export default function ReusableTable({
     columnNumber, 
@@ -18,11 +19,14 @@ export default function ReusableTable({
     placeholder,
     error, 
     isLoading,
+    onDocumentClick,
+    activityId = null, // Default to null if not provided
 }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(10);
     const [showSearch, setShowSearch] = useState(false);
+    const { deleteActivityDoc } = useActivities();
 
     console.log("loading", isLoading);
     console.log("error", error);
@@ -40,6 +44,16 @@ export default function ReusableTable({
             return false;
         });
     });
+    
+    const handleDelete = (activityId, documentId) => {
+        if (activityId && documentId) {
+            console.log("passing id: ", activityId, " and doc id ", documentId);
+            deleteActivityDoc({ activityId, documentId });
+        } else {
+            console.error("Activity ID or Document ID is missing");
+        }
+
+    }
 
     const handleBadge = (badge) => {
         if (badge === "pending") {
@@ -197,9 +211,10 @@ export default function ReusableTable({
                                     {heading.key === "actions" && (
                                         <div
                                         onClick={(e) => {
-                                            e.stopPropagation(); 
-                                            onActionClick && onActionClick(row);
-                                        }} 
+                                            e.stopPropagation();
+                                            handleDelete(activityId, row.id);
+                                        }
+                                        } 
                                         className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
                                         </div>

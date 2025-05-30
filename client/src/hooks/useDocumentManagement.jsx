@@ -9,48 +9,76 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
     const queryClient = useQueryClient();
 
 
-    const fetchDocuments = useCallback(async () => {
+    // const fetchDocuments = async () => {
+    //     const token = localStorage.getItem("token");
+    //     console.log("Stored token:", token);
+
+    //     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    //     const headers = {
+    //         Authorization: token ? `Bearer ${formattedToken}` : "",
+    //     };
+
+    //     setLoading(true);
+    //     setError(null);
+
+    //     try {
+    //         console.log("Fetching documents from:", process.env.REACT_APP_FETCH_DOCUMENTS_URL);
+    //         const response = await fetch(`${process.env.REACT_APP_FETCH_DOCUMENTS_URL}`, {
+    //             method: "GET",
+    //             headers,
+    //         });
+
+
+    //         if (!response.ok) {
+    //             throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    //         }
+
+    //         const json = await response.json();
+    //         console.log("Fetched documents response:", json);
+           
+
+    //         if (json.success && Array.isArray(json.documents)) {
+    //             setDocuments(json.documents);
+    //             console.log("Updated documents state:", json.documents);
+    //             return json.documents; // Return the documents for further use
+    //         } else {
+    //             throw new Error("Invalid response structure");
+    //         }
+    //     } catch (err) {
+    //         console.error("Error fetching documents:", err);
+    //         throw err;
+    //     } 
+    // };
+
+    const fetchDocuments = async () => {
         const token = localStorage.getItem("token");
         console.log("Stored token:", token);
-
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-        const headers = {
-            Authorization: token ? `Bearer ${formattedToken}` : "",
-        };
 
-        setLoading(true);
-        setError(null);
+        console.log("calling url ", `${process.env.REACT_APP_FETCH_DOCUMENTS_URL}`);
+        const response = await fetch(`${process.env.REACT_APP_FETCH_DOCUMENTS_URL}`, {
+            method: "GET",
+            headers: {
+                Authorization: token ? `Bearer ${formattedToken}` : "",
+                'Content-Type': 'application/json'
+            },
+        })
+         
 
-        try {
-            console.log("Fetching documents from:", process.env.REACT_APP_FETCH_DOCUMENTS_URL);
-            const response = await fetch(`${process.env.REACT_APP_FETCH_DOCUMENTS_URL}`, {
-                method: "GET",
-                headers,
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+          if (!response.ok) {
+                throw new Error(`Fetch failed: ${response.status} - ${response.statusText}`);
             }
 
             const json = await response.json();
-            console.log("Fetched documents response:", json);
+            console.log("Fetched data:", json);
 
-            if (json.success && Array.isArray(json.documents)) {
-                setDocuments(json.documents);
-                console.log("Updated documents state:", json.documents);
-            } else {
-                throw new Error("Invalid response structure");
-            }
-        } catch (err) {
-            console.error("Error fetching documents:", err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+            return json.documents ?? []; // ← Return only the array of docs
 
-    const submitDocument = async (formData) => {
+    }
+
+    const submitDocument = async ({formData}) => {
         const token = localStorage.getItem("token");
         console.log("Stored token:", token);
 
@@ -63,7 +91,15 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
         setLoading(true);
         setError(null);
 
-        try {
+        // try {
+        console.log("FormData entries:");
+            for (const [key, value] of formData.entries()) {
+              if (value instanceof File) {
+                console.log(`${key}: File - name: ${value.name}, type: ${value.type}, size: ${value.size}`);
+              } else {
+                console.log(`${key}: ${value}`);
+              }
+            }
             console.log("Sending request to:", process.env.REACT_APP_SUBMIT_DOCUMENT_URL);
             const response = await fetch(`${process.env.REACT_APP_SUBMIT_DOCUMENT_URL}`, {
                 method: "POST",
@@ -80,20 +116,20 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
             const json = await response.json();
             console.log("Response from server:", json);
 
-            if (json.success) {
-                const newDocuments = Array.isArray(json.documents) ? json.documents : [];
-                setDocuments((prev) => [...prev, ...newDocuments]);
-                console.log("Document successfully submitted and state updated with:", newDocuments);
-            } else {
-                throw new Error(json.message || "Failed to submit document");
-            }
-        } catch (err) {
-            console.error("Error in submitDocument:", err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-            console.log("submitDocument execution completed.");
-        }
+        //     if (json.success) {
+        //         const newDocuments = Array.isArray(json.documents) ? json.documents : [];
+        //         setDocuments((prev) => [...prev, ...newDocuments]);
+        //         console.log("Document successfully submitted and state updated with:", newDocuments);
+        //     } else {
+        //         throw new Error(json.message || "Failed to submit document");
+        //     }
+        // } catch (err) {
+        //     console.error("Error in submitDocument:", err);
+        //     setError(err.message);
+        // } finally {
+        //     setLoading(false);
+        //     console.log("submitDocument execution completed.");
+        // }
     };
 
     const fetchRSODocuments = async (rsoID) => {
@@ -184,6 +220,50 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
         return res.json();
     }
 
+    //fetchDocuments
+//     const {
+//     data: generalDocuments,
+//     isLoading: generalDocumentsLoading,
+//     isError: generalDocumentsError,
+//     error: generalDocumentsQueryError,
+//     refetch: refetchGeneralDocuments,
+// } = useQuery({
+//     queryKey: ["documents"], 
+//     queryFn: fetchDocuments,
+// });
+
+const {
+    data: generalDocuments,
+    isLoading: generalDocumentsLoading,
+    isError: generalDocumentsError,
+    error: generalDocumentsQueryError,
+    refetch: refetchGeneralDocuments,
+} = useQuery({
+    queryKey: ["documents"],
+    queryFn: fetchDocuments,
+    onSuccess: (data) => {
+        setDocuments(data);
+        console.log("Documents fetched successfully:", data);
+    },
+    onError: (error) => {
+        console.error("Error fetching documents:", error);
+        setError(error.message);
+    },
+})
+
+    // mutation for submitting documents
+    const {
+        mutate: submitDocumentMutate,
+        isLoading: submitDocumentLoading,
+        isError: submitDocumentError,
+        error: submitDocumentQueryError,
+    } = useMutation({
+        mutationFn: (formData) => submitDocument(formData),
+        onSuccess: () => {
+            queryClient.invalidateQueries(["documents"]); 
+        },
+    });
+
     // Query to fetch RSO documents
     const {
         data: rsoDocuments,
@@ -249,6 +329,12 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
         rejectQueryError,
         approveRSODocument,
         rejectRSODocument,
+
+        submitDocumentMutate,
+
+        generalDocuments,
+        refetchGeneralDocuments,
+        generalDocumentsLoading,
     };
 }
 

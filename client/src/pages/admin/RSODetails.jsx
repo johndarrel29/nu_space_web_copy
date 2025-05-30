@@ -46,6 +46,7 @@ function RSODetails() {
 
   console.log("rsoDocumentsError:", rsoDocumentsError);
 console.log("rsoQueryError:", rsoQueryError);
+console.log("user role ", userProfile?.role);
 
   const handleDateTime = (dateTime) => {
     const date = new Date(dateTime);
@@ -216,6 +217,10 @@ useEffect(() => {
 
             <table className="w-full bg-white rounded-md p-4 border-separate border-spacing-0 border border-mid-gray">
               <tbody>
+                <tr>
+                  <td className="text-sm font-light text-gray-500 py-1">Acronym</td>
+                  <td className="text-sm font-medium text-[#312895] py-1">{user.RSO_acronym || "RSO Acroynm"}</td>
+                </tr>
                 <tr>
                   <td className="text-sm font-light text-gray-500 py-1">College</td>
                   <td className="text-sm font-medium text-[#312895] py-1">{user.RSO_College || "RSO College"}</td>
@@ -390,7 +395,7 @@ useEffect(() => {
                     activity={activity}
                     Activity_name={activity.Activity_name}
                     Activity_description={activity.Activity_description}
-                    Activity_image={activity.Activity_image}
+                    Activity_image={activity?.activityImageUrl }
                     Activity_registration_total={activity.Activity_registration_total}
                     onClick={handleActivityClick}
                     Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
@@ -425,7 +430,8 @@ useEffect(() => {
             </div>
 
             {/* rso details */}
-<div className='flex flex-col items-start justify-start mt-4 gap-2'>
+  {userProfile?.role === "student/rso" && (
+  <div className='flex flex-col items-start justify-start mt-4 gap-2'>
     <div className='w-full mb-4'>
     <label htmlFor="profilePicture">Profile Picture</label>
     <div className="flex items-center gap-4">
@@ -492,6 +498,12 @@ useEffect(() => {
           </div>
 
             </div>
+  )}
+  {(userProfile?.role === "admin" || userProfile?.role === "superadmin" ) && (
+    <div>
+      view rso details
+    </div>
+  )}
             <div className='flex items-center justify-end mt-4 gap-2'>
               {modalMode === "officers-create" && isOpen && (
                 <>

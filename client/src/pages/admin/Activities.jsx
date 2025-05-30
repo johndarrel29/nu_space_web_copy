@@ -1,6 +1,6 @@
 import defaultPic from '../../assets/images/default-picture.png';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ReusableTable, Backdrop, Button, TabSelector } from '../../components';
+import { ReusableTable, Backdrop, Button, TabSelector, CloseButton } from '../../components';
 import { useModal, useActivities, useDocumentManagement } from "../../hooks";
 import { useState } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,11 +21,23 @@ export default function Activities() {
   const [msg, setMsg] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const activityId = activity?._id || location.state?.activityId;
-  const { rsoActivity, errorQuery } = useActivities(activityId);
+  const [titles, setTitles] = useState("");
+  const { 
+          errorQuery,
+          activityDocument,
+          activityDocumentError,
+          isActivityDocumentLoading,
+          isActivityDocumentError,
+          createActivityDoc,
+        } = useActivities(activityId);
 
-  console.log("Activity ID:", activityId);
-  console.log("Activity Data:", rsoActivity);
-  console.log("Error Query:", errorQuery);
+  // console.log("Activity ID:", activityId);
+  // console.log("Activity Data:", rsoActivity);
+  // console.log("Error Query:", errorQuery);
+  // console.log("Activity Document:", activityDocument);
+  console.log("Activity Document Error:", activityDocumentError);
+  console.log("Activity Documents Name ", activityDocument?.documents)
+  console.log("activityId ", activityId);
 
   const tabs = [
     { label: "Documents"},
@@ -60,17 +72,76 @@ export default function Activities() {
     });
   }
 
-  const documents = [
-    { id: 1, name: "Activity Guidelines", type: "PDF", uploadedBy: "Admin" },
-    { id: 2, name: "Event Proposal", type: "Word Document", uploadedBy: "RSO Leader" },
-    { id: 3, name: "Budget Report", type: "Excel Sheet", uploadedBy: "Treasurer" },
-  ];
+    const handleFileChange = (e) => {
+    const fileArray = Array.from(e.target.files);
+    setFiles(fileArray); 
+  };
+
+  const removeFile = (index) => {
+    const updatedFiles = [...files];
+    updatedFiles.splice(index, 1);
+    setFiles(updatedFiles); 
+  };
+
+    const handleSubmit = async () => {
+    try {
+      if (!files || files.length === 0) {
+        console.error("No file to upload or title provided.");
+        setMsg("Please select a file and provide a title.");
+        return;
+      } 
+      
+      console.log("Submitting document:", files, "titles:", titles);
+
+      for (let i = 0; i < files.length; i++) {
+        const fd = new FormData();
+        fd.append('files', files[i]);
+        fd.append('title', files[i].title || `Untitled ${i + 1}`);
+        fd.append('description', files[i].description || "No description provided"); 
+
+        setMsg("Uploading file...");
+        console.log("Calling submitDocument with formData...");
+
+        console.log(`Submitting formData for file ${i + 1}:`);
+        for (const [key, value] of fd.entries()) {
+          console.log(`${key}: ${value instanceof File ? value.name : value}`);
+        }
+
+        await createActivityDoc({ activityId: activityId, formData: fd});
+        setMsg("File uploaded successfully!");
+      }
+    } catch (error) {
+      console.error("Error submitting document:", error);
+      setMsg("Error uploading file.");
+    }
+  };
+
+
+const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) => {
+  return {
+    id: doc._id,
+    title: doc.title,
+    purpose: doc.purpose,
+    createdAt: new Date(doc.createdAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }),
+    url: doc.url,
+    status: doc.status,
+  };
+})
+
 
   const tableHeading = [
-    { id: 1, name: "Document Name", key: "name" },
-    { id: 2, name: "Type", key: "type" },
-    { id: 3, name: "Uploaded By", key: "uploadedBy" },
+    { name: "Document Name", key: "title" },
+    { name: "Status", key: "status" },
+    { name: "Purpose", key: "purpose" },
+    { name: "Uploaded At", key: "createdAt" },
+    { name: "Action", key: "actions"}
   ];
+
+
 
   const handleDocumentClick = (document) => {
     setSelectedActivity(document);
@@ -252,7 +323,10 @@ export default function Activities() {
                   onClick={handleDocumentUpload}
                   className="px-4 bg-[#312895] hover:bg-[#312895]/90 text-white"
                 >
-                  Upload Document
+                  <div className='flex items-center gap-2'>
+                    <svg xmlns="http://www.w3.org/2000/svg" className='fill-white size-4' viewBox="0 0 512 512"><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
+                    Upload Document
+                  </div>
                 </Button>
               </div>
             )}
@@ -260,15 +334,16 @@ export default function Activities() {
             {activeTab === 0 && (          
               <div className="w-full mt-4">
                 <ReusableTable
-                  columnNumber={3}
+                  columnNumber={user.role === "student/rso" ? 5 : 4}
                   tableHeading={tableHeading}
-                  tableRow={documents}
+                  tableRow={filterActivityDocuments}
                   options={["All", "PDF", "Word Document", "Excel Sheet"]}
                   value={"All"}
                   onChange={(e) => console.log("Filter changed:", e.target.value)}
                   showAllOption={true}
                   onClick={handleDocumentClick}
                   headerColor="#312895"
+                  activityId={activityId}
                 />
               </div>
             )}
@@ -324,54 +399,134 @@ export default function Activities() {
           </>
         )}
 
-        {modalType === "upload" && (
-          <>
-            <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"/>
-            <motion.div 
-              className="fixed inset-0 z-50 w-screen overflow-auto"
+        {/* Upload Document Modal */}
+        { modalType === "upload" && (
+          <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <motion.div
+              className="bg-white rounded-lg shadow-lg w-[90%] max-w-[600px] border border-[#312895]/20"
               variants={DropIn}
               initial="hidden"
               animate="visible"
               exit="exit"
             >
-              <div className="fixed inset-0 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 w-1/3 shadow-xl border border-mid-gray">
-                  <h2 className="text-lg font-semibold text-[#312895] mb-4">Upload Documents</h2>
-                  <div className='space-y-4'>
-                    <div className='border border-dashed border-[#312895]/30 rounded-lg p-4'>
-                      <input 
-                        onChange={(e) => setFiles(e.target.files)} 
-                        type="file" 
-                        multiple
-                        className='w-full'
-                      />
-                    </div>
-                    {msg && (
-                      <p className={`text-sm ${
-                        msg.includes("failed") ? "text-red-500" : "text-[#312895]"
-                      }`}>
-                        {msg}
-                      </p>
-                    )}
-                    <div className='flex justify-end gap-3 mt-4'>
-                      <Button 
-                        onClick={handleCloseModal} 
-                        className="px-4 bg-white border border-[#312895] text-[#312895] hover:bg-[#312895]/10"
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        onClick={handleFileUpload}
-                        className="px-4 bg-[#312895] hover:bg-[#312895]/90 text-white"
-                      >
-                        Upload
-                      </Button>
-                    </div>
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-[#312895]">Upload Documents</h2>
+                  <CloseButton onClick={handleCloseModal} />
+                </div>
+                
+                <div className="file-upload-container">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    multiple
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#312895]/30 rounded-lg bg-[#312895]/5 hover:bg-[#312895]/10 cursor-pointer transition-colors"
+                  >
+                    <svg className="fill-[#312895] size-12 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                      <path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/>
+                    </svg>
+                    <span className="text-[#312895] font-medium">Click to browse files here</span>
+                    <span className="text-sm text-[#312895]/70 mt-1">Supports: PDF, DOCX, XLSX (Max 10MB)</span>
+                  </label>
+                </div>
+
+                {files && files.length > 0 && (
+                  <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+                    {files.map((file, index) => (
+                      <div key={index} className="flex items-start justify-between p-3 bg-[#312895]/5 rounded-lg gap-2">
+                        <div className="flex-col items-start w-full">
+                          <div className="group block w-full" aria-disabled="false" data-accordion-container data-accordion-mode="exclusive">
+                            <div
+                              className="flex items-start justify-between w-full text-left font-medium dark:text-white text-slate-800 cursor-pointer"
+                              data-accordion-toggle
+                              data-accordion-target={`#basicAccordion${index}`}
+                              aria-expanded="false"
+                            >   
+                              <div className="flex flex-col">
+                                <p className="text-[#312895] font-medium truncate max-w-[300px]">{file.name}</p>
+                                <p className="text-sm text-[#312895]/70">{(file.size / 1024).toFixed(2)} KB</p>                      
+                              </div>
+                              <div
+                                title='Add title and description' 
+                                className='flex gap-2 hover:underline hover:decoration-primary cursor-pointer'>
+                                <h1 className='text-sm text-[#312895]/70 hidden'>Add title and description</h1>
+                                <svg data-accordion-icon-close xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="#312895" className="size-5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                <svg data-accordion-icon-open xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="#312895" className="size-5">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div id={`basicAccordion${index}`} className="overflow-hidden transition-all duration-300 border-b border-slate-200 dark:border-slate-700 pl-1 pr-1">
+                              <input
+                                type="text"
+                                name="title"
+                                value={files[index].title || ""}
+                                onChange={(e) => {
+                                  const updated = [...files];
+                                  updated[index].title = e.target.value;
+                                  setFiles(updated);
+                                }}
+                                className="mt-2 w-full p-2 border border-[#312895]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#312895]/50"
+                                placeholder="File title"
+                              />
+                              <textarea
+                                rows="4"
+                                name="description"
+                                value={files[index].description || ""}
+                                onChange={(e) => {
+                                  const updated = [...files];
+                                  updated[index].description = e.target.value;
+                                  setFiles(updated);
+                                }}
+                                className="mt-2 w-full p-2 border border-[#312895]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#312895]/50"
+                                placeholder="File description"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeFile(index)}
+                          className=" text-[#312895] hover:text-red-500"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 384 512">
+                            <path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
                   </div>
+                )}
+
+                {msg && (
+                  <div className={`mt-4 p-3 rounded-lg text-sm ${
+                    msg.includes("failed") ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
+                  }`}>
+                    {msg}
+                  </div>
+                )}
+
+                <div className="mt-6 flex justify-end space-x-3">
+                  <Button style={"secondary"} onClick={handleCloseModal}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSubmit}
+                    className="px-6 py-2 bg-[#312895] hover:bg-[#312895]/90 text-white"
+                    disabled={!files || files.length === 0}
+                  >
+                    Upload
+                  </Button>
                 </div>
               </div>
-            </motion.div>      
-          </>
+            </motion.div>
+          </Backdrop>
         )}
       </AnimatePresence>
     </>

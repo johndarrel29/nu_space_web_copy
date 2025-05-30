@@ -13,28 +13,48 @@ export default function MainDocuments() {
   const user = JSON.parse(localStorage.getItem("user"));
   const { data } = useUser();
   const activityId = data?.activityId 
-  const { activities, loading, error, fetchActivity, fetchLocalActivities, adminActivity, adminError } = useActivities(activityId);
+  const { 
+    activities, 
+    loading, 
+    error, 
+    fetchActivity, 
+    fetchLocalActivities, 
+    adminActivity, 
+    adminError,
+    fetchNextPage, 
+    hasNextPage,
+    isFetchingNextPage,
+    adminPaginatedActivities
+  } = useActivities(activityId);
   const [selectedActivity, setSelectedActivity] = useState(null);
+
+  const allActivities = adminPaginatedActivities?.pages?.flatMap(page => page.activities || []) || [];
+  console.log("Admin Paginated Activities Images:", adminPaginatedActivities?.pages?.flatMap(page => page.activities.map(activity => activity.activityImageUrl)));
+
+  console.log("All Activities:", allActivities);
 
   useEffect(() => {
     console.log("Activities Data:", adminActivity);
   }, [adminActivity, adminError]);
 
+  console.log("hasNextPage:", hasNextPage);
+  console.log("isFetchingNextPage:", isFetchingNextPage);
+
   const activityList = adminActivity?.activities || [];
   console.log("Activity List:", activityList);
 
-useEffect(() => {
-  const loadActivities = async () => {
-    try {
-      const result = await fetchActivity();
-      console.log("Fetched Activities:", result);
-    } catch (err) {
-      console.error("Error fetching activities:", err);
-    }
-  };
+  useEffect(() => {
+    const loadActivities = async () => {
+      try {
+        const result = await fetchActivity();
+        console.log("Fetched Activities:", result);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+      }
+    };
 
-  loadActivities();
-}, [fetchActivity]);
+    loadActivities();
+  }, [fetchActivity]);
 
 
 
@@ -178,24 +198,56 @@ console.log("Filtered Activities:", filteredActivities);
       )
       :
       !loading && !error ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filterSearch(activityList).map((activity) => (
-            <ActivityCard
-              key={activity._id}
-              activity={activity}
-              Activity_name={activity.Activity_name}
-              Activity_description={activity.Activity_description}
-              Activity_image={activity.activityImageUrl}
-              Activity_registration_total={activity.Activity_registration_total}
-              onClick={handleActivityClick}
-              Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
-              Activity_place={activity.Activity_place}
-              statusColor={activity.Activity_status === 'done' ? 'bg-green-500' : 
-                          activity.Activity_status === 'pending' ? 'bg-[#FFCC33]' : 
-                          'bg-red-500'}
-            />
-          ))}
+        <>
+        <div className="flex items-center justify-center mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 ">
+            {filterSearch(allActivities).map((activity) => (
+              <ActivityCard
+                key={activity._id}
+                activity={activity}
+                Activity_name={activity.Activity_name}
+                Activity_description={activity.Activity_description}
+                Activity_image={activity.activityImageUrl}
+                Activity_registration_total={activity.Activity_registration_total}
+                onClick={handleActivityClick}
+                Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
+                Activity_place={activity.Activity_place}
+                statusColor={activity.Activity_status === 'done' ? 'bg-green-500' : 
+                            activity.Activity_status === 'pending' ? 'bg-[#FFCC33]' : 
+                            'bg-red-500'}
+              />
+            ))}
+          </div>
         </div>
+          <div className="flex justify-center mt-6">
+            {hasNextPage && (
+              <Button 
+              style={"secondary"}
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? 'Loading more...' : 'Load More'}
+              </Button>
+            )}
+          </div>
+
+          {/* <div className="flex justify-center mt-6">
+            <nav>
+              <ul className="flex justify-center space-x-2">
+
+                  <li className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded`}>
+                  <button className='page-link' >Prev</button>
+                  </li>
+                  <div className="px-4 py-2 font-semibold">
+                      {"0 of 0"}
+                  </div>
+                  <li className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded`}>
+                      <button className='page-link' >Next</button>
+                  </li>
+              </ul>
+            </nav>  
+          </div> */}
+        </>
       )
       :
        (
