@@ -53,7 +53,7 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
 
     const fetchDocuments = async () => {
         const token = localStorage.getItem("token");
-        console.log("Stored token:", token);
+        // console.log("Stored token:", token);
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
 
@@ -116,20 +116,6 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
             const json = await response.json();
             console.log("Response from server:", json);
 
-        //     if (json.success) {
-        //         const newDocuments = Array.isArray(json.documents) ? json.documents : [];
-        //         setDocuments((prev) => [...prev, ...newDocuments]);
-        //         console.log("Document successfully submitted and state updated with:", newDocuments);
-        //     } else {
-        //         throw new Error(json.message || "Failed to submit document");
-        //     }
-        // } catch (err) {
-        //     console.error("Error in submitDocument:", err);
-        //     setError(err.message);
-        // } finally {
-        //     setLoading(false);
-        //     console.log("submitDocument execution completed.");
-        // }
     };
 
     const fetchRSODocuments = async (rsoID) => {
@@ -255,10 +241,11 @@ const {
     const {
         mutate: submitDocumentMutate,
         isLoading: submitDocumentLoading,
+        isSuccess: submitDocumentSuccess,
         isError: submitDocumentError,
         error: submitDocumentQueryError,
     } = useMutation({
-        mutationFn: (formData) => submitDocument(formData),
+        mutationFn: ({formData}) => submitDocument({formData}),
         onSuccess: () => {
             queryClient.invalidateQueries(["documents"]); 
         },
@@ -331,6 +318,9 @@ const {
         rejectRSODocument,
 
         submitDocumentMutate,
+        submitDocumentLoading,
+        submitDocumentSuccess,
+        submitDocumentError,
 
         generalDocuments,
         refetchGeneralDocuments,

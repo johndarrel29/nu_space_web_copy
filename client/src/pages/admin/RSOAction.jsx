@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { tabSelector, Button, TextInput, ReusableDropdown, Backdrop, CloseButton } from '../../components'
 import  TagSelector  from '../../components/TagSelector';
-import { useTagSelector, useRSO, useTags } from '../../hooks';
+import { useTagSelector, useRSO } from '../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
 import DefaultPicture from '../../assets/images/default-profile.jpg';
@@ -15,7 +15,7 @@ import getCroppedImg from '../../utils/cropImage';
 
 function RSOAction() {
   // const { tags } = useTags();
-  const { createRSO, updateRSO, deleteRSO } = useRSO();
+  const { createRSO, updateRSO, deleteRSO, loading, error, success } = useRSO();
   const location = useLocation();
   const navigate = useNavigate();
   const { mode, data, from } = location.state || {};
@@ -99,6 +99,12 @@ console.log("Location state:", location.state);
   }
 }, [isEdit, data]);
 
+  useEffect(() => {
+    if (success) {
+      navigate('..', { relative: 'path' });
+    }
+  }, [success, navigate]);
+
 
 
 
@@ -129,22 +135,6 @@ console.log("Location state:", location.state);
           setFormData({ ...formData, [e.target.name]: e.target.value });
       };
   
-      //move the delete button up top
-      //map the tagsData here then compare that with selectedTags
-      //store the selected tags in a state variable
-      //make sure the output is id from the selectedTags
-
-
-
-      // const handleTagClick = (tag) => {
-      //     console.log("Tag clicked:", tag);
-      //     setSelectedTags((prevTags) =>
-      //         prevTags.includes(tag) ? prevTags.filter((t) => t !== tag) : [...prevTags, tag]
-      //     );
-      //     setSearchQuery("");
-      //     console.log("Selected tags after click:", selectedTags);
-      // };
-
     const handleTagId = (tag) => {
       const matchingTag = tagsData?.tags.find(tagObj => tagObj.tag.toLowerCase().trim() === tag.toLowerCase().trim());
 
@@ -156,28 +146,6 @@ console.log("Location state:", location.state);
         return null;
       }
 
-        // console.log("Tag String clicked:", tag);
-        // console.log("tagsData: ",  tagsData?.tags.map(tagObj => tagObj.tag));
-        // if (matchingTag) {
-        //   console.log("the if statement is true");
-        //   console.log("Matching tag ID:", matchingTag._id);
-        //   deleteTagMutation(matchingTag._id, {
-        //     onSuccess: () => {
-        //       console.log("Tag deleted successfully:", matchingTag.tag);
-        //       setSelectedTags((prevTags) => prevTags.filter((t) => t !== tag));
-        //       setShowModal(false);
-        //       setSelectedModalTag(null);
-        //     },
-        //     onError: (error) => {
-        //       console.error("Error deleting tag:", error);
-        //     }
-        //   });
-          
-        // } else {
-        //   console.log("No matching tag found for:", tag);
-        // }
-
-        // console.log("Selected tags after ID click:", selectedTags);
     }
 
     const handleTagUpdate = () => {
@@ -559,6 +527,22 @@ console.log("Location state:", location.state);
           Delete
         </Button>
         <div className='flex gap-2'>
+          { success ? (
+            <div className='text-green-600 text-sm font-semibold'>
+              {isEdit ? 'RSO updated successfully!' : isCreate ? 'RSO created successfully!' : 'Action completed successfully!'}
+            </div>
+          ) : 
+            error ? (
+              <div className='text-red-600 text-sm font-semibold'>
+                {error}
+              </div>
+          ) : 
+            loading && (
+              <div className='text-gray-600 text-sm font-semibold'>
+                {isEdit ? 'Updating RSO...' : isCreate ? 'Creating RSO...' : 'Processing...'}
+              </div>
+          )
+          }
           <Button
             style="secondary"
             size="small"

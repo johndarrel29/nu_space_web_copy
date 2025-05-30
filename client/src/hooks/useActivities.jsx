@@ -6,6 +6,7 @@ function useActivities(activityId) {
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [ success, setSuccess ] = useState(false);
     const queryClient = useQueryClient();
 
     const createActivity = useCallback(async (activity) => {
@@ -56,6 +57,7 @@ function useActivities(activityId) {
 
         const json = await response.json();
         console.log("Activity created:", json);
+        setSuccess(true);
         return json.activity || null;
 
     } catch (err) {
@@ -99,6 +101,7 @@ function useActivities(activityId) {
             }
 
             const json = await response.json();
+            setSuccess(true);
             console.log("Activity updated:", json);
 
             setActivities((prevActivities) =>
@@ -386,6 +389,7 @@ useEffect(() => {
         fetchActivity, 
         loading, 
         error, 
+        success,
         createActivity, 
         updateActivity, 
         deleteActivity, 

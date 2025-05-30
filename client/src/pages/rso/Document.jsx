@@ -10,7 +10,22 @@ import { useNavigate } from "react-router-dom";
 
 function Document() {
   // State and hooks initialization
-  const { documents, fetchDocuments, submitDocument, loading, error, submitDocumentMutate, generalDocuments, generalDocumentsLoading, refetchGeneralDocuments } = useDocumentManagement();
+  const { 
+    documents, 
+    fetchDocuments, 
+    submitDocument, 
+    loading, 
+    error, 
+
+    submitDocumentMutate,
+    submitDocumentLoading,
+    submitDocumentSuccess,
+    submitDocumentError, 
+
+    generalDocuments, 
+    generalDocumentsLoading, 
+    refetchGeneralDocuments
+   } = useDocumentManagement();
   const [files, setFiles] = useState(null);
   const [titles, setTitles] = useState("");
   const { handleNotification } = useNotification();
@@ -42,7 +57,7 @@ function Document() {
 
 
 
-console.log("generalDocuments", Array.isArray(generalDocuments) ? generalDocuments.map(doc => doc.title) : []);
+// console.log("generalDocuments", Array.isArray(generalDocuments) ? generalDocuments.map(doc => doc.title) : []);
 
 
   // Prepare table data from documents
@@ -141,39 +156,68 @@ console.log("generalDocuments", Array.isArray(generalDocuments) ? generalDocumen
   const handleSubmit = async () => {
     try {
       if (!files || files.length === 0) {
-        console.error("No file to upload or title provided.");
-        handleNotification("Please select a file and provide a title.");
-        setMsg("Please select a file and provide a title.");
+        // console.error("No file to upload or title provided.");
+        // handleNotification("Please select a file and provide a title.");
+        // setMsg("Please select a file and provide a title.");
+        console.log("No files to upload or titles provided.");
         return;
       } 
       
       console.log("Submitting document:", files, "titles:", titles);
 
-      for (let i = 0; i < files.length; i++) {
         const fd = new FormData();
-        fd.append('files', files[i]);
-        fd.append('title', files[i].title || `Untitled ${i + 1}`);
-        fd.append('description', files[i].description || "No description provided"); 
-        fd.append('purpose', files[i].purpose || "No purpose provided");
+        
 
-        setMsg("Uploading file...");
-        console.log("Calling submitDocument with formData...");
+        files.forEach((file, i) => {
+          console.log("files[i] content:", files[i]);
+          fd.append('files', files[i]); 
 
-        console.log(`Submitting formData for file ${i + 1}:`);
+          // Optional: if you're sending metadata per file
+          fd.append(`title_${i}`, files.title || `Untitled ${i + 1}`);
+          fd.append(`description_${i}`, files.description || "No description provided");
+          fd.append(`purpose_${i}`, files.purpose || "No purpose provided");
+        });
+
+        console.log("Submitting full FormData:");
         for (const [key, value] of fd.entries()) {
+          console.log("fd is an instance of FormData:", fd instanceof FormData);
+
           console.log(`${key}: ${value instanceof File ? value.name : value}`);
         }
 
-        await submitDocumentMutate({ formData: fd});
-        setMsg("File uploaded successfully!");
+        submitDocumentMutate(
+          { formData: fd}, {
+          onSuccess: (data) => {
+            console.log("Document submitted successfully:", data);
+            // setMsg("File uploaded successfully!");
+            handleNotification("Document submitted successfully!");
+            refetchGeneralDocuments(); // Refresh the document list
+          },
+          onError: (error) => {
+            console.error("Error submitting document:", error);
+            // setMsg("Error uploading file.");
+            handleNotification("Error submitting document. Please try again.");
+          }
+        });
+        // setMsg("File uploaded successfully!");
         handleNotification("Document submitted successfully!");
-      }
     } catch (error) {
       console.error("Error submitting document:", error);
-      setMsg("Error uploading file.");
-      handleNotification("Error submitting document. Please try again.");
+      // setMsg("Error uploading file.");
+      // handleNotification("Error submitting document. Please try again.");
     }
   };
+
+  //listens to success. it will close the modal and clear the file on the state
+  useEffect (() => {
+    if (submitDocumentSuccess) {
+      setFiles(null);
+      setTitles("");
+      setShowModal(false);
+      setMsg("Document submitted successfully!");
+      refetchGeneralDocuments(); // Refresh the document list
+    }
+  })
 
   return (
     <MainLayout>
@@ -389,13 +433,24 @@ console.log("generalDocuments", Array.isArray(generalDocuments) ? generalDocumen
                   </div>
                 )}
 
-                {msg && (
-                  <div className={`mt-4 p-3 rounded-lg text-sm ${
-                    msg.includes("failed") ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
-                  }`}>
-                    {msg}
+                {submitDocumentSuccess ? (
+                  <div 
+                  className={`mt-4 p-3 rounded-lg text-sm bg-green-100 text-green-800 `}>
+                    Document submitted successfully!
                   </div>
-                )}
+                )
+                :
+                submitDocumentError ? (
+                  <div 
+                  className={`mt-4 p-3 rounded-lg text-sm bg-red-100 text-red-800 `}>
+                    There was a problem processing upload
+                  </div>
+                ) : (
+                  <div className="mt-4 text-sm text-[#312895]/70">
+                    {submitDocumentLoading ? "Uploading..." : "Add files to upload"}
+                  </div>
+                )
+              }
 
                 <div className="mt-6 flex justify-end space-x-3">
                   <Button style={"secondary"} onClick={handleCloseModal}>

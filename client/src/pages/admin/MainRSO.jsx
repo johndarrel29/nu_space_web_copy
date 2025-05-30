@@ -46,6 +46,7 @@ export default function MainRSO() {
       RSO_category: org.RSO_category || '',
       RSO_College: org.RSO_College || '',
       RSO_totalMembers: org.RSO_totalMembers || 0, // Added missing field
+      RSO_membershipStatus: org.RSO_membershipStatus || '', // Added missing field
       RSO_status: org.RSO_status || false, // Added missing field
       RSO_picture: org.RSO_picture || '',
       picture: org.picture || '', // Added missing field
@@ -55,6 +56,7 @@ export default function MainRSO() {
       RSO_popularityScoreCount: org.RSO_popularityScore > 0 ? org.RSO_popularityScore : 0,
       RSO_activities: org.RSO_activities || [],
       RSO_forms: org.RSO_forms || '',
+      RSO_Officers: org.RSO_Officers || [], // Added missing field
       __v: org.__v || 0 // Added missing version field
     }));
 

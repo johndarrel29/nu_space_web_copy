@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { TextInput, Button, Backdrop, CloseButton } from '../../components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useActivities } from '../../hooks';
@@ -22,7 +22,7 @@ function DocumentAction() {
   const location = useLocation();
   const navigate = useNavigate();
   const { mode, data, from } = location.state || {};
-  const { createActivity, updateActivity, deleteActivity } = useActivities();
+  const { createActivity, updateActivity, deleteActivity, error, success, loading } = useActivities();
   const fileInputRef = useRef(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
@@ -71,6 +71,13 @@ function DocumentAction() {
       [field]: value
     }));
   };
+
+    useEffect(() => {
+      if (success) {
+        navigate('..', { relative: 'path' });
+      }
+    }, [success, navigate]);
+  
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -344,6 +351,19 @@ console.log("Deleting activity with ID:", data?._id);
     </div>
 
       <div className="mt-10 flex justify-end space-x-4">
+        { success ? (
+          <div className="text-green-600 font-semibold">
+            {isEdit ? "Activity updated successfully!" : "Activity created successfully!"}
+          </div>
+        ) : error ? (
+          <div className="text-red-600 font-semibold">
+            {error}
+          </div>
+        ) : loading && (
+          <div className="text-blue-600 font-semibold">
+            {isEdit ? "Updating activity..." : "Creating activity..."}
+          </div>
+        )}
         {isEdit && (
           <Button style="secondary" onClick={handleDelete}>
             Delete Activity

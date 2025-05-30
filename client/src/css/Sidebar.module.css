@@ -88,6 +88,10 @@ fill: var(--primary);
     .container {
         width: 80px;
     }
+
+    .RSOcontainer {
+        width: 80px;
+    }
     .sidebarContainer {
         width: 100%;
         margin-left: 0;

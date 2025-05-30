@@ -6,7 +6,8 @@ import { ReusableTable, TabSelector, ActivityCard, Button, CloseButton, TextInpu
 import TagSelector from '../../components/TagSelector'
 import { useTagSelector, useModal, useUserProfile } from '../../hooks';
 import { useNavigate, Link } from 'react-router-dom';
-import {useDocumentManagement} from '../../hooks';
+import {useDocumentManagement, useRSO} from '../../hooks';
+import Switch from '@mui/material/Switch';
 
 function RSODetails() {
   const location = useLocation()
@@ -24,6 +25,21 @@ function RSODetails() {
   const { user: userProfile } = useUserProfile();
   const [successMessage, setSuccessMessage] = useState("");
   const rsoID = user?.id || "default-rso-id"; 
+  const [checked, setChecked] = React.useState(null);
+  const { updateRSOStatusMutate } = useRSO();
+
+  console.log("user status: ", user.RSO_membershipStatus);
+  
+  useEffect (() => {
+    if (user?.RSO_membershipStatus === true) {
+      setChecked(true);
+    } else {
+      setChecked(false);
+    }
+  }, [user?.RSO_membershipStatus]);
+  
+
+ 
   const {
       rsoDocuments,
       rsoDocumentsLoading,
@@ -40,13 +56,24 @@ function RSODetails() {
       rejectDocumentMutate,
   } = useDocumentManagement(rsoID);
 
-  console.log("userProfile: ", userProfile);
-  console.log("rsoDocuments: ", rsoDocuments);
-  console.log("rsoID ", rsoID);
 
-  console.log("rsoDocumentsError:", rsoDocumentsError);
-console.log("rsoQueryError:", rsoQueryError);
-console.log("user role ", userProfile?.role);
+   const handleChange = (newChecked) => {
+      const status = newChecked.target.checked;
+      setChecked(status);
+
+      console.log("Checked status: ", status);
+      console.log("RSO ID: ", rsoID);
+      updateRSOStatusMutate({ id: rsoID, status  });
+   }
+
+
+//   console.log("userProfile: ", userProfile);
+//   console.log("rsoDocuments: ", rsoDocuments);
+//   console.log("rsoID ", rsoID);
+
+//   console.log("rsoDocumentsError:", rsoDocumentsError);
+// console.log("rsoQueryError:", rsoQueryError);
+// console.log("user role ", userProfile?.role);
 
   const handleDateTime = (dateTime) => {
     const date = new Date(dateTime);
@@ -59,6 +86,8 @@ console.log("user role ", userProfile?.role);
       // hour12: true
     });
   }
+
+  
 
   console.log("user: ", user);
 
@@ -175,36 +204,55 @@ useEffect(() => {
       </div>
 
 
-      <div className='flex items-start justify-start'>
+      <div className='flex items-start justify-between'>
+        <div className='flex'>
+          <img className='h-12 w-12 bg-white rounded-full object-cover' src={user.picture || DefaultPicture} alt="RSO Picture" />
+          <div className='flex flex-col justify-start ml-4'>
+            <div className='flex items-center gap-2'>
+              <h1 className='text-xl font-bold text-[#312895]'>{user.RSO_name || "RSO Name"}</h1>
 
-        <img className='h-12 w-12 bg-white rounded-full object-cover' src={user.picture || DefaultPicture} alt="RSO Picture" />
-        <div className='flex flex-col justify-start ml-4'>
-          <div className='flex items-center gap-2'>
-            <h1 className='text-xl font-bold text-[#312895]'>{user.RSO_name || "RSO Name"}</h1>
-
-            <div onClick={handleEditClick} className='px-4 py-1 bg-white text-[#312895] rounded-full text-sm border border-[#312895] hover:bg-[#312895] hover:text-white group cursor-pointer'>
-              <div className='flex items-center gap-2 cursor-pointer' >
-                <svg xmlns="http://www.w3.org/2000/svg" className='size-3 fill-[#312895] group-hover:fill-white' viewBox="0 0 512 512"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>
-                Edit
+              <div onClick={handleEditClick} className='px-4 py-1 bg-white text-[#312895] rounded-full text-sm border border-[#312895] hover:bg-[#312895] hover:text-white group cursor-pointer'>
+                <div className='flex items-center gap-2 cursor-pointer' >
+                  <svg xmlns="http://www.w3.org/2000/svg" className='size-3 fill-[#312895] group-hover:fill-white' viewBox="0 0 512 512"><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>
+                  Edit
+                </div>
               </div>
             </div>
-          </div>
 
-          <h2 className='text-sm font-light text-gray-600'>{user.RSO_category || "RSO Category"}</h2>
-          <div className='mt-4'>
-            <TagSelector
-              style={"view"}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              setIsFocused={setIsFocused}
-              searchedData={searchedData}
-              handleTagClick={handleTagClick}
-              selectedTags={selectedTags}
-              apiTags={user.RSO_tags}
+            <h2 className='text-sm font-light text-gray-600'>{user.RSO_category || "RSO Category"}</h2>
+            <div className='mt-4'>
+              <TagSelector
+                style={"view"}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                setIsFocused={setIsFocused}
+                searchedData={searchedData}
+                handleTagClick={handleTagClick}
+                selectedTags={selectedTags}
+                apiTags={user.RSO_tags}
+              />
+            </div>
+          </div>
+        
+        </div>
+        {/* switch component status */}
+          <div >
+            <div className='flex flex-col items-center justify-between'>
+              <h1 className='text-sm text-gray-600'>Status</h1>
+              <Switch checked={checked} onChange={handleChange} />
+            </div>
+            {/* <input
+              checked
+              id="switch-component"
+              type="checkbox"
+              className="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-slate-800 cursor-pointer transition-colors duration-300"
             />
+            <label
+              htmlFor="switch-component"
+              className="absolute top-0 left-0 w-5 h-5 bg-white rounded-full border border-slate-300 shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
+            ></label> */}
           </div>
         </div>
-      </div>
 
       <div className='pl-12 pr-12 mt-6'>
         {/* profile details */}
@@ -327,36 +375,41 @@ useEffect(() => {
               <h1 className='text-sm font-medium text-[#312895] group-hover:text-white'>Add Officer</h1>
             </div>
           </div> */}
-
+          { console.log("rso officers ", user.RSO_Officers)}
           {/* officer cards */}
-          {[
-            { name: "Officer 1", position: "President" },
-            { name: "Officer 2", position: "Vice-President" },
-            { name: "Officer 3", position: "Secretary" }
-          ].map((officer, index) => (
+          {user?.RSO_Officers?.map((officer, index) => (
             <div 
             key={index}
             onClick={() => {
 
-              console.log("clicked: ", officer);
+
               setModalMode("officers-edit");
-              openModal();
-              setSelected(
-                prevSelected => {
-                    console.log("Previous selected:", prevSelected);
-                    console.log("New selected will be:", officer);
-                    return officer;
-                }
-              )
+              setSelected(officer);
+              setTimeout(() => {
+                openModal();
+              }, 0);
+              console.log("Selected officer: ", officer);
+              // setSelected(
+              //   officer.RSO_Officers || officer.RSO_Officers[index] || officer.RSO_Officers[0]
+              //   // prevSelected => {
+              //   //     console.log("Previous selected:", prevSelected);
+              //   //     console.log("New selected will be:", officer);
+              //   //     return officer;
+              //   // }
+              // )
             }}
 
             className='flex items-center justify-center gap-3 bg-white p-3 rounded-md border border-mid-gray cursor-pointer hover:bg-gray-200'>
               <div className='h-10 w-10 bg-[#312895] rounded-full flex items-center justify-center text-white font-medium'>
-                {officer.name.split(' ').map(n => n[0]).join('')}
+                {/* {officer.name.split(' ').map(n => n[0]).join('')} */}
+                <img
+                className='h-full w-full object-cover rounded-full' 
+                src={officer.OfficerPicture || DefaultPicture} 
+                alt="officer-picture" />
               </div>
               <div className='flex flex-col justify-start'>
-                <h1 className='text-sm font-bold text-[#312895]'>{officer.name}</h1>
-                <h2 className='text-xs font-light text-gray-600'>{officer.position}</h2>
+                <h1 className='text-sm font-bold text-[#312895]'>{officer.OfficerName || "N/A"}</h1>
+                <h2 className='text-xs font-light text-gray-600'>{officer.OfficerPosition || "N/A"}</h2>
               </div>
             </div>
           ))}
@@ -500,8 +553,17 @@ useEffect(() => {
             </div>
   )}
   {(userProfile?.role === "admin" || userProfile?.role === "superadmin" ) && (
-    <div>
-      view rso details
+    <div className='flex flex-col items-center justify-center mt-4 gap-2'>
+      <div className='aspect-square rounded-full bg-gray h-10'>
+        <img 
+        className='h-full w-full object-cover rounded-full'
+        src={selected.OfficerPicture} 
+        alt="officer-picture"  />
+      </div>
+      {console.log("Selected officer: ", selected)}
+    
+      <h1>{selected.OfficerName}</h1>
+      <h1>{selected.OfficerPosition}</h1>
     </div>
   )}
             <div className='flex items-center justify-end mt-4 gap-2'>
@@ -513,8 +575,8 @@ useEffect(() => {
               )}
               {modalMode === "officers-edit" && isOpen && (
                 <>
-                  <Button>Edit Officer</Button>
-                  <Button style={"secondary"}>Cancel</Button>
+                  {userProfile?.role === "student/rso" && (<Button>Edit Officer</Button>)}
+                  <Button style={"secondary"}>Close</Button>
                 </>
               )}
             </div>

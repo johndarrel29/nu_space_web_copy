@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 function useRSO() {
 const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
+  const [ success, setSuccess ] = useState(false);
 
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -50,6 +52,7 @@ const [organizations, setOrganizations] = useState([]);
   const createRSO = async (newOrg) => {
     setLoading(true);
     setError(null);
+    setSuccess(false);
     
     try {
       const token = localStorage.getItem("token");
@@ -84,9 +87,9 @@ const [organizations, setOrganizations] = useState([]);
         }
       });
       console.log("Final FormData created:");
-for (let pair of formData.entries()) {
-  console.log(`${pair[0]}:`, pair[1]);
-}
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
+      }
 
       body = formData;
     } else {
@@ -108,12 +111,15 @@ for (let pair of formData.entries()) {
 
       const result = await response.json();
       console.log("RSO created:", result);
+      setSuccess(true);
 
       // Update the state with the new organization
       setOrganizations((prevOrgs) => [...prevOrgs, result]);
     } catch (error) {
       console.error("Error creating RSO:", error);
       setError(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -159,6 +165,7 @@ for (let pair of formData.entries()) {
 const updateRSO = async (id, updatedOrg) => {
   setLoading(true);
   setError(null);
+  setSuccess(false);
 
   try {
     const token = localStorage.getItem("token");
@@ -196,6 +203,7 @@ const updateRSO = async (id, updatedOrg) => {
     }
 
     const result = await response.json();
+    setSuccess(true);
     console.log("RSO updated:", result);
 
     setOrganizations((prevOrgs) =>
@@ -208,6 +216,32 @@ const updateRSO = async (id, updatedOrg) => {
     setLoading(false);
   }
 };
+
+const updateRSOStatus = async ({id, status}) => {
+  const token = localStorage.getItem("token");
+  const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": token ? `Bearer ${formattedToken}` : "",
+  };
+
+  console.log("Updating RSO status:", { id, status });
+
+  const body = JSON.stringify({ RSO_membershipStatus: status });
+
+  const response = await fetch(`${process.env.REACT_APP_UPDATE_RSO_URL}/${id}`, {
+    method: "PATCH",
+    headers,
+    body,
+  });
+
+    if (!response.ok) {
+    throw new Error(`Failed to update RSO status: ${response.status}`);
+  }
+
+  return response.json();
+}
 
   const deleteRSO = async (id) => {
   setLoading(true);
@@ -258,6 +292,24 @@ const updateRSO = async (id, updatedOrg) => {
   }
 
   const {
+    mutate: updateRSOStatusMutate,
+    isLoading: isUpdatingStatus,
+    error: updateStatusError,
+  } = useMutation({
+    mutationFn: updateRSOStatus,
+    onSuccess: (data) => {
+      console.log("RSO status updated successfully:", data);
+      // Optionally, you can refetch the data or update the state here
+      queryClient.invalidateQueries(["rsoData"]);
+      fetchData();
+    },
+    onError: (error) => {
+      console.error("Error updating RSO status:", error);
+      setError(`Error: ${error.message}`);
+    },
+  })
+
+  const {
     data
   } = useQuery({
     queryKey:["rsoData"],
@@ -267,7 +319,7 @@ const updateRSO = async (id, updatedOrg) => {
 
   // console.log("React Query fetched data:", JSON.stringify(data, null, 2));
 
-  return { organizations, error, loading, createRSO, updateRSO, deleteRSO, fetchData,   queryData: data, 
+  return { organizations, error, loading, success, createRSO, updateRSO, deleteRSO, fetchData,   queryData: data, updateRSOStatusMutate 
   };
 }
 
