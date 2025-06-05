@@ -9,9 +9,10 @@ import  {useRSO, useKeyBinding} from "../../hooks";
 import { useNotification } from "../../utils";
 import { useNavigate } from 'react-router-dom';
 
+//fetch data from /AllRSOs endpoint
 
 export default function MainRSO() {
-  const { organizations, error, loading, fetchData, createRSO, updateRSO, deleteRSO, queryData } = useRSO();
+  const { organizations, error, loading, fetchData, createRSO, updateRSO, deleteRSO, queryData, fetchWebRSOError } = useRSO();
   const { searchQuery, setSearchQuery } = useSearchQuery();
   const [orgList, setOrgList] = useState(organizations);
   const [activeTab, setActiveTab] = useState(0);
@@ -23,6 +24,8 @@ export default function MainRSO() {
   useEffect(() => {
   console.log("Query Data: ", queryData);
 }, [queryData]);
+
+console.log("rso officer picture ", queryData);
 
 
   const checkSpace = (str) => {
@@ -77,14 +80,6 @@ console.log("All RSO Tags:", allTags);
       ];
 
 
-//   const tabs = [
-//     { label: "RSOs"},
-//     { label: "Create RSO", 
-//     icon: 
-//   <svg className="w-4 h-4 me-2  dark:text-blue-500" fill="currentColor"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304l91.4 0C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7L29.7 512C13.3 512 0 498.7 0 482.3zM504 312l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"/></svg>  
-//   }
-// ];
-
 
   useEffect(() => {
     setOrgList(organizations);
@@ -119,30 +114,30 @@ console.log("All RSO Tags:", allTags);
     // Map the filtered and sorted results to the same format as tableRow
     return filteredList.map((org) => ({
       id: org._id,
-      RSO_name: checkSpace(org.RSO_name), // Added checkSpace function
+      RSO_name: checkSpace(org.RSO_name),
       RSO_acronym: org.RSO_acronym || '',
-      RSO_description: org.RSO_description || '', // Added missing field
-      RSO_tags: org.RSO_tags?.map(tag => tag.tag) || [], // Convert tag objects to array of strings
+      RSO_description: org.RSO_description || '',
+      RSO_tags: org.RSO_tags?.map(tag => tag.tag) || [],
       RSO_category: org.RSO_category || '',
       RSO_College: org.RSO_College || '',
-      RSO_totalMembers: org.RSO_totalMembers || 0, // Added missing field
-      RSO_status: org.RSO_status || false, // Added missing field
+      RSO_totalMembers: org.RSO_totalMembers || 0,
+      RSO_membershipStatus: org.RSO_membershipStatus || '',
+      RSO_status: org.RSO_status || false,
       RSO_picture: org.RSO_picture || '',
-      RSO_memberCount: org.RSO_members ? org.RSO_members.length : org.RSO_totalMembers || 0, // Fallback to totalMembers
-      RSO_members: org.RSO_members || [], // Added missing field
+      RSO_Officers: org.RSO_Officers || [],
+      picture: org.picture || '',
+      RSO_memberCount: org.RSO_members ? org.RSO_members.length : org.RSO_totalMembers || 0,
+      RSO_members: org.RSO_members || [],
       RSO_successRate: org.RSO_successRate || 0,
       RSO_popularityScoreCount: org.RSO_popularityScore > 0 ? org.RSO_popularityScore : 0,
       RSO_activities: org.RSO_activities || [],
       RSO_forms: org.RSO_forms || '',
-      __v: org.__v || 0 // Added missing version field
+      RSO_Officers: org.RSO_Officers || [],
+      __v: org.__v || 0
     }));
+
   };
   
-
-  // useEffect(() => {
-  //   setOrgList(filteredOrgs());
-  // }, [organizations, activeTab, searchQuery, sort]);
-
 
   useEffect(() => {
     fetchData();
@@ -219,7 +214,7 @@ console.log("All RSO Tags:", allTags);
             ]}
             tableRow={filteredOrgs()}
             onClick={handleSelectedUser}
-            error={error}
+            error={fetchWebRSOError}
             isLoading={loading}
             >
             {/* {loading && <CardSkeleton/>} */}
@@ -227,43 +222,3 @@ console.log("All RSO Tags:", allTags);
     </>
   );
 }
-
-
-{/* <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-{activeTab === 1 ? (
-<>
-<div className="h-full mt-4">
-  <RSOForm createRSO={createRSO} onSubmit={handleSubmit} />
-</div>
-</>
-
-) : (
-<>
-<div className="bg-card-bg sticky top-0 z-10 mt-4">
-  <Searchbar placeholder="Search an Organization" searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-</div>
-<div className="h-full">
-{loading && <Skeleton count={6} height={60}/>}
-{error && handleSubmit(error)}
-  <RSOTable 
-    data={organizations} 
-    searchQuery={searchQuery} 
-    onUpdate={setOrgList} 
-    updateRSO={updateRSO} 
-    deleteRSO={deleteRSO} 
-  />
-</div>
-</>
-
-
-)}
-</div>
-<AnimatePresence
-initial={false}
-exitBeforeEnter={true}
-onExitComplete={() => null}
->
-{notification && (
-  <Notification notification={notification} />
-)}
-</AnimatePresence> */}

@@ -59,7 +59,8 @@ function App() {
             <Route path="/documents" element={<Documents />} >
               <Route index element={<MainDocuments />} />
               <Route path="document-action" element={<DocumentAction />} />
-              <Route path="main-activities" element={<MainActivities />} >
+              {/* <Route path="main-activities" element={<MainActivities />} > */}
+              <Route path=":activityId" element={<MainActivities />} >
                 <Route index element={<Activities />} />
                 <Route path="requirements" element={<Requirements />} />
                 <Route path="review" element={<Review/>}/>

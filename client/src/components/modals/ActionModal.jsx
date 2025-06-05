@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Backdrop, Dropdown, DropdownSearch, Button, CloseButton } from "../../components";
 import  { DropIn }  from "../../animations/DropIn";
 
-export default function ActionModal({ onClose, mode, id, name, createdAt, email, role, category, onConfirm }) {
+export default function ActionModal({ onClose, mode, id, name, createdAt, email, role, category, onConfirm, success, loading }) {
   const [selectedRole, setSelectedRole] = useState(role || "student");
   const [selectedCategory, setSelectedCategory] = useState(category || "N/A");
   const formattedDate = FormatDate(createdAt);
@@ -17,6 +17,23 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
       setSelectedRole(role);
     }
   }, [mode, role]);
+
+  useEffect(() => {
+    if (mode === "edit") {
+      setSelectedCategory(category || "N/A");
+    }
+  }, [mode, category]);
+
+  useEffect(() => {
+    if (success) {
+      setTimeout(() => {
+        onClose();
+      }, 3000); 
+
+      // Reset the selected role and category after a successful action
+    }
+  }, [success, onClose]);
+
 
   console.log("onConfirm exists?", typeof onConfirm === "function");
 
@@ -43,7 +60,7 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
       onConfirm(id); 
     }
   
-    onClose();
+    // onClose();
   };
 
   return (
@@ -141,7 +158,13 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                 )}
 
           {/* Buttons */}
-              <div className="flex flex-row justify-end space-x-2">
+              <div className="flex flex-row justify-end items-center space-x-2">
+                { success && (
+                  <div className="text-green-600 text-sm font-semibold">
+                    {mode === 'delete' ? 'Account deleted successfully.' : 'Account updated successfully.'}
+                  </div>
+                )}
+
                 <Button
                     type="button"
                     style="secondary"
@@ -154,11 +177,16 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                     type="button"
                     onClick={handleConfirm}
                     className={`
-                      px-4 py-2 text-sm font-semibold text-white rounded-md shadow 
-                      ${mode === 'delete' ? 'bg-red-600 hover:bg-red-500' : 'bg-primary hover:bg-primary-dark'}
+                      ${mode === 'delete' ? 'bg-red-600 hover:bg-red-500' : ''}
                     `}
                   >
-                    {mode === 'delete' ? 'Delete' : 'Save'}
+                    {(loading && !success)
+                      ? (mode === 'delete' ? 'Deleting...' : 'Saving...')
+                      :   
+                    (mode === 'delete' ? 'Delete' : 'Save')
+                    }
+
+                    
                   </Button>
               </div>    
               

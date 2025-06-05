@@ -1,12 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+//add delete officer functionality
+
 function useRSO() {
 const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const queryClient = useQueryClient();
   const [ success, setSuccess ] = useState(false);
+  
+  const [fetchError, setFetchError] = useState(null);
+  const [createError, setCreateError] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
+  const [updateError, setUpdateError] = useState(null);
 
   const fetchData = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -20,7 +26,7 @@ const [organizations, setOrganizations] = useState([]);
     };
 
     setLoading(true);
-    setError(null);
+    
 
     try {
       console.log("Fetching data from:", process.env.REACT_APP_FETCH_RSO_URL);
@@ -31,13 +37,14 @@ const [organizations, setOrganizations] = useState([]);
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        setFetchError(`Error: ${response.status} - ${response.statusText}`);
       }
 
       const json = await response.json();
       console.log("Fetched data:", json);
       setOrganizations(Array.isArray(json.rsos) ? json.rsos : []);
     } catch (err) {
-      setError(err.message);
+      setFetchError(err.message);
       console.error("Error loading data:", err);
     } finally {
       setLoading(false);
@@ -51,7 +58,6 @@ const [organizations, setOrganizations] = useState([]);
 
   const createRSO = async (newOrg) => {
     setLoading(true);
-    setError(null);
     setSuccess(false);
     
     try {
@@ -107,6 +113,7 @@ const [organizations, setOrganizations] = useState([]);
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        setCreateError(`Error: ${response.status} - ${response.statusText}`);
       }
 
       const result = await response.json();
@@ -117,7 +124,7 @@ const [organizations, setOrganizations] = useState([]);
       setOrganizations((prevOrgs) => [...prevOrgs, result]);
     } catch (error) {
       console.error("Error creating RSO:", error);
-      setError(`Error: ${error.message}`);
+      setCreateError(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -125,7 +132,7 @@ const [organizations, setOrganizations] = useState([]);
 
   //   const updateRSO = async (id, updatedOrg) => {
   //   setLoading(true);
-  //   setError(null);
+  //   
 
   //   const isFormData = updatedOrg instanceof FormData;
 
@@ -164,7 +171,7 @@ const [organizations, setOrganizations] = useState([]);
 
 const updateRSO = async (id, updatedOrg) => {
   setLoading(true);
-  setError(null);
+  setUpdateError(null);
   setSuccess(false);
 
   try {
@@ -211,9 +218,10 @@ const updateRSO = async (id, updatedOrg) => {
     );
   } catch (err) {
     console.error("Error updating RSO:", err);
-    setError(`Error: ${err.message}`);
+    setUpdateError(`Error: ${err.message}`);
   } finally {
     setLoading(false);
+    
   }
 };
 
@@ -238,6 +246,7 @@ const updateRSOStatus = async ({id, status}) => {
 
     if (!response.ok) {
     throw new Error(`Failed to update RSO status: ${response.status}`);
+
   }
 
   return response.json();
@@ -245,7 +254,7 @@ const updateRSOStatus = async ({id, status}) => {
 
   const deleteRSO = async (id) => {
   setLoading(true);
-  setError(null);
+  
 
     try {
       const token = localStorage.getItem("token");
@@ -271,7 +280,11 @@ const updateRSOStatus = async ({id, status}) => {
       setOrganizations((prevOrgs) => prevOrgs.filter((org) => org._id !== id));
     } catch (err) {
       console.error("Error deleting RSO:", err);
-      setError(`Error: ${err.message}`);
+      setDeleteError(`Error: ${err.message}`);
+
+    } finally {
+      setLoading(false);
+      
     }
   };
 
@@ -280,7 +293,7 @@ const updateRSOStatus = async ({id, status}) => {
     console.log("Stored token:", token);
 
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-
+    console.log("Fetching web RSO data from:", process.env.REACT_APP_FETCH_RSO_WEB_URL);
     const response = await fetch(`${process.env.REACT_APP_FETCH_RSO_WEB_URL}`, {
       method: "GET",
       headers: {
@@ -290,6 +303,141 @@ const updateRSOStatus = async ({id, status}) => {
     });
     return response.json();
   }
+
+  const fetchMembers = async () => {
+    const token = localStorage.getItem("token");
+    console.log("Stored token:", token);
+
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": token ? `Bearer ${formattedToken}` : "",
+    };
+
+    setLoading(true);
+    
+
+    try {
+      console.log("Fetching members from:", process.env.REACT_APP_FETCH_MEMBERS_URL);
+      const response = await fetch(`${process.env.REACT_APP_FETCH_MEMBERS_URL}`, {
+        method: "GET",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const json = await response.json();
+      console.log("Fetched members data:", json);
+      return json.members || [];
+    } catch (err) {
+      setFetchError(err.message);
+      console.error("Error loading members data:", err);
+      return [];
+    } finally {
+      setLoading(false);
+      
+    }
+  }
+
+  const updateOfficer = async ({id, updatedOfficer}) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    const headers = {
+       Authorization: `Bearer ${formattedToken}`,
+    };
+    console.log("request sent: ", `${process.env.REACT_APP_UPDATE_OFFICER_URL}/${id}`)
+    const response = await fetch(`${process.env.REACT_APP_UPDATE_OFFICER_URL}/${id}`, {
+      method: "PUT",
+      headers,
+      body: updatedOfficer,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update officer: ${response.status}`);
+    }
+    return response.json();
+
+  }
+
+    const createOfficer = async ({id, createdOfficer}) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    const headers = {
+       Authorization: `Bearer ${formattedToken}`,
+    };
+    console.log("create request sent: ", `${process.env.REACT_APP_CREATE_OFFICER_URL}/${id}`)
+    const response = await fetch(`${process.env.REACT_APP_CREATE_OFFICER_URL}/${id}`, {
+      method: "POST",
+      headers,
+      body: createdOfficer,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create officer: ${response.status}`);
+    }
+    return response.json();
+
+  }
+
+  const {
+    mutate: createOfficerMutate,
+    isLoading: isCreatingOfficerLoading,
+    isError: isCreatingOfficerError,
+    isSuccess: isCreatingSuccess,
+  } = useMutation({
+    mutationFn: createOfficer,
+    onSuccess: (data) => {
+      console.log("Officer updated successfully:", data);
+      // Optionally, you can refetch the data or update the state here
+      queryClient.invalidateQueries(["membersData"]);
+
+    },
+    onError: (error) => {
+      console.error("Error updating officer:", error);
+    },
+  })
+
+
+  const {
+    mutate: updateOfficerMutate,
+    isLoading: isUpdatingOfficer,
+    isError: isUpdateOfficerError,
+    isSuccess: isUpdateOfficerSuccess,
+  } = useMutation({
+    mutationFn: updateOfficer,
+    onSuccess: (data) => {
+      console.log("Officer updated successfully:", data);
+      // Optionally, you can refetch the data or update the state here
+      queryClient.invalidateQueries(["membersData"]);
+
+    },
+    onError: (error) => {
+      console.error("Error updating officer:", error);
+    },
+  })
+
+  const {
+    data: membersData,
+    isLoading: isMembersLoading,
+    error: membersError,
+    refetch: refetchMembers,
+    isSuccess: membersSuccess,
+  } = useQuery({
+    queryKey: ["membersData"],
+    queryFn: fetchMembers,
+    onSuccess: (data) => {
+      console.log("Members data fetched successfully:", data);
+      queryClient.setQueryData(["membersData"], data);
+    },
+    onError: (error) => {
+      console.error("Error fetching members data:", error);
+    },
+  })
 
   const {
     mutate: updateRSOStatusMutate,
@@ -305,21 +453,59 @@ const updateRSOStatus = async ({id, status}) => {
     },
     onError: (error) => {
       console.error("Error updating RSO status:", error);
-      setError(`Error: ${error.message}`);
     },
   })
 
   const {
-    data
+    data,
+    isError: fetchWebRSOError,
   } = useQuery({
     queryKey:["rsoData"],
     queryFn: fetchWebRSO,
+    onSuccess: (data) => {
+      console.log("Web RSO data fetched successfully:", data);
+      queryClient.setQueryData(["rsoData"], data);
+    },
+    onError: (error) => {
+      console.error("Error fetching web RSO data:", error);
+    },
 
   })
 
+
+
   // console.log("React Query fetched data:", JSON.stringify(data, null, 2));
 
-  return { organizations, error, loading, success, createRSO, updateRSO, deleteRSO, fetchData,   queryData: data, updateRSOStatusMutate 
+  return { 
+    organizations, 
+    loading, 
+    success, 
+    createRSO, 
+    updateRSO, 
+    deleteRSO, 
+    fetchData,   
+    queryData: data, 
+    fetchWebRSOError,
+    updateRSOStatusMutate,
+
+    membersData,
+    isMembersLoading,
+    membersError,
+    refetchMembers,
+    membersSuccess,
+
+    updateOfficerMutate,
+    isUpdatingOfficer,
+    isUpdateOfficerError,
+    isUpdateOfficerSuccess,
+
+    fetchError,
+    createError,
+    updateError,
+    deleteError,
+
+    createOfficerMutate,
+
   };
 }
 

@@ -21,6 +21,8 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   const [postsPerPage, setPostsPerPage] = useState(10);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const { isOpen, openModal, closeModal } = useModal();
+  const [ loading, setLoading ] = useState(false);
+  const [ success, setSuccess ] = useState(false);
 
   useEffect(() => {
     console.log("Data received:", data, "Type:", typeof data);
@@ -64,7 +66,11 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
       console.log("user role:", user.role);
       const matchesRole = !selectedRole || 
       (selectedRole === "student" ? user.role?.toLowerCase() === "student" : 
-      selectedRole === "student/rso" ? user.role?.toLowerCase()?.includes("/rso") : false);
+      selectedRole === "student/rso" ? user.role?.toLowerCase()?.includes("/rso") : 
+      selectedRole === "admin" ? user.role?.toLowerCase() === "admin" :
+      selectedRole === "superadmin" ? user.role?.toLowerCase() === "superadmin" :
+      false
+    );
     
     
       return matchesSearch && matchesRole;
@@ -80,6 +86,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   const npage = useMemo(() => Math.ceil(filteredRecords.length / postsPerPage), [filteredRecords, postsPerPage]);
 
   const handleOpenModal = useCallback((mode, user) => {
+    setSuccess(false);
     openModal();
     setMode(mode);
     setSelectedUser(user);
@@ -110,6 +117,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   const deleteCategory = async (_id) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    setLoading(true);
   
     try {
       console.log("Attempting to delete category for user with ID:", _id);
@@ -120,8 +128,14 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
       });
   
       console.log("Category deleted successfully:", response.data);
+      setSuccess(true);
     } catch (error) {
       console.error("Error deleting category:", error);
+    } finally  {
+      setLoading(false);
+      setTimeout(() => {
+        setSuccess(false);
+      }, 3000); // Reset success state after 3 seconds
     }
   };
   
@@ -129,6 +143,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   const handleConfirm = useCallback(async (_id, updatedData) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    setLoading(true);
   
 
     if (updatedData) {
@@ -154,6 +169,14 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
         updatedData.category = null;
         updatedData.assignedRSO = null;
         updatedData.assigned_rso = null; // Remove assigned_rso if role is 'superadmin'
+      }
+
+      if (updatedData.role === 'admin') {
+        await deleteCategory(_id); // Call the delete function
+        // Don't send category data in the update request when role is admin
+        updatedData.category = null;
+        updatedData.assignedRSO = null;
+        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'admin'
       }
   
       // Log to check if assigned_rso is being set correctly
@@ -199,12 +222,14 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
         setUsers(prevUsers => prevUsers.filter(user => user._id !== _id));
       }
       // Refetch users after the operation
+      setSuccess(true);
       await fetchUsers();
     } catch (error) {
       console.error("Error updating/deleting user:", error);
     } finally {
-      // Close the modal after the operation
       closeModal();
+      setLoading(false);
+      setSuccess(false);
     }
   }, [fetchUsers]);
   
@@ -237,7 +262,9 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
           category={selectedUser?.assigned_rso?.RSO_acronym}
           user={selectedUser}
           onConfirm={handleConfirm}
-
+          loading={loading}
+          success={success}
+          
         />
         
         

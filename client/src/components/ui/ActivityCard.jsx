@@ -14,7 +14,7 @@ function ActivityCard({
 }) {
   return (
     <div 
-      className="max-w-[250px] bg-white rounded-md overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      className="max-w-[250px] bg-white rounded-md overflow-hidden hover:bg-gray-100 transition ease-in-out cursor-pointer"
       onClick={() => onClick(activity)}
       title={Activity_name}
     >

@@ -1,15 +1,32 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { useActivities, useUserProfile } from "../../hooks";
+import classNames from "classnames";
 
 export default function Breadcrumb ({ style, unSelected }){
     const location = useLocation();
     const paths = location.pathname.split("/").filter(Boolean);
+    const { activityId } = useParams();
+
+    // const activityId = paths[paths.length - 1];
+
+    const { viewActivityData } = useActivities(activityId);
+
+    console.log("Breadcrumb viewActivityData:", viewActivityData);
+    console.log("act id", activityId);
+    console.log("path name ", viewActivityData?.Activity_name);
+
+
 
     if (location.state?.fromRequirements) {
         paths.splice(-1, 0, "requirements");
     }
     
     const capitalize = (str) => {
+    if (str === activityId) {
+        return viewActivityData?.Activity_name || "...loading"; // Use the activity name if available
+    }
+
     return str
         .split('-')
         .map(word => 
@@ -25,6 +42,7 @@ export default function Breadcrumb ({ style, unSelected }){
             <ol className="inline-flex items-center space-x-1  rtl:space-x-reverse">
 
                 {paths.map((path, index) => {
+                    {console.log("Breadcrumb path:", path);}
                     const routeTo = `/${paths.slice(0, index + 1).join("/")}`;
                     const isLast = index === paths.length - 1;
                     const isFirst = index === 0;
@@ -41,7 +59,7 @@ export default function Breadcrumb ({ style, unSelected }){
                                 )
                                 }
                                 {isLast ? (
-                                    <span className={style}>{capitalize(path)}</span>
+                                    <span className={classNames(style, "truncate max-w-[250px]")}>{capitalize(path)}</span>
                                 ) : (
                                     <Link to={routeTo} className={unSelected}>
                                         {capitalize(path)}

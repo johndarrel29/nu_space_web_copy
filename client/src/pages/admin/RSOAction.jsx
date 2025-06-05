@@ -15,7 +15,7 @@ import getCroppedImg from '../../utils/cropImage';
 
 function RSOAction() {
   // const { tags } = useTags();
-  const { createRSO, updateRSO, deleteRSO, loading, error, success } = useRSO();
+  const { createRSO, updateRSO, deleteRSO, loading, updateError, createError, success } = useRSO();
   const location = useLocation();
   const navigate = useNavigate();
   const { mode, data, from } = location.state || {};
@@ -109,7 +109,7 @@ console.log("Location state:", location.state);
 
 
 
-  const handleOptions = ['CCIT', 'CBA', 'COA', 'COE', 'CAEAS', 'CTHM'];
+  const handleOptions = ['CCIT', 'CBA', 'COA', 'COE', 'CEAS', 'CTHM'];
   const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest', 'Probationary']
 
       const [RSO_picture, setRSOPicture] = useState(null);
@@ -263,14 +263,6 @@ console.log("Location state:", location.state);
         const preview = URL.createObjectURL(file);
         
         setImage(preview);
-        // this prepares the file for upload
-
-        // setFormData(prev => ({
-        //   ...prev,
-        //   RSO_picture: file, 
-        //   RSO_picturePreview: preview,
-        //   RSO_pictureFilename: JSON.stringify(file.name) 
-        // }));
       }
     };
 
@@ -285,7 +277,7 @@ console.log("Location state:", location.state);
         try {
           const result = await deleteRSO(data.id);
           console.log("RSO deleted:", result);
-          navigate('/rso-management'); 
+          navigate('/', { relative: 'path' });
         } catch (error) {
           console.error("Error deleting RSO:", error);
         }
@@ -519,22 +511,24 @@ console.log("Location state:", location.state);
 
       <div className='w-full h-[1px] bg-gray-200 mt-4'></div>
 
-      <div className='w-full flex justify-between gap-2 mt-4'>
-        <Button 
-        variant="danger"
-        onClick={handleDelete}
-        >
-          Delete
-        </Button>
-        <div className='flex gap-2'>
+      <div className={`w-full flex gap-2 mt-4 ` + (isEdit ? 'justify-between' : 'justify-end')}>
+        { isEdit && (
+          <Button 
+          variant="danger"
+          onClick={handleDelete}
+          >
+            Delete
+          </Button>
+        )}
+        <div className='flex gap-2 items-center'>
           { success ? (
             <div className='text-green-600 text-sm font-semibold'>
               {isEdit ? 'RSO updated successfully!' : isCreate ? 'RSO created successfully!' : 'Action completed successfully!'}
             </div>
           ) : 
-            error ? (
+            (updateError || createError) ? (
               <div className='text-red-600 text-sm font-semibold'>
-                {error}
+                {updateError || createError ? 'An error occurred. Please try again.' : ''}
               </div>
           ) : 
             loading && (
@@ -546,9 +540,7 @@ console.log("Location state:", location.state);
           <Button
             style="secondary"
             size="small"
-            onClick={() => {
-              console.log("Cancel");
-            }}
+            onClick={() => navigate(-1)}
           >
             Cancel
           </Button>
@@ -607,19 +599,8 @@ console.log("Location state:", location.state);
                     </Button>
                     {/* edit */}
                     <Button
-                    //   onClick={() => {
-                    //     setSelectedTags((prev) => {
-                    //       const updatedTags = prev.map((tag) =>
-                    //         tag === selectedModalTag || tag === selectedTag ? selectedModalTag || selectedTag : tag
-                    //       );
-                    //       return updatedTags;
-                    //     });
-                    //     setShowModal(false);
-                    //   }}
-                    //   className='ml-2'
                       onClick={
                         handleTagUpdate
-                        // updateTagMutation({ tagId: selectedModalTag?._id, tagName: selectedModalTag?.tag })
                       }
                     >
                       Save Changes

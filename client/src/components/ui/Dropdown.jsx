@@ -16,7 +16,12 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
       <MenuButton className={`inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50`}>
         {selectedRole === 'admin' ? (
           <span className="text-gray-900">Admin</span>
-        ) : (
+        ) : 
+        selectedRole === 'superadmin' ? (
+          <span className="text-gray-900">Superadmin</span>
+        ) :
+
+        (
           <span className="text-gray-900">{selectedRole}</span>
         )}
           <ChevronDownIcon aria-hidden="true" className="-mr-1 size-5 text-gray-400" />
@@ -49,7 +54,7 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
             </MenuItem>
           </>
         )}
-        {selectedRole === 'admin' && (
+        {selectedRole === 'admin' ? (
           <MenuItem>
             <a
               onClick={() => handleMenuItemClick("superadmin")}
@@ -58,7 +63,19 @@ export default function Dropdown({ selectedRole, setSelectedRole}) {
               Superadmin
             </a>
           </MenuItem>
-        )}
+        )
+        : 
+        selectedRole === 'superadmin' && (
+          <MenuItem>
+            <a
+              onClick={() => handleMenuItemClick("admin")}
+              className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden cursor-pointer hover:text-black"
+            >
+              Admin
+            </a>
+          </MenuItem>
+        )
+      }
 
  
         </div>

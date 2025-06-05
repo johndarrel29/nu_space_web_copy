@@ -20,6 +20,7 @@ function MainLayout({ children, tabName, headingTitle }) {
   console.log("user lastName:", user?.lastName);
   console.log("user ", user);
   console.log("user status ", user?.assigned_rso?.RSO_status);
+  console.log("user picture", user?.rso?.RSO_picture);
   
   const excludedPaths = ["/document"];
   const isUserStatusActive = user?.assigned_rso?.RSO_status === false && user?.role === "student/rso";
@@ -73,24 +74,6 @@ useEffect(() => {
         <div className="flex flex-col w-full">
           <div className="fixed top-0 left-0 right-0 bg-white border border-mid-gray h-16 p-4 z-50 flex items-center justify-end gap-8">
 
-            {/* Logout Button */}
-            {/* <div
-              className="flex items-center cursor-pointer space-x-2 hover:bg-mid-gray p-2 rounded-md"
-              onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                window.location.href = "/login";
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="fill-off-black size-4"
-                viewBox="0 0 512 512"
-              >
-                <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z" />
-              </svg>
-              <h1>Log Out</h1>
-            </div> */}
           <div className='flex items-center justify-between text-center pr-6 '>
             <div className="flex justify-start items-center gap-2 pr-6">
             {loading ? (
@@ -110,7 +93,7 @@ useEffect(() => {
                 isStudentRSO ? (
                   
                   <img
-                    src={user.assigned_rso.RSO_picture || DefaultPicture}
+                      src={user?.assigned_rso?.signed_picture || DefaultPicture}
                     alt="Profile"
                     className="rounded-full h-full w-full object-cover"
                   />
@@ -154,7 +137,7 @@ useEffect(() => {
                 isStudentRSO ? (
                   <div className="flex flex-col justify-center items-start w-[120px]">
                     <h1 className='text-sm font-bold'>{user.assigned_rso.RSO_acronym}</h1>
-                    <h2 className='text-xs w-full truncate text-gray-500'>{user.assigned_rso.RSO_name}</h2>
+                    <h2 className='text-xs w-full truncate text-gray-500 text-start'>{user.assigned_rso.RSO_name}</h2>
                   </div>
                 )
                 :
@@ -229,7 +212,6 @@ useEffect(() => {
           <main className="mt-16 h-[calc(100%-4rem)] overflow-y-auto p-4 pl-12 pr-12">
             <div className="mb-6 flex flex-col">
               <Breadcrumb style={style.tabName} unSelected={style.disabled} />
-              {/* <h2 className={style.headingTitle}>{headingTitle}</h2> */}
             </div>
 
             {/* Page Content */}

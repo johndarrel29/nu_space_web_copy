@@ -25,6 +25,7 @@ function DocumentAction() {
   const { createActivity, updateActivity, deleteActivity, error, success, loading } = useActivities();
   const fileInputRef = useRef(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [defaultImage, setDefaultImage] = useState(true);
 
     //file manipulaion
     const [image, setImage] = useState(null);
@@ -43,7 +44,8 @@ function DocumentAction() {
         Activity_image: data.Activity_image || '',
         activityImageUrl: data.activityImageUrl || null,
         Activity_datetime: data?.Activity_datetime ? dayjs(data.Activity_datetime) : null,
-      Activity_picturePreview: data.activityImageUrl || DefaultPicture, 
+      Activity_picturePreview: data?.imageUrl || DefaultPicture, 
+      // Activity_picturePreview: null,
         Activity_place: data.Activity_place || '',
         Activity_description: data.Activity_description || '',
         Activity_GPOA: data.Activity_GPOA ?? false
@@ -93,6 +95,7 @@ function DocumentAction() {
       Activity_GPOA: activityData.Activity_GPOA.toString(),
       Activity_datetime: activityData.Activity_datetime?.toISOString() || 'null', 
     };
+
     try {
       let result;
 
@@ -129,9 +132,7 @@ console.log("Deleting activity with ID:", data?._id);
       try {
         await deleteActivity(data._id);
         console.log("Activity deleted");
-        navigate(from || "/admin/documents", {
-          state: { message: "Activity deleted successfully!" },
-        });
+        navigate('..', { relative: 'path' });
       } catch (error) {
         console.error("Error deleting activity:", error);
       }
@@ -205,35 +206,36 @@ console.log("Deleting activity with ID:", data?._id);
       <div>
         <div className="flex items-center justify-center mb-4 gap-2"> 
             {/* edit and create, delete buttons */}
-            <div className='flex items-center justify-center mb-4 gap-2'>
+            <div className='flex items-center justify-center mb-4 gap-1'>
               <div
               onClick={() => fileInputRef.current?.click()}
-                  className='px-2 py-1 bg-transparent rounded-xl border border-gray-400 text-sm flex justify-center cursor-pointer'>
+                  className='px-2 py-1 bg-transparent rounded-full border border-gray-400 text-sm flex justify-center cursor-pointer hover:text-gray-500'>
                     
                     {isEdit ? `Edit` : isCreate ? 'Upload' : 'Upload'}
                   </div >
               <div 
               onClick={() => {
                 setImage(null);
+                setDefaultImage(true);
                 setActivityData(prev => ({
                   ...prev,
                   Activity_image: null,
-                  Activity_picturePreview: null,
+                  Activity_picturePreview: DefaultPicture,
                 }));
               }} 
-              className='cursor-pointer px-2 py-1 bg-transparent rounded-full border border-gray-400 text-sm flex items-center justify-center'>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='fill-off-black size-3'><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
+              className='cursor-pointer px-2 py-1 bg-transparent rounded-full aspect-square border border-gray-400 text-sm flex items-center justify-center group hover:text-gray-500'>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='fill-off-black size-3 group-hover:fill-gray-500 '><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>
               </div >
             </div>
 
 
 
 
-            {/* only show if there's no image */}
+            
             {!activityData.Activity_picturePreview && (
               <div className='h-[13rem] w-full lg:w-[13rem] bg-[#312895]/10 rounded-lg overflow-hidden'>
                 <img
-                  src={isEdit && hasSubmitted === false ? activityData?.activityImageUrl : DefaultPicture}
+                  src={isEdit && hasSubmitted === false ? activityData?.activityImageUrl : defaultImage === true ? DefaultPicture : null}
                   alt="Activity Preview testing"
                   className="w-full h-full object-cover"
                 />
@@ -241,14 +243,15 @@ console.log("Deleting activity with ID:", data?._id);
             )}
 
 
-              {/* image input */}
               {console.log("Activity_picturePreview value:", activityData.Activity_picturePreview)}
               {activityData.Activity_picturePreview && (
-                <img
-                  src={activityData.Activity_picturePreview}
-                  alt="Activity Preview image input"
-                  className="rounded-md h-32 w-32 object-cover border"
-                />
+                <div className='h-[13rem] w-full lg:w-[13rem] bg-[#312895]/10 rounded-lg overflow-hidden'>
+                    <img
+                      src={activityData.Activity_picturePreview}
+                      alt="Activity Preview image input"
+                      className="w-full h-full object-cover"
+                    />
+                </div>
               )}
         </div >
         <input 

@@ -1,17 +1,22 @@
 import defaultPic from '../../assets/images/default-picture.png';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams  } from 'react-router-dom';
 import { ReusableTable, Backdrop, Button, TabSelector, CloseButton } from '../../components';
 import { useModal, useActivities, useDocumentManagement } from "../../hooks";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
 import { useCallback } from 'react';
+import DefaultPicture from "../../assets/images/default-profile.jpg";
 import axios from 'axios';
 
+//fetch data using: REACT_APP_FETCH_RSO_WEB_URL (http://localhost:5000/api/rso/allRSOweb)
+
+
 export default function Activities() {
+  const { activityId } = useParams();
   const navigate = useNavigate();
   const location = useLocation()
-  const { activity } = location.state || {}; 
+  // const { activity } = location.state || {}; 
   const { isOpen, openModal, closeModal } = useModal();
   const [selectedActivity, setSelectedActivity] = useState(null);
   const user = JSON.parse(localStorage.getItem("user"));
@@ -20,8 +25,9 @@ export default function Activities() {
   const [progress, setProgress] = useState({ started: false, pc: 0 });
   const [msg, setMsg] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
-  const activityId = activity?._id || location.state?.activityId;
+  // const activityId = activity?._id || location.state?.activityId;
   const [titles, setTitles] = useState("");
+  const [ showStatusMessage, setShowStatusMessage ] = useState(false);
   const { 
           errorQuery,
           activityDocument,
@@ -29,20 +35,44 @@ export default function Activities() {
           isActivityDocumentLoading,
           isActivityDocumentError,
           createActivityDoc,
+          createError,
+          isCreatingSuccess,
+          loading: isCreatingLoading,
+
+          viewActivityData
         } = useActivities(activityId);
 
-  // console.log("Activity ID:", activityId);
-  // console.log("Activity Data:", rsoActivity);
-  // console.log("Error Query:", errorQuery);
-  // console.log("Activity Document:", activityDocument);
-  console.log("Activity Document Error:", activityDocumentError);
-  console.log("Activity Documents Name ", activityDocument?.documents)
-  console.log("activityId ", activityId);
+        console.log("view activity data for id", activityId, viewActivityData);
+
+  const activity = viewActivityData || {};
+  console.log("Activity data:", activity);
+
+
+  useEffect(() => {
+    if (isCreatingSuccess || createError) {
+      setShowStatusMessage(true);
+        setShowStatusMessage(false);
+        setModalType(null);
+      
+      setFiles(null); 
+
+      return () => clearTimeout();
+    }
+  },[ isCreatingSuccess, createError ]);
 
   const tabs = [
     { label: "Documents"},
-    { label: "Participants"}
+
   ]
+
+  useEffect(() => {
+    if (msg) {
+      const timer = setTimeout(() => {
+        setMsg(null);
+      }, 3000); // Clear message after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  })
 
   const handleFileUpload = () => {
     if (!files) {
@@ -99,7 +129,6 @@ export default function Activities() {
         fd.append('title', files[i].title || `Untitled ${i + 1}`);
         fd.append('description', files[i].description || "No description provided"); 
 
-        setMsg("Uploading file...");
         console.log("Calling submitDocument with formData...");
 
         console.log(`Submitting formData for file ${i + 1}:`);
@@ -108,13 +137,15 @@ export default function Activities() {
         }
 
         await createActivityDoc({ activityId: activityId, formData: fd});
-        setMsg("File uploaded successfully!");
+
       }
     } catch (error) {
       console.error("Error submitting document:", error);
-      setMsg("Error uploading file.");
+
     }
   };
+
+  console.log("act docs ", activityDocument?.documents);
 
 
 const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) => {
@@ -192,10 +223,13 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
         {/* Header Section */}
         <div className='flex items-start justify-start w-full'>
           <div className='h-12 w-12 bg-[#312895] rounded-full flex items-center justify-center text-white font-bold'>
-            {activity?.Activity_name?.charAt(0) || 'A'}
+            {/* {activity?.Activity_name?.charAt(0) || 'A'} */}
+            <img
+            className='h-full w-full object-cover rounded-full' 
+            src= {activity?.RSO_id?.imageUrl || DefaultPicture} alt={"Activity Picture"} />
           </div>
           <div className='flex flex-col justify-start ml-4'>
-            <span className='text-xs font-light text-[#312895] bg-[#312895]/10 px-2 py-1 rounded-full w-fit'>Online Event</span>
+            {/* <span className='text-xs font-light text-[#312895] bg-[#312895]/10 px-2 py-1 rounded-full w-fit'>Online Event</span> */}
             <h1 className='text-xl font-bold text-[#312895] mt-1'>{activity?.Activity_name || 'Activity Name'}</h1>
           </div>
         </div>
@@ -207,7 +241,7 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
             {/* Activity Image */}
             <div className='h-[13rem] w-full lg:w-[13rem] bg-[#312895]/10 rounded-lg overflow-hidden'>
               <img 
-                src={activity?.activityImageUrl || defaultPic} 
+                src={activity?.imageUrl || defaultPic} 
                 alt="Activity" 
                 className='w-full h-full object-cover'
               />
@@ -225,7 +259,7 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                 <div className='bg-white p-4 rounded-lg border border-mid-gray'>
                   <h3 className="font-semibold text-[#312895] text-sm mb-2">Date & Time</h3>
                   <p className="text-gray-700 text-sm">
-                    {formatDate(activity?.Activity_date)} at {activity?.Activity_time}
+                    {formatDate(activity?.createdAt)}
                   </p>
                 </div>
               </div>
@@ -263,7 +297,7 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                   <div>
                     <p className='text-xs text-[#312895]/70'>Created By</p>
                     <p className='text-sm font-medium text-[#312895]'>
-                      {activity?.CreatedBy?.firstName} {activity?.CreatedBy?.lastName}
+                      {activity?.RSO_id?.RSO_acronym} 
                     </p>
                   </div>
                 </div>
@@ -317,21 +351,22 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
               activeColor="#312895"
             />
 
-            {user?.role === "student/rso" && (
-              <div className="flex justify-end w-full mt-4">
-                <Button 
-                  onClick={handleDocumentUpload}
-                  className="px-4 bg-[#312895] hover:bg-[#312895]/90 text-white"
-                >
-                  <div className='flex items-center gap-2'>
-                    <svg xmlns="http://www.w3.org/2000/svg" className='fill-white size-4' viewBox="0 0 512 512"><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
-                    Upload Document
-                  </div>
-                </Button>
-              </div>
-            )}
 
-            {activeTab === 0 && (          
+            {activeTab === 0 && ( 
+              <>
+                {user?.role === "student/rso" && (
+                  <div className="flex justify-end w-full mt-4">
+                    <Button 
+                      onClick={handleDocumentUpload}
+                      className="px-4 bg-[#312895] hover:bg-[#312895]/90 text-white"
+                    >
+                      <div className='flex items-center gap-2'>
+                        <svg xmlns="http://www.w3.org/2000/svg" className='fill-white size-4' viewBox="0 0 512 512"><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
+                        Upload Document
+                      </div>
+                    </Button>
+                  </div>
+                )}
               <div className="w-full mt-4">
                 <ReusableTable
                   columnNumber={user.role === "student/rso" ? 5 : 4}
@@ -346,12 +381,13 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                   activityId={activityId}
                 />
               </div>
+              </>     
             )}
-            {activeTab === 1 && (
+            {/* {activeTab === 1 && (
               <div className='bg-white p-4 rounded-lg border border-mid-gray mt-4'>
                 <p className='text-gray-700'>List of participants will appear here</p>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>
@@ -374,15 +410,15 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                   <div className='space-y-3'>
                     <div>
                       <p className='text-sm text-[#312895]/70'>Document Name</p>
-                      <p className='text-[#312895] font-medium'>{selectedActivity?.name}</p>
+                      <p className='text-[#312895] font-medium'>{selectedActivity?.title}</p>
                     </div>
                     <div>
                       <p className='text-sm text-[#312895]/70'>Type</p>
-                      <p className='text-[#312895] font-medium'>{selectedActivity?.type}</p>
+                      <p className='text-[#312895] font-medium'>{selectedActivity?.purpose}</p>
                     </div>
                     <div>
-                      <p className='text-sm text-[#312895]/70'>Uploaded By</p>
-                      <p className='text-[#312895] font-medium'>{selectedActivity?.uploadedBy}</p>
+                      <p className='text-sm text-[#312895]/70'>Creation Date</p>
+                      <p className='text-[#312895] font-medium'>{selectedActivity?.createdAt}</p>
                     </div>
                   </div>
                   <div className='flex justify-end mt-6'>
@@ -400,7 +436,7 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
         )}
 
         {/* Upload Document Modal */}
-        { modalType === "upload" && (
+        { modalType === "upload" &&  (
           <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <motion.div
               className="bg-white rounded-lg shadow-lg w-[90%] max-w-[600px] border border-[#312895]/20"
@@ -505,12 +541,33 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                 )}
 
                 {msg && (
-                  <div className={`mt-4 p-3 rounded-lg text-sm ${
-                    msg.includes("failed") ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
-                  }`}>
+                  <div className="mt-4 p-3 rounded-lg text-sm bg-yellow-100 text-yellow-800">
                     {msg}
                   </div>
                 )}
+                {showStatusMessage && 
+                (isCreatingSuccess ? (
+                  <div className={`mt-4 p-3 rounded-lg text-sm  bg-green-100 text-green-800`}>
+                    File uploaded successfully!
+                  </div>
+                ) : createError && (
+                  <div className={`mt-4 p-3 rounded-lg text-sm bg-red-100 text-red-800`}>
+                    Error uploading file: {createError.message}
+                  </div>
+                ) 
+                )}
+              
+              {
+                isCreatingLoading && (
+                  <div className="mt-4 p-3 rounded-lg text-sm bg-yellow-100 text-yellow-800">
+                    Uploading file... 
+                  </div>
+                )
+              }
+                
+
+              
+
 
                 <div className="mt-6 flex justify-end space-x-3">
                   <Button style={"secondary"} onClick={handleCloseModal}>
