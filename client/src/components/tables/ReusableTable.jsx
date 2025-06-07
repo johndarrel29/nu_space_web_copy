@@ -159,8 +159,8 @@ export default function ReusableTable({
         <thead className="border-b border-mid-gray bg-textfield ">
             <tr
             className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider ">
-            {tableHeading.slice(0, columnNumber).map((heading) => (
-                <th key={heading.id} className="text-left p-3">
+            {tableHeading.slice(0, columnNumber).map((heading, index) => (
+                <th key={heading.id || `header-${index}-${heading.name}`} className="text-left p-3">
                     <h1 className="text-gray-900 dark:text-white">{heading.name}</h1>
                 </th>
             ))}

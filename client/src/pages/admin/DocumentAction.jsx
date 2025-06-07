@@ -297,7 +297,7 @@ console.log("Deleting activity with ID:", data?._id);
             /> */}
             <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DateTimePicker
-              label="Activity Date & Time"
+              // label="Activity Date & Time"
               value={activityData.Activity_datetime}
               onChange={handleDateChange}
               className="w-full"

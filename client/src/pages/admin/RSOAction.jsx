@@ -158,16 +158,19 @@ console.log("Location state:", location.state);
         updateTagMutation({ tagId: tagId, tagName: newTag }, {
           onSuccess: () => {
             console.log("Tag updated successfully:", newTag);
-           setSelectedTags((prevTags) =>
+            // Update the selected tags with the new tag name
+            setSelectedTags((prevTags) =>
               prevTags.map((t) =>
                 t === originalTagName ? selectedModalTag?.tag : t
               )
             );
+            // Only close modal and clear form on success
             setShowModal(false);
             setSelectedModalTag(null);
           },
           onError: (error) => {
             console.error("Error updating tag:", error);
+            // Keep the modal open and form data intact on error
           }
         });
 
@@ -217,23 +220,25 @@ console.log("Location state:", location.state);
           RSO_tags: selectedTags,
         };
 
-        console.log("Payload before submission:", payload); //tags still show here
+        console.log("Payload before submission:", payload);
 
         if (formData.RSO_status === "" || formData.RSO_status === null) {
           delete payload.RSO_status;
         }
 
-        let result;
-        if (isEdit) {
-          console.log("Sending to updateRSO:", payload);
-          result = await updateRSO(data.id, payload); 
-        } else if (isCreate) {
-          console.log("Sending to createRSO:", payload);
-          result = await createRSO(payload);
-        } 
-        
-          console.log("RSO created:", result);
+        try {
+          let result;
+          if (isEdit) {
+            console.log("Sending to updateRSO:", payload);
+            result = await updateRSO(data.id, payload); 
+          } else if (isCreate) {
+            console.log("Sending to createRSO:", payload);
+            result = await createRSO(payload);
+          } 
+          
+          console.log("RSO operation successful:", result);
 
+          // Only clear form and navigate on success
           setFormData({
               RSO_name: "",
               RSO_acronym: "",
@@ -243,9 +248,7 @@ console.log("Location state:", location.state);
               RSO_College: "",
               RSO_status: "",
               RSO_description: "",
-          },
-          console.log("clearing after submit: ", formData)
-        );
+          });
           setRSOPicture(null);
           setSelectedTags([]);
           setSearchQuery("");
@@ -255,6 +258,13 @@ console.log("Location state:", location.state);
           }
 
           setHasSubmitted(true);
+          
+          // Navigate only on success
+          navigate('..', { relative: 'path' });
+        } catch (error) {
+          console.error("Error submitting RSO:", error);
+          // Keep form data intact on error
+        }
       };
 
     const handleImageChange = (event) => {
@@ -272,16 +282,14 @@ console.log("Location state:", location.state);
 
 
     const handleDelete = async () => {
-      const confirmed = window.confirm("Are you sure you want to delete this RSO?");
-      if (confirmed) {
         try {
           const result = await deleteRSO(data.id);
           console.log("RSO deleted:", result);
-          navigate('/', { relative: 'path' });
+          navigate('..', { relative: 'path' });
         } catch (error) {
           console.error("Error deleting RSO:", error);
         }
-      }
+      
     };
 
     useEffect(() => {
@@ -585,7 +593,7 @@ console.log("Location state:", location.state);
                         }));
                     }}
                   />
-                  <div className='flex justify-end mt-4'>
+                  <div className='flex justify-end mt-4 gap-2'>
 
                     {/* delete */}
                     <Button

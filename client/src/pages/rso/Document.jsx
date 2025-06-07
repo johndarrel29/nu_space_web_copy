@@ -291,7 +291,11 @@ function Document() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
                     <span className="text-[#312895]/70 font-medium">Document Name:</span>
-                    <span className="text-[#312895] font-semibold">{selectedDocument.title}</span>
+                    <span 
+                    onClick={() => {
+                      window.open(selectedDocument.url, "_blank");
+                    }}
+                    className="text-[#312895] font-semibold cursor-pointer hover:underline">{selectedDocument.title}</span>
                   </div>
 
                   <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">

@@ -60,6 +60,7 @@ console.log("rso officer picture ", queryData);
       RSO_activities: org.RSO_activities || [],
       RSO_forms: org.RSO_forms || '',
       RSO_Officers: org.RSO_Officers || [], // Added missing field
+      RSO_assignedUsers: org.RSO_assignedUsers || [],
       __v: org.__v || 0 // Added missing version field
     }));
 

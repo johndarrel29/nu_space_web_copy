@@ -404,7 +404,7 @@ const {
 } = useQuery ({
     queryKey: ["activity", activityId],
     queryFn: () => viewActivity({ activityId }),
-    
+    enabled: !!activityId,
     onSuccess: (data) => {
         console.log("Activities fetched successfully:", data);
     },
@@ -420,10 +420,10 @@ const {
     error: localActivitiesError,
     refetch: refetchLocalActivities,
     isSuccess: isLocalActivitiesSuccess,
-
 } = useQuery ({
     queryKey: ["localActivities"],
     queryFn: fetchLocalActivity,
+    enabled: false,
     onSuccess: (data) => {
         console.log("Local activities fetched successfully:", data);
         queryClient.invalidateQueries(["localActivities"]);
