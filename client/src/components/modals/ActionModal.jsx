@@ -11,18 +11,28 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
   const [selectedRole, setSelectedRole] = useState(role || "student");
   const [selectedCategory, setSelectedCategory] = useState(category || "N/A");
   const formattedDate = FormatDate(createdAt);
+  const [localError, setLocalError] = useState(null);
 
   useEffect(() => {
     if (mode === "edit") {
       setSelectedRole(role);
+      setLocalError(null);
     }
   }, [mode, role]);
 
   useEffect(() => {
     if (mode === "edit") {
       setSelectedCategory(category || "N/A");
+      setLocalError(null);
     }
   }, [mode, category]);
+
+  // Add new effect to clear category when role is student
+  useEffect(() => {
+    if (selectedRole === "student") {
+      setSelectedCategory("N/A");
+    }
+  }, [selectedRole]);
 
   useEffect(() => {
     if (success) {
@@ -42,6 +52,13 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
     console.log("handleConfirm inside ActionModal triggered");
 
     if (mode === "edit") {
+      // Validate if role is student/rso and category is selected
+      if (selectedRole === "student/rso" && (!selectedCategory || selectedCategory === "N/A")) {
+        setLocalError("Please select a category for student/rso role");
+        return;
+      }
+
+      setLocalError(null);
       console.log("role: ", selectedRole)
       
       const updatedData = {
@@ -146,6 +163,7 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                       category={category}
                       setSelectedCategory={setSelectedCategory}
                       selectedCategory={selectedCategory}
+                      role={selectedRole}
                       />
                     </div>
 
@@ -159,11 +177,18 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
 
           {/* Buttons */}
               <div className="flex flex-row justify-end items-center space-x-2">
-                { success && (
+                { success && !localError && (
                   <div className="text-green-600 text-sm font-semibold">
                     {mode === 'delete' ? 'Account deleted successfully.' : 'Account updated successfully.'}
                   </div>
                 )}
+
+                {localError && (
+                  <div className="text-red-600 text-sm font-semibold">
+                    {localError}
+                  </div>
+                )}
+
 
                 <Button
                     type="button"

@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-function useDocumentManagement(rsoID, documentId, reviewedById) {
+function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -206,17 +206,50 @@ function useDocumentManagement(rsoID, documentId, reviewedById) {
         return res.json();
     }
 
-    //fetchDocuments
-//     const {
-//     data: generalDocuments,
-//     isLoading: generalDocumentsLoading,
-//     isError: generalDocumentsError,
-//     error: generalDocumentsQueryError,
-//     refetch: refetchGeneralDocuments,
-// } = useQuery({
-//     queryKey: ["documents"], 
-//     queryFn: fetchDocuments,
-// });
+    const fetchDocumentsStudentRso = async (userID) => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        console.log("Fetching documents for RSO ID:", userID);
+        const res = await fetch(`${baseURL}/${userID}/general-documents-rso`, {
+            method: "GET",
+            headers: {
+                'Authorization': formattedToken,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Fetch failed: ${errorText}`);
+        }
+        const json = await res.json();
+        if (json.success && Array.isArray(json.documents)) {
+            return json.documents || [];  
+        }
+        throw new Error("Unexpected response structure");
+
+    }
+
+const {
+    data: documentsData,
+    isLoading: documentsLoading,
+    isError: documentsError,
+    error: documentsQueryError,
+    refetch: refetchDocuments,
+
+} = useQuery({
+    queryKey: ["documents", userID],
+    queryFn: () => fetchDocumentsStudentRso(userID), 
+    enabled: !!userID, // Only run this query if rsoID is available
+    onSuccess: (data) => {
+        console.log("Documents fetched successfully:", data);
+    },
+    onError: (error) => {
+        console.error("Error fetching documents:", error);
+        setError(error.message);
+    },
+});
 
 const {
     data: generalDocuments,
@@ -291,12 +324,43 @@ const {
     },
     });
 
+    // Add new function to fetch general documents with direct ID
+    const fetchGeneralDocuments = async (id) => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        console.log("Fetching general documents for ID:", id);
+        console.log("URL:", `${baseURL}/${id}/general-documents-rso`);
+
+        const res = await fetch(`${baseURL}/${id}/general-documents-rso`, {
+            method: "GET",
+            headers: {
+                'Authorization': formattedToken,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Fetch failed: ${errorText}`);
+        }
+
+        const json = await res.json();
+
+        if (json.success && Array.isArray(json.documents)) {
+            return json.documents || [];  
+        }
+
+        throw new Error("Unexpected response structure");
+    };
+
     return {
         documents,
         loading,
         error,
         fetchDocuments,
         submitDocument,
+
         rsoDocuments,
         rsoDocumentsLoading,
         rsoDocumentsError,
@@ -325,6 +389,13 @@ const {
         generalDocuments,
         refetchGeneralDocuments,
         generalDocumentsLoading,
+        fetchGeneralDocuments,
+
+        documentsData,
+        documentsLoading,
+        documentsError,
+        documentsQueryError,
+        refetchDocuments,
     };
 }
 

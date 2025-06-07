@@ -27,8 +27,9 @@ function RSODetails() {
   const rsoID = user?.id || "default-rso-id"; 
   const [checked, setChecked] = React.useState(null);
   const { updateRSOStatusMutate } = useRSO();
-
   console.log("user status: ", user.RSO_membershipStatus);
+
+  console.log("RSO ID: ", rsoID);
   
   useEffect (() => {
     if (user?.RSO_membershipStatus === true) {
@@ -54,7 +55,8 @@ function RSODetails() {
 
       approveDocumentMutate,
       rejectDocumentMutate,
-  } = useDocumentManagement(rsoID);
+  } = useDocumentManagement({rsoID});
+
 
 
    const handleChange = (newChecked) => {
@@ -75,10 +77,6 @@ function RSODetails() {
       year: 'numeric',
     });
   }
-
-  
-
-  console.log("user: ", user);
 
   const {
     selectedTags,
@@ -147,8 +145,9 @@ useEffect(() => {
     { label: "Activities" },
   ]
 
-
+  console.log("filtered documents: ", rsoDocuments);
   const filteredDocuments = (rsoDocuments ?? []).map((doc) => {
+    const name = doc?.submittedBy?.firstName + " " + doc?.submittedBy?.lastName;
     return {
       _id: doc._id,
       title: doc.title || "Untitled Document",
@@ -156,7 +155,7 @@ useEffect(() => {
       url: doc.url,
       contentType: doc.contentType || "no content type",
       status: doc.status || "Pending",
-      submittedBy: doc.submittedBy || "Unknown",
+      submittedBy: name || "Unknown",
       createdAt: handleDateTime(doc.createdAt) || "Unknown",
       updatedAt: handleDateTime(doc.updatedAt) || "Unknown",
 
@@ -193,7 +192,7 @@ useEffect(() => {
           
           <div className='flex flex-col justify-start mt-3 sm:mt-0 sm:ml-4 w-full'>
             {/* Name and Edit Button */}
-            <div className='flex flex-col xs:flex-row xs:items-center gap-2'>
+            <div className='flex xs:flex-row xs:items-center gap-2'>
               <h1 className='text-xl font-bold text-[#312895]'>{user.RSO_name || "RSO Name"}</h1>
 
               <div 
@@ -227,10 +226,10 @@ useEffect(() => {
         </div>
 
         {/* Right side - Status Switch */}
-        <div className='flex flex-col items-start md:items-end justify-between w-full md:w-auto'>
+        {/* <div className='flex flex-col items-start md:items-end justify-between w-full md:w-auto'>
           <h1 className='text-sm text-gray-600'>Status</h1>
           <Switch checked={checked} onChange={handleChange} className='mt-1' />
-        </div>
+        </div> */}
       </div>
 
       <div className='lg:pl-10 lg:pr-10 md:pl-8 md:pr-8 pl-6 pr-6 mt-6'>

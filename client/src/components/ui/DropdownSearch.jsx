@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import useRSO from '../../hooks/useRSO';
 
-export default function DropdownSearch({ isDisabled, category, setSelectedCategory, selectedCategory, isSorting, setSelectedSorting }) {
+export default function DropdownSearch({ isDisabled, category, setSelectedCategory, selectedCategory, isSorting, setSelectedSorting, role }) {
   const { organizations, loading } = useRSO();
   const [selectedOption, setSelectedOption] = useState(null);
   const [isLoading, setIsLoading] = useState(true); 
@@ -21,10 +21,11 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
   }, [loading]);
 
   useEffect(() => {
-    if (isDisabled) {
-      setSelectedOption(null); 
+    if (isDisabled || role === "student") {
+      setSelectedOption(null);
+      setSelectedCategory("N/A");
     }
-  }, [isDisabled]);
+  }, [isDisabled, role, setSelectedCategory]);
 
   //convert the selected category to a string
 
@@ -33,7 +34,7 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
     placeholder={category ? category : "Select an RSO"}
       options={options}
       isLoading={isLoading}
-      isDisabled={isDisabled}
+      isDisabled={isDisabled || role === "student"}
       isClearable={true}
       isSearchable={true}
       menuPortalTarget={document.body}

@@ -257,7 +257,7 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                 </div>
                 
                 <div className='bg-white p-4 rounded-lg border border-mid-gray'>
-                  <h3 className="font-semibold text-[#312895] text-sm mb-2">Date & Time</h3>
+                  <h3 className="font-semibold text-[#312895] text-sm mb-2">Created at</h3>
                   <p className="text-gray-700 text-sm">
                     {formatDate(activity?.createdAt)}
                   </p>
@@ -311,7 +311,7 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                   <div>
                     <p className='text-xs text-[#312895]/70'>Date & Time</p>
                     <p className='text-sm font-medium text-[#312895]'>
-                      {formatDate(activity?.updatedAt)}
+                      {formatDate(activity?.Activity_datetime)}
                     </p>
                   </div>
                 </div>

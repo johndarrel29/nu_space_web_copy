@@ -37,6 +37,19 @@ function Document() {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [descriptions, setDescriptions] = useState([]);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userID = user?.id || "";
+  const {         
+    documentsData,
+    documentsLoading,
+    documentsError,
+    documentsQueryError,
+    refetchDocuments
+  } = useDocumentManagement({ userID });
+
+  console.log("user ", user);
+  console.log("user id", userID)
+  console.log("documentsData", documentsData);
 
   // Fetch documents on component mount
   // useEffect(() => {
@@ -61,8 +74,8 @@ function Document() {
 
 
   // Prepare table data from documents
-  const tableRow = Array.isArray(generalDocuments)
-  ? generalDocuments
+  const tableRow = Array.isArray(documentsData)
+  ? documentsData
   .filter(doc => doc.purpose !== "activities")
   .map((doc) => ({
     id: doc._id,
