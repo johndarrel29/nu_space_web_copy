@@ -193,7 +193,7 @@ useEffect(() => {
           
           <div className='flex flex-col justify-start mt-3 sm:mt-0 sm:ml-4 w-full'>
             {/* Name and Edit Button */}
-            <div className='flex xs:flex-row xs:items-center gap-2'>
+            <div className='flex flex-col md:flex-row items-center gap-2'>
               <h1 className='text-xl font-bold text-[#312895]'>{user.RSO_name || "RSO Name"}</h1>
 
               <div 
@@ -253,7 +253,7 @@ useEffect(() => {
                   </tr>
                   <tr>
                     <td className="text-sm font-light text-gray-500 py-1">College</td>
-                    <td className="text-sm font-medium text-[#312895] py-1">{user.RSO_College || "RSO College"}</td>
+                    <td className="text-sm font-medium text-[#312895] py-1">{user.RSO_College || "No College"}</td>
                   </tr>
                   <tr>
                     <td className="text-sm font-light text-gray-500 py-1">Forms</td>
@@ -286,10 +286,6 @@ useEffect(() => {
                         : "No assigned users"
                       }
                     </td>
-                  </tr>
-                  <tr>
-                    <td className="text-sm font-light text-gray-500 py-1">Date Created</td>
-                    <td className="text-sm font-medium text-[#312895] py-1">2023-10-01</td>
                   </tr>
                 </tbody>
               </table>

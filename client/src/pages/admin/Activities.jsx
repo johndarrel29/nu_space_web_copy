@@ -251,17 +251,17 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
               {/* Left Column */}
               <div className="space-y-4">
-                <div className='bg-white p-4 rounded-lg border border-mid-gray'>
+                <div 
+                  onClick={() => {
+                    setModalType("description");
+                    openModal();
+                  }}
+                  className='bg-white p-4 rounded-lg border border-mid-gray h-[13rem] cursor-pointer hover:border-[#312895]/50 transition-colors duration-200'
+                >
                   <h3 className="font-semibold text-[#312895] text-sm mb-2">Description</h3>
-                  <p className="text-gray-700 text-sm">{activity?.Activity_description}</p>
+                  <p className="text-gray-700 text-sm line-clamp-[8] overflow-hidden">{activity?.Activity_description}</p>
                 </div>
                 
-                <div className='bg-white p-4 rounded-lg border border-mid-gray'>
-                  <h3 className="font-semibold text-[#312895] text-sm mb-2">Created at</h3>
-                  <p className="text-gray-700 text-sm">
-                    {formatDate(activity?.createdAt)}
-                  </p>
-                </div>
               </div>
 
               {/* Right Column */}
@@ -281,6 +281,11 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                 <div className='bg-white p-4 rounded-lg border border-mid-gray'>
                   <h3 className="font-semibold text-[#312895] text-sm mb-2">Participants</h3>
                   <p className="text-gray-700 text-sm">{activity?.Activity_registration_total} registered</p>
+                </div>
+
+                <div className='bg-white p-4 rounded-lg border border-mid-gray'>
+                  <h3 className="font-semibold text-[#312895] text-sm mb-2">Created At</h3>
+                  <p className="text-gray-700 text-sm">{formatDate(activity?.createdAt)}</p>
                 </div>
               </div>
             </div>
@@ -433,6 +438,39 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
               </div>
             </motion.div>      
           </>
+        )}
+
+        {/* Description Modal */}
+        {modalType === "description" && (
+          <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <motion.div
+              className="bg-white rounded-lg shadow-lg w-[90%] max-w-[600px] border border-[#312895]/20"
+              variants={DropIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-[#312895]">Activity Description</h2>
+                  <CloseButton onClick={handleCloseModal} />
+                </div>
+                
+                <div className="max-h-[60vh] overflow-y-auto">
+                  <p className="text-gray-700 whitespace-pre-wrap">{activity?.Activity_description}</p>
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                  <Button 
+                    onClick={handleCloseModal}
+                    className="px-6 py-2 bg-[#312895] hover:bg-[#312895]/90 text-white"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </Backdrop>
         )}
 
         {/* Upload Document Modal */}

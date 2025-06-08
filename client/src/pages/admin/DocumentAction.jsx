@@ -26,6 +26,7 @@ function DocumentAction() {
   const fileInputRef = useRef(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [defaultImage, setDefaultImage] = useState(true);
+  const [ descriptionError, setDescriptionError ] = useState("");
 
     //file manipulaion
     const [image, setImage] = useState(null);
@@ -88,6 +89,20 @@ function DocumentAction() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (activityData?.Activity_description === "" || activityData?.Activity_description === null) {
+      setDescriptionError("Description is required");
+      return;
+    } else if (activityData?.Activity_description.length > 500) {
+      setDescriptionError("Description must not exceed 500 characters.");
+      return;
+    } else {
+      setDescriptionError("");
+    }
+
+    if (error || descriptionError) {
+      return;
+    }
 
     // Prepare the data to match the API requirement
     const apiData = {
@@ -332,6 +347,11 @@ console.log("Deleting activity with ID:", data?._id);
               className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="Provide more details about the activity..."
             />
+            {descriptionError && (
+              <div className="text-red-500 text-sm mt-1">
+                {descriptionError}
+              </div>
+            )}
           </div>
         </section>
 

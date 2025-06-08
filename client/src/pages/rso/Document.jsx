@@ -29,7 +29,6 @@ function Document() {
   const [files, setFiles] = useState(null);
   const [titles, setTitles] = useState("");
   const { handleNotification } = useNotification();
-  const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const { isOpen, openModal, closeModal } = useModal();
   const [modalType, setModalType] = useState("");
@@ -133,12 +132,13 @@ function Document() {
 
   // Event handlers
   const handleDocumentUpload = () => {
-    setShowModal(true);
     setModalType("upload");
+    openModal();
   }
 
   const handleCloseModal = () => {
-    setShowModal(false);
+    setModalType("");
+    closeModal();
     setFiles(null);
     setTitles("");
     setMsg(null);
@@ -146,8 +146,8 @@ function Document() {
 
   const handleDocumentView = (row) => {
     setSelectedDocument(row);
-    setShowModal(true);
     setModalType("view");
+    openModal();
     console.log("Selected row:", row);
   }
 
@@ -226,7 +226,7 @@ function Document() {
     if (submitDocumentSuccess) {
       setFiles(null);
       setTitles("");
-      setShowModal(false);
+      closeModal();
       setMsg("Document submitted successfully!");
       refetchGeneralDocuments(); // Refresh the document list
     }
@@ -273,7 +273,7 @@ function Document() {
       {/* Modal Views */}
       <AnimatePresence>
         {/* View Document Modal */}
-        {showModal && modalType === "view" && (
+        {isOpen && modalType === "view" && (
           <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <motion.div
               className="bg-white rounded-lg shadow-lg w-[90%] max-w-2xl border border-[#312895]/20"
@@ -334,7 +334,7 @@ function Document() {
         )} 
 
         {/* Upload Document Modal */}
-        {showModal && modalType === "upload" && (
+        {isOpen && modalType === "upload" && (
           <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <motion.div
               className="bg-white rounded-lg shadow-lg w-[90%] max-w-[600px] border border-[#312895]/20"

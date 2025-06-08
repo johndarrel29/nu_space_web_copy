@@ -44,7 +44,7 @@ export default function Account() {
   const [officerId, setOfficerId] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [create, setCreate] = useState(false);
-
+  const [officerError, setOfficerError] = useState("");
   
   const [image, setImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -96,10 +96,13 @@ const handleOfficer = (officer) => {
 
 
   const handleSubmit = () => {
+    // Clear error state at the start
+    setOfficerError("");
+    
     // Handle form submission logic here
     const { OfficerPicture, OfficerName, OfficerPosition } = formData;
     if (!OfficerPicture || !OfficerName || !OfficerPosition) {
-      console.error("Please fill in all fields and upload a picture.");
+      setOfficerError("Please fill in all fields and upload a picture.");
       return;
     }
 
@@ -132,7 +135,6 @@ const handleOfficer = (officer) => {
       });
     }
 
-    // console.log("Form Data Submitted:", updatedOfficer);
     // Reset form data after submission
     setFormData({
       OfficerPicture: null,
@@ -417,7 +419,11 @@ const handleOfficer = (officer) => {
                       onClick={handleSubmit}>Save</Button>
                     </div>
                   </div>
-
+                  {officerError && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {officerError}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             </Backdrop>

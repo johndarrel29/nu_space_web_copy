@@ -26,6 +26,9 @@ function RSOAction() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [tagName, setTagName] = useState("");
   const [originalTagName, setOriginalTagName] = useState("");
+  const [error, setError] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
+  const [tagError, setTagError] = useState("");
 
   //file manipulaion
   const [image, setImage] = useState(null);
@@ -109,7 +112,7 @@ console.log("Location state:", location.state);
 
 
 
-  const handleOptions = ['CCIT', 'CBA', 'COA', 'COE', 'CEAS', 'CTHM'];
+  const handleOptions = ['CCIT', 'CBA', 'COA', 'COE', 'CAH', 'CEAS', 'CTHM'];
   const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest', 'Probationary']
 
       const [RSO_picture, setRSOPicture] = useState(null);
@@ -218,12 +221,48 @@ console.log("Location state:", location.state);
         const payload = {
           ...formData,
           RSO_tags: selectedTags,
+          createdAt: new Date().toISOString(), // Add current date in ISO format
+          updatedAt: new Date().toISOString(),
         };
 
         console.log("Payload before submission:", payload);
 
         if (formData.RSO_status === "" || formData.RSO_status === null) {
           delete payload.RSO_status;
+        }
+        // Validate form data
+        if (formData.RSO_forms && !formData.RSO_forms.startsWith("https://")) {
+          setError("Registration forms link must start with https://");
+          return;
+        } else {
+          setError("");
+        }
+
+        if (formData.RSO_description === "" || formData.RSO_description === null) {
+          setDescriptionError("Description is required");
+          return;
+        } else if (formData.RSO_description.length > 500) {
+          setDescriptionError("Description must not exceed 500 characters.");
+          return;
+        } else {
+          setDescriptionError("");
+        }
+
+        if (selectedTags.length === 0) {
+          setTagError("At least one tag is required");
+          return;
+        } else if (selectedTags.length < 3) {
+          setTagError("You must select at least 3 tags");
+          return;
+        } else if (selectedTags.length > 5) {
+          setTagError("You can only select up to 5 tags");
+          return;
+        } else {
+          setTagError("");
+        }
+        // Don't proceed if there are any errors
+        if (error || descriptionError || tagError) {
+          return;
         }
 
         try {
@@ -238,20 +277,7 @@ console.log("Location state:", location.state);
           
           console.log("RSO operation successful:", result);
 
-          // Only clear form and navigate on success
-          setFormData({
-              RSO_name: "",
-              RSO_acronym: "",
-              RSO_category: "",
-              RSO_tags: "",
-              RSO_forms: "",
-              RSO_College: "",
-              RSO_status: "",
-              RSO_description: "",
-          });
-          setRSOPicture(null);
-          setSelectedTags([]);
-          setSearchQuery("");
+
 
           if (fileInputRef.current) {
               fileInputRef.current.value = '';
@@ -259,8 +285,25 @@ console.log("Location state:", location.state);
 
           setHasSubmitted(true);
           
-          // Navigate only on success
-          navigate('..', { relative: 'path' });
+          // Only navigate on success
+          if (success) {
+            navigate('..', { relative: 'path' });
+
+          // Only clear form and navigate on success
+              setFormData({
+                RSO_name: "",
+                RSO_acronym: "",
+                RSO_category: "",
+                RSO_tags: "",
+                RSO_forms: "",
+                RSO_College: "",
+                RSO_status: "",
+                RSO_description: "",
+            });
+            setRSOPicture(null);
+            setSelectedTags([]);
+            setSearchQuery("");
+          }
         } catch (error) {
           console.error("Error submitting RSO:", error);
           // Keep form data intact on error
@@ -467,6 +510,11 @@ console.log("Location state:", location.state);
             value={formData.RSO_forms}
             onChange={handleChange}
             ></TextInput>
+            {error && (
+              <div className="text-red-500 text-sm mt-1">
+                {error}
+              </div>
+            )}
 
             <div className='mt-2'>
               <label htmlFor="large-input" className='text-sm'>Description</label>
@@ -478,6 +526,11 @@ console.log("Location state:", location.state);
                 className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 placeholder="Tell us about your organization..."
               />
+              {descriptionError && (
+                <div className="text-red-500 text-sm mt-1">
+                  {descriptionError}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -514,6 +567,11 @@ console.log("Location state:", location.state);
                 handleTagModal(tag);
               }}
             />
+            {tagError && (
+              <div className="text-red-500 text-sm mt-1">
+                {tagError}
+              </div>
+            )}
         </div>
       </div>
 
@@ -637,7 +695,10 @@ console.log("Location state:", location.state);
               <div className="bg-white rounded-lg p-6 w-1/3 shadow-xl border border-gray-100">
                 <div className='flex justify-between items-center mb-4'>
                   <h2 className='text-sm font-semibold'>Image Preview</h2>
-                  <CloseButton onClick={() => setImage(null)}></CloseButton>
+                  <CloseButton onClick={() => {
+                    setImage(null);
+                    setReadyCropper(false);
+                  }}></CloseButton>
                 </div>
                 <div className='relative h-[300px] w-full mx-auto mb-4'>
                   {/* <img src={image} alt="Preview" className='w-32 h-32 object-cover rounded-md' /> */}
