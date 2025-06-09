@@ -101,19 +101,19 @@ export default function MainDocuments() {
     console.log("Selected Sort Option:", value);
     if (value === "All") {
       setSorted(null);
+    } else {
+      setSorted(value);
     }
-
-    setSorted(value);
-    // Implement sorting logic here based on the selected value
+    // Sorting is handled by the backend through the URL parameters
   }
   const handleRSOType = (value) => {
-    console.log("Selected RSO:", value);
+    console.log("Selected RSO Type:", value);
     if (value === "All") {
       setRSOType(null);
+    } else {
+      setRSOType(value);
     }
-    setRSO(value);
-    // Implement RSO filtering logic here based on the selected value
-
+    // Implement RSO Type filtering logic here based on the selected value
   }
 
   const handleCollege = (value) => {
@@ -157,7 +157,33 @@ console.log("Filtered Activities:", filteredActivities);
   }
 
   const activitiesToShow = 
-  user.role === "student/rso" ? localActivities :
+  user.role === "student/rso" ? 
+    (localActivities || [])
+      // First apply search filter if there's a search query
+      .filter(activity => {
+        if (!searchQuery) return true;
+        return (
+          activity.Activity_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          activity.Activity_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          activity.Activity_place?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      })
+      // Then apply sorting
+      .sort((a, b) => {
+        if (!sorted) return 0;
+        switch (sorted) {
+          case "A-Z":
+            return (a.Activity_name || "").localeCompare(b.Activity_name || "");
+          case "Most Joined":
+            return (b.Activity_registration_total || 0) - (a.Activity_registration_total || 0);
+          case "Recently Added":
+            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+          case "All":
+            return 0;
+          default:
+            return 0;
+        }
+      }) :
   (user.role === "admin" || user.role === "superadmin") ? allActivities :
   [];
 
@@ -208,9 +234,9 @@ console.log("Filtered Activities:", filteredActivities);
           <div>
             <ReusableDropdown
               icon={true}
-              options={["A-Z", "Most Joined", "Recently Added"]}
+              options={["All", "A-Z", "Most Joined", "Recently Added"]}
               showAllOption={false}
-              onChange={handleSorted}
+              onChange={(e) => handleSorted(e.target.value)}
               value={sorted}
               buttonClass="border-[#312895] text-[#312895]"
             />
@@ -281,7 +307,7 @@ console.log("Filtered Activities:", filteredActivities);
                     options={["All", "Professional & Affiliates", "Professional", "Special Interest", "Probationary"]}
                     showAllOption={false}
                     onChange={(e) => handleRSOType(e.target.value)}
-                    value={RSO}
+                    value={RSOType}
                     buttonClass="border-[#312895] text-[#312895]"
                   />
                 </div>
@@ -373,17 +399,19 @@ console.log("Filtered Activities:", filteredActivities);
             }
           </div>
         </div>
-          <div className="flex justify-center mt-6">
-            {hasNextPage && (
-              <Button 
-              style={"secondary"}
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage ? 'Loading more...' : 'Load More'}
-              </Button>
-            )}
-          </div>
+          {(user.role === "admin" || user.role === "superadmin") && (
+            <div className="flex justify-center mt-6">
+              {hasNextPage && (
+                <Button 
+                style={"secondary"}
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? 'Loading more...' : 'Load More'}
+                </Button>
+              )}
+            </div>
+          )}
 
         </>
       )

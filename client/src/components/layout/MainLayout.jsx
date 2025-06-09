@@ -136,8 +136,8 @@ useEffect(() => {
                 
                 isStudentRSO ? (
                   <div className="flex flex-col justify-center items-start w-[120px]">
-                    <h1 className='text-sm font-bold'>{user.assigned_rso.RSO_acronym}</h1>
-                    <h2 className='text-xs w-full truncate text-gray-500 text-start'>{user.assigned_rso.RSO_name}</h2>
+                    <h1 className='text-sm font-bold'>{user?.assigned_rso?.RSO_acronym || 'N/A'}</h1>
+                    <h2 className='text-xs w-full truncate text-gray-500 text-start'>{user?.assigned_rso?.RSO_name || 'Not Assigned'}</h2>
                   </div>
                 )
                 :

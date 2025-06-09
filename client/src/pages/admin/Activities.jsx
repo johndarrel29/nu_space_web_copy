@@ -380,7 +380,7 @@ const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) =>
                   options={["All", "PDF", "Word Document", "Excel Sheet"]}
                   value={"All"}
                   onChange={(e) => console.log("Filter changed:", e.target.value)}
-                  showAllOption={true}
+                  showAllOption={false}
                   onClick={handleDocumentClick}
                   headerColor="#312895"
                   activityId={activityId}

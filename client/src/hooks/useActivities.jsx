@@ -345,9 +345,18 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             "Authorization": token ? `Bearer ${formattedToken}` : "",
         };
 
-        console.log("url sending: " + `${process.env.REACT_APP_GET_RSO_ACTIVITIES_URL}`);
+        // Create URL with query parameters for sorting
+        const url = new URL(process.env.REACT_APP_GET_RSO_ACTIVITIES_URL);
+        if (sorted) {
+            url.searchParams.set("sorted", sorted);
+        }
+        if (debouncedQuery) {
+            url.searchParams.set("search", debouncedQuery);
+        }
 
-        const response = await fetch(`${process.env.REACT_APP_GET_RSO_ACTIVITIES_URL}`, {
+        console.log("url sending with params: " + url.toString());
+
+        const response = await fetch(url, {
             method: "GET",
             headers,
         });
@@ -359,13 +368,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         const json = await response.json();
         console.log("Full activity fetch response:", json);
 
-        return json.activities  || []
-
-        // return {
-        //     documents: json.documents || [],
-        //     // preActivityDocuments: json.preActivityDocuments || [],
-        //     // postActivityDocuments: json.postActivityDocuments || [],
-        // };
+        return json.activities || []
     }
 
     const viewActivity = async ({activityId}) => {
