@@ -384,6 +384,153 @@ const updateRSOStatus = async ({id, status}) => {
 
   }
 
+  const updateMembershipDate = async ({date}) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    
+    const response = await fetch(`${process.env.REACT_APP_CREATE_MEMBERSHIP_DATE_URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${formattedToken}` : "",
+      },
+      body: JSON.stringify({durationInDays: date}),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update membership date: ${response.status}`);
+    }
+    return response.json();
+
+  }
+
+  const getMembershipDate = async () => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    const response = await fetch(`${process.env.REACT_APP_GET_MEMBERSHIP_DATE_URL}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${formattedToken}` : "",
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get membership date: ${response.status}`);
+    }
+    return response.json();
+
+  }
+
+  const closeMembershipDate = async () => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    
+    const response = await fetch(`${process.env.REACT_APP_CLOSE_MEMBERSHIP_DATE_URL}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${formattedToken}` : "",
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to close membership date: ${response.status}`);
+    }
+    return response.json();
+
+  }
+
+  const extendMembershipDate = async ({date}) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    
+    const response = await fetch(`${process.env.REACT_APP_EXTEND_MEMBERSHIP_DATE_URL}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${formattedToken}` : "",
+      },
+      body: JSON.stringify({durationInDays: date}),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to extend membership date: ${response.status}`);
+    }
+    return response.json();
+
+  }
+
+  const {
+    mutate: extendMembershipDateMutate,
+    isLoading: isExtendingMembershipDate,
+    isError: isExtendingMembershipDateError,
+    isSuccess: isExtendingMembershipDateSuccess,
+  } = useMutation({
+
+    mutationFn: extendMembershipDate,
+    onSuccess: (data) => {
+      console.log("Membership date extended successfully:", data);
+      queryClient.invalidateQueries(["membershipDateData"]);
+    },
+    onError: (error) => {
+      console.error("Error extending membership date:", error);
+    },
+  })
+
+
+  const {
+    mutate: closeMembershipDateMutate,
+    isLoading: isClosingMembershipDate,
+    isError: isClosingMembershipDateError,
+    isSuccess: isClosingMembershipDateSuccess,
+  } = useMutation({
+
+    mutationFn: closeMembershipDate,
+    onSuccess: (data) => {
+      console.log("Membership date closed successfully:", data);
+      queryClient.invalidateQueries(["membershipDateData"]);
+    },
+    onError: (error) => {
+      console.error("Error closing membership date:", error);
+    },
+  })
+
+
+
+  const {
+    data: membershipDateData,
+    isLoading: isGettingMembershipDate,
+    isError: isGettingMembershipDateError,
+    isSuccess: isGettingMembershipDateSuccess,
+  } = useQuery({
+    queryKey: ["membershipDateData"],
+    queryFn: getMembershipDate,
+    onSuccess: (data) => {
+      console.log("Membership date fetched successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching membership date:", error);
+    },
+  })
+
+  const {
+    mutate: updateMembershipDateMutate,
+    isLoading: isUpdatingMembershipDate,
+    isError: isUpdatingMembershipDateError,
+    isSuccess: isUpdatingMembershipDateSuccess,
+  } = useMutation({
+    mutationFn: updateMembershipDate,
+    onSuccess: (data) => {
+      console.log("Membership date updated successfully:", data);
+      queryClient.invalidateQueries(["membershipDateData"]);
+    },
+    onError: (error) => {
+      console.error("Error updating membership date:", error);
+    },
+  })
+
   const {
     mutate: createOfficerMutate,
     isLoading: isCreatingOfficerLoading,
@@ -506,7 +653,27 @@ const updateRSOStatus = async ({id, status}) => {
 
     createOfficerMutate,
 
-  };
-}
+    updateMembershipDateMutate,
+    isUpdatingMembershipDate,
+    isUpdatingMembershipDateError,
+    isUpdatingMembershipDateSuccess,
 
-export default useRSO;
+    membershipDateData,
+    isGettingMembershipDate,
+    isGettingMembershipDateError,
+    isGettingMembershipDateSuccess,
+
+    closeMembershipDateMutate,
+    isClosingMembershipDate,
+    isClosingMembershipDateError,
+    isClosingMembershipDateSuccess,
+
+    extendMembershipDateMutate,
+    isExtendingMembershipDate,
+    isExtendingMembershipDateError,
+    isExtendingMembershipDateSuccess,
+
+    };
+  }
+
+  export default useRSO;

@@ -4,6 +4,7 @@ import { useUserProfile, useModal, useRSO } from "../../hooks";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
+import ErrorBoundary from '../../components/ErrorBoundary';
 
 //TODO: make sure to submit correct data field to formData upon appending 
 // backend requires array but the frontend is sending formData with single object
@@ -26,6 +27,7 @@ import getCroppedImg from '../../utils/cropImage';
 
 const tabs = [
   { label: "Officers" },
+  { label: "RSO Details" },
 ]
 
 
@@ -156,11 +158,6 @@ const handleOfficer = (officer) => {
 
 
 
-
-
-
-
-
   const handleCloseModal = () => {
     setOfficerName("");
     setOfficerPosition("");
@@ -221,25 +218,33 @@ const handleOfficer = (officer) => {
   return (
     <MainLayout tabName="Admin Account" headingTitle="Admin Full Name">
       <div className="border border-mid-gray bg-white rounded-lg p-4">
-        <div className="flex flex-col justify-center items-center mb-4 w-full">
+        <div className="grid grid-cols-1 w-full">
           {/* Profile Overview */}
-          <div className="w-full md:w-auto md:col-span-1 flex justify-center md:justify-start">
-            <div className="flex flex-col gap-2 items-center md:items-start text-center md:text-left">
-              <img
-                src={user?.assigned_rso?.signed_picture || DefaultPicture}
-                alt="Profile"
-                className="size-16 rounded-full object-cover"
-              />
-              {isAdmin ? (
-                <Badge text="Admin" style="secondary" />
-              ) : isSuperAdmin && 
-                (<Badge text="Super Admin" style="primary" />)
-              }
-              {isStudentRSO && (
-                <Badge text="RSO" style="secondary" />
+          <div className="flex flex-col md:flex-row items-start gap-6 mb-6">
+            <div className="flex flex-col items-start gap-2">
+              {isStudentRSO ? (
+                <img
+                  src={user?.assigned_rso?.signed_picture || DefaultPicture}
+                  alt="Profile"
+                  className="size-24 rounded-full object-cover"
+                />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="size-24 fill-gray-700" viewBox="0 0 512 512"><path d="M399 384.2C376.9 345.8 335.4 320 288 320l-64 0c-47.4 0-88.9 25.8-111 64.2c35.2 39.2 86.2 63.8 143 63.8s107.8-24.7 143-63.8zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 16a72 72 0 1 0 0-144 72 72 0 1 0 0 144z"/></svg>
               )}
-              <div className="font-semibold text-lg">
-                <h1>
+
+            </div>
+            <div className="flex flex-col gap-1">
+            <div className="flex gap-2">
+                {isAdmin ? (
+                  <Badge text="Admin" style="secondary" />
+                ) : isSuperAdmin && 
+                  (<Badge text="Super Admin" style="primary" />)
+                }
+                {isStudentRSO && (
+                  <Badge text="RSO" style="secondary" />
+                )}
+              </div>
+              <h1 className="text-2xl font-bold text-gray-800">
                 {isStudentRSO 
                   ? (profilePageData?.assigned_rso?.RSO_name || "loading...")
                   : (isAdmin || isSuperAdmin)
@@ -247,20 +252,19 @@ const handleOfficer = (officer) => {
                     profilePageData?.firstName + " " + profilePageData?.lastName || "loading..."
                   )
                   : "loading..."}
-                </h1>
-              </div>
-              <p className="text-sm text-gray-600">
-                      {isStudentRSO 
-                      ? (profilePageData?.assigned_rso?.RSO_acronym || "loading...")
-                      : (isAdmin || isSuperAdmin)
-                      ? ('')
-                      : "loading..."}
+              </h1>
+              <p className="text-base text-gray-600">
+                {isStudentRSO 
+                ? (profilePageData?.assigned_rso?.RSO_acronym || "loading...")
+                : (isAdmin || isSuperAdmin)
+                ? ('')
+                : "loading..."}
               </p>
             </div>
           </div>
 
           {/* Edit Form */}
-          <div className="w-full  md:col-span-2 gap-2">
+          <div className="w-full">
             { isStudentRSO && (
               <>
               <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab}></TabSelector>
@@ -308,6 +312,11 @@ const handleOfficer = (officer) => {
                       </>
                     );
                   })}
+                </div>
+              )}
+              {activeTab === 1 && (
+                <div>
+                  <h1>Details</h1>
                 </div>
               )}
               </>
@@ -446,19 +455,21 @@ const handleOfficer = (officer) => {
                 <div className='relative h-[300px] w-full mx-auto mb-4'>
                   {/* <img src={image} alt="Preview" className='w-32 h-32 object-cover rounded-md' /> */}
                   {image && readyCropper && (
-                    <Cropper
-                    image={image}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={1}
-                    onCropChange={setCrop}
-                    onZoomChange={setZoom}
-                    onCropComplete={onCropComplete}
-                    cropShape='round'
-                      classes={{
-                        containerClassName: 'rounded-xl overflow-hidden',
-                      }}
-                    />
+                    <ErrorBoundary>
+                      <Cropper
+                        image={image}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={1}
+                        onCropChange={setCrop}
+                        onZoomChange={setZoom}
+                        onCropComplete={onCropComplete}
+                        cropShape='round'
+                        classes={{
+                          containerClassName: 'rounded-xl overflow-hidden',
+                        }}
+                      />
+                    </ErrorBoundary>
                   )}
                 </div>
 

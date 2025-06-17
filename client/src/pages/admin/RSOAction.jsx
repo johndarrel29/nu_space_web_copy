@@ -367,24 +367,24 @@ console.log("Location state:", location.state);
 
   return (
     <div>
-      <div className='mb-8'>
+      <div className='flex items-center gap-4 mb-8'>
         <div
-        onClick={() => {
-          navigate(-1);
-
-        }}
-        className='flex items-center justify-center rounded-full h-8 w-8 cursor-pointer border border-gray-300 group'>
+          onClick={() => {
+            navigate(-1);
+          }}
+          className='flex items-center justify-center rounded-full h-8 w-8 cursor-pointer border border-gray-300 group'>
           <svg xmlns="http://www.w3.org/2000/svg" className='fill-gray-600 size-4 group-hover:fill-off-black' viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+        </div>
+        <div>
+          <h1 className='text-xl font-bold'>
+            {isEdit ? `Edit ${from}` : isCreate ? 'Create RSO' : 'RSO Action'}
+          </h1>
+          <h2 className='text-sm font-200'>
+            {isEdit ? `Manage Account details` : isCreate ? 'Create a new RSO Account' : ''}
+          </h2>
         </div>
       </div>
 
-
-      <h1 className='text-xl font-bold'>
-        {isEdit ? `Edit ${from}` : isCreate ? 'Create RSO' : 'RSO Action'}
-      </h1>
-      <h2 className='text-sm font-200'>
-        {isEdit ? `Manage Account details` : isCreate ? 'Create a new RSO Account' : ''}
-      </h2>
 
       {/* first section */}
       <div className='flex flex-col md:flex-row items-start gap-4 mt-12'>

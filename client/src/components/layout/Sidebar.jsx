@@ -2,12 +2,13 @@ import sidebar from '../../css/Sidebar.module.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SidebarButton from './SidebarButton';
 import SidebarLogo from './SidebarLogo';
+import { useUserProfile } from '../../hooks';
 
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem("user"));
-
+  const {user} = useUserProfile();
+  
   const isSuperAdmin = user?.role === "superadmin";
   const isAdmin = user?.role === "admin";
   const isStudentRSO = user?.role === "student/rso";

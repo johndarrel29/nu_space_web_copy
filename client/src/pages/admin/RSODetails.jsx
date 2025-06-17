@@ -8,6 +8,8 @@ import { useTagSelector, useModal, useUserProfile } from '../../hooks';
 import { useNavigate, Link } from 'react-router-dom';
 import {useDocumentManagement, useRSO} from '../../hooks';
 import Switch from '@mui/material/Switch';
+import { motion, AnimatePresence } from "framer-motion";
+import { DropIn } from "../../animations/DropIn";
 
 function RSODetails() {
   const location = useLocation()
@@ -437,202 +439,166 @@ useEffect(() => {
 
 
       {/* modal for rso officers */}
-      {['officers-create', 'officers-edit'].includes(modalMode ) && isOpen && (
-      <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50`}>
-        <div className='flex items-center justify-center h-screen'>
-          <div className='bg-white rounded-lg w-[400px] p-4 shadow-md'>
-            <div className='flex justify-between'>
-              <h1 className='text-lg font-bold text-[#312895]'>RSO Officers</h1>
-                <CloseButton onClick={() => {
-                setModalMode("");
-                closeModal();
-              }}/>
-            </div>
-
-            {/* rso details */}
-  {/* {userProfile?.role === "student/rso" && (
-  <div className='flex flex-col items-start justify-start mt-4 gap-2'>
-    <div className='w-full mb-4'>
-    <label htmlFor="profilePicture">Profile Picture</label>
-    <div className="flex items-center gap-4">
-      <div className="relative group">
-        <div className="h-16 w-16 bg-[#312895] rounded-full flex items-center justify-center text-white overflow-hidden border-2 border-[#312895]">
-          {profileImage ? (
-            <img 
-              src={profileImage} 
-              alt="Officer preview" 
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="size-8" viewBox="0 0 448 512" fill="currentColor">
-              <path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/>
-            </svg>
-          )}
-        </div>
-        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
-          <svg xmlns="http://www.w3.org/2000/svg" className="size-6" viewBox="0 0 512 512" fill="white">
-            <path d="M149.1 64.8L138.7 96H64C28.7 96 0 124.7 0 160V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H373.3L362.9 64.8C356.4 45.2 338.1 32 317.4 32H194.6c-20.7 0-39 13.2-45.5 32.8zM256 192a96 96 0 1 1 0 192 96 96 0 1 1 0-192z"/>
-          </svg>
-        </div>
-        <input 
-          type="file"
-          id="profilePicture"
-          accept="image/*"
-          className="absolute inset-0 opacity-0 cursor-pointer"
-          onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                setProfileImage(event.target?.result);
-              };
-              reader.readAsDataURL(e.target.files[0]);
-            }
-          }}
-        />
-      </div>
-      
-      <div className="flex flex-col">
-        <p className="text-sm text-gray-600">Upload a profile picture</p>
-        <p className="text-xs text-gray-500">JPG, PNG or GIF (max 2MB)</p>
-        {profileImage && (
-          <button 
-            type="button"
-            onClick={() => setProfileImage(null)}
-            className="text-xs text-red-500 hover:text-red-700 mt-1"
+      <AnimatePresence>
+        {['officers-create', 'officers-edit'].includes(modalMode) && isOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50`}
           >
-            Remove image
-          </button>
-        )}
-              </div>
-            </div>
-          </div>
-
-          <div className='w-full'>
-            <label htmlFor="name">Officer Name</label>
-            <TextInput id={"name"} type={"text"} placeholder={"Firstname M.I., Lastname"}></TextInput>
-          </div>
-          <div className='w-full'>
-            <label htmlFor="position">Position</label>
-            <TextInput id={"position"} type={"text"} placeholder={"Officer Position"}></TextInput>
-          </div>
-
-            </div>
-  )} */}
-  {(userProfile?.role === "admin" || userProfile?.role === "superadmin" ) && (
-    <div className='flex flex-col items-center justify-center mt-4 gap-2'>
-      <div className='aspect-square rounded-full bg-gray h-24'>
-        <img 
-        className='h-full w-full object-cover rounded-full'
-        src={selected?.OfficerPictureUrl || DefaultPicture} 
-        alt="officer-picture"  />
-      </div>
-      {console.log("Selected officer: ", selected)}
-    
-      <h1>{selected.OfficerName}</h1>
-      <h1 className='text-gray-600'>{selected.OfficerPosition}</h1>
-    </div>
-  )}
-            <div className='flex items-center justify-end mt-4 gap-2'>
-              {modalMode === "officers-create" && isOpen && (
-                <>
-                  <Button>Assign Officer</Button>
-                  <Button style={"secondary"}>Cancel</Button>
-                </>
-              )}
-              {modalMode === "officers-edit" && isOpen && (
-                <>
-                  {userProfile?.role === "student/rso" && (<Button>Edit Officer</Button>)}
-                  <Button 
-                  style={"secondary"} 
-                  onClick={() => {
+            <div className='flex items-center justify-center h-screen'>
+              <motion.div 
+                variants={DropIn}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className='bg-white rounded-lg w-[400px] p-4 shadow-md'
+              >
+                <div className='flex justify-between'>
+                  <h1 className='text-lg font-bold text-[#312895]'>RSO Officers</h1>
+                  <CloseButton onClick={() => {
                     setModalMode("");
                     closeModal();
-                  }}>Close</Button>
-                </>
-              )}
+                  }}/>
+                </div>
+
+                {/* rso details */}
+                {(userProfile?.role === "admin" || userProfile?.role === "superadmin") && (
+                  <div className='flex flex-col items-center justify-center mt-4 gap-2'>
+                    <div className='aspect-square rounded-full bg-gray h-24'>
+                      <img 
+                        className='h-full w-full object-cover rounded-full'
+                        src={selected?.OfficerPictureUrl || DefaultPicture} 
+                        alt="officer-picture" 
+                      />
+                    </div>
+                    <h1>{selected.OfficerName}</h1>
+                    <h1 className='text-gray-600'>{selected.OfficerPosition}</h1>
+                  </div>
+                )}
+                <div className='flex items-center justify-end mt-4 gap-2'>
+                  {modalMode === "officers-create" && isOpen && (
+                    <>
+                      <Button>Assign Officer</Button>
+                      <Button style={"secondary"}>Cancel</Button>
+                    </>
+                  )}
+                  {modalMode === "officers-edit" && isOpen && (
+                    <>
+                      {userProfile?.role === "student/rso" && (<Button>Edit Officer</Button>)}
+                      <Button 
+                        style={"secondary"} 
+                        onClick={() => {
+                          setModalMode("");
+                          closeModal();
+                        }}
+                      >
+                        Close
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
-      </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-         {/* modal for reviewing documents */}
-   {modalMode === "documents" && isOpen && (
-    <div className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50 ${modalMode === "documents" ? "block" : "hidden"}`}>
-        <div className='flex items-center justify-center h-screen'>
-          <div className='bg-white rounded-lg w-1/3 p-4 shadow-md'>
-          <div className='flex flex-col '>
+      {/* modal for reviewing documents */}
+      <AnimatePresence>
+        {modalMode === "documents" && isOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50`}
+          >
+            <div className='flex items-center justify-center h-screen'>
+              <motion.div 
+                variants={DropIn}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className='bg-white rounded-lg w-1/3 p-4 shadow-md'
+              >
+                <div className='flex flex-col'>
+                  {/* title */}
+                  <div className='flex justify-between'>
+                    <h1 className='text-lg font-bold text-[#312895]'>RSO Documents</h1>
+                    <CloseButton onClick={() => {
+                      setModalMode("");
+                      closeModal();
+                    }}/>
+                  </div>
 
-            {/* title */}
-            <div className='flex justify-between'>
-              <h1 className='text-lg font-bold text-[#312895]'>RSO Documents</h1>
-              <CloseButton onClick={() => {
-                setModalMode("");
-                closeModal();
-              }}/>
+                  <div className='flex flex-col gap-2 mt-4'>
+                    {selectedDocument ? (
+                      <div className='w-full border border-primary bg-background rounded-md p-2 flex items-center justify-start'>
+                        <h1 
+                          onClick={() => {
+                            if (selectedDocument?.url) {
+                              window.open(selectedDocument.url, "_blank");
+                            } else {
+                              console.error("No URL available for this document.");
+                            }
+                          }}
+                          className='text-primary hover:underline cursor-pointer pl-4 truncate'
+                        >
+                          {selectedDocument?.title || "No document selected"}
+                        </h1>
+                      </div>
+                    ) : (
+                      <div className='w-full bg-red-50 bg-light-gray rounded-md p-2 flex items-center justify-center'>
+                        <h1 className='text-red-500'>No document selected</h1>
+                      </div>
+                    )}
+                    {localError && (
+                      <div className='w-full bg-red-50 rounded-md p-2 flex items-center justify-center'>
+                        <h1 className='text-red-500'>{localError || "An error occurred while processing the document."}</h1>
+                      </div>
+                    )}
+
+                    {successMessage && (
+                      <p className={"text-green-500"}>
+                        {successMessage}
+                      </p>
+                    )}
+
+                    <div>
+                      <label className='text-sm font-mid-gray' htmlFor="remarks">Remarks</label>
+                      <textarea
+                        id='remarks'
+                        rows="4"
+                        name="RSO_description"
+                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                        placeholder="Add remarks here..."
+                      />
+                    </div>
+                  </div>
+                  <div className='flex items-center justify-end mt-4'>
+                    <div className='flex items-center justify-end gap-2 mt-4'>
+                      <Button 
+                        onClick={() => handleDocumentAction("approve", selectedDocument?._id)}
+                      >
+                        Accept
+                      </Button>
+                      <Button 
+                        onClick={() => handleDocumentAction("reject", selectedDocument?._id)}
+                        style={"secondary"}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            <div className='flex flex-col gap-2 mt-4'>
-              { selectedDocument ? (
-              <div className='w-full border border-primary bg-background rounded-md p-2 flex items-center justify-start'>
-                <h1 
-                onClick={() => {
-                  if (selectedDocument?.url) {
-                    window.open(selectedDocument.url, "_blank");
-                  } else {
-                    console.error("No URL available for this document.");
-                  }
-                }}
-                className='text-primary hover:underline cursor-pointer pl-4 truncate'>{selectedDocument?.title || "No document selected"}</h1>
-              </div>
-              )
-              :
-              <div className='w-full bg-red-50 bg-light-gray rounded-md p-2 flex items-center justify-center'>
-                <h1 className='text-red-500'>No document selected</h1>
-              </div>
-            }
-            {localError && (
-              <div className='w-full bg-red-50 rounded-md p-2 flex items-center justify-center'>
-                <h1 className='text-red-500'>{localError || "An error occurred while processing the document."}</h1>
-              </div>
-            )}
-
-            {successMessage && (
-                <p className={"text-green-500"}>
-                  {successMessage}
-                </p>
-            )}
-
-              <div>
-                <label className='text-sm font-mid-gray' htmlFor="remarks">Remarks</label>
-                <textarea
-                id='remarks'
-                rows="4"
-                name="RSO_description"
-                className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Add remarks here..."
-              />
-              </div>
-            </div>
-            <div className='flex items-center justify-end mt-4'>
-
-            <div className='flex items-center justify-end gap-2 mt-4'>
-              <Button 
-              onClick={() => handleDocumentAction("approve", selectedDocument?._id)}
-              >Accept</Button>
-              <Button 
-              onClick={() => handleDocumentAction("reject", selectedDocument?._id)}
-              style={"secondary"}>Reject</Button>
-            </div>
-          </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-      )}
-
-</div>
+    </div>
 
   )
 }

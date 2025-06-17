@@ -8,7 +8,7 @@ import { AnimatePresence } from "framer-motion";
 import   { useModal }  from "../../hooks";
 
 import axios from "axios";
-
+import { toast } from 'react-toastify';
 //Even when the data is null in assigned_rso, the data still retains on the server.
 //make a way to display that if the user contains assigned_rso, then display it in the dropdownsearch.
 
@@ -129,6 +129,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   
       console.log("Category deleted successfully:", response.data);
       setSuccess(true);
+      toast.success("Category deleted successfully");
     } catch (error) {
       console.error("Error deleting category:", error);
     } finally  {
@@ -214,18 +215,21 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
             user._id === _id ? { ...user, ...response.data.user } : user
           )
         );
+        toast.success("User updated successfully");
       } else {
         console.log("Delete URL:", `${process.env.REACT_APP_DELETE_USER_URL}/${_id}`);
         // Delete user
         await axios.delete(`${process.env.REACT_APP_DELETE_USER_URL}/${_id}`, { headers });
   
         setUsers(prevUsers => prevUsers.filter(user => user._id !== _id));
+        toast.success("User deleted successfully");
       }
       // Refetch users after the operation
       setSuccess(true);
       await fetchUsers();
     } catch (error) {
       console.error("Error updating/deleting user:", error);
+      toast.error("Error updating/deleting user");
     } finally {
       closeModal();
       setLoading(false);

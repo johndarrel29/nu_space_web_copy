@@ -5,7 +5,6 @@ import { AnimatePresence } from "framer-motion";
 import { CreateUserModal, ReusableTable } from "../../components";
 import { useUserProfile } from "../../hooks";
 
-
   // function to handle the search and filter
   const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole, openModal }) => {
     
@@ -72,8 +71,6 @@ import { useUserProfile } from "../../hooks";
     membersSuccess,
   } = useRSO();
 
-  console.log("membersData:", membersData);
-  console.log("membersError:", membersError);
 
   const isUserStatusActive = profileUser?.assigned_rso?.RSO_status === false && profileUser?.role === "student/rso";
   console.log("isUserStatusActive:", isUserStatusActive);

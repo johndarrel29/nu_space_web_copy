@@ -5,7 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ThemeProvider } from "@material-tailwind/react";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-
+import { ToastContainer } from 'react-toastify';
 
 import {
   QueryClient,
@@ -20,6 +20,7 @@ root.render(
       <QueryClientProvider client={queryClient}>
         <App />
         <ReactQueryDevtools initialIsOpen={false} />
+        <ToastContainer />
       </QueryClientProvider>
   </React.StrictMode>
 );

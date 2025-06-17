@@ -59,7 +59,7 @@ export default function Breadcrumb ({ style, unSelected }){
                                 )
                                 }
                                 {isLast ? (
-                                    <span className={classNames(style, "truncate max-w-[250px]")}>{capitalize(path)}</span>
+                                    <span className={classNames(style)}>{capitalize(path)}</span>
                                 ) : (
                                     <Link to={routeTo} className={unSelected}>
                                         {capitalize(path)}

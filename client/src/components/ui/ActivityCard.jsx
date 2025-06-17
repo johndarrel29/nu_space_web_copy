@@ -6,37 +6,48 @@ function ActivityCard({
   activity,
   Activity_name,
   Activity_description,
+  RSO_acronym,
   Activity_image,
   Activity_datetime,
   Activity_place,
   Activity_registration_total,
-  statusColor = "bg-gray-400" // Default color if not provided
-}) {
+}) 
+{
+
+  const status = 
+    activity.Activity_status === 'done' ? 'Done' : 
+    activity.Activity_status === 'pending' ? 'Pending' : 
+    'Ongoing';
+
+
+  
   return (
     <div 
-      className="max-w-[250px] bg-white rounded-md overflow-hidden hover:bg-gray-100 transition ease-in-out cursor-pointer"
+      className="max-w-[250px] bg-white rounded-md overflow-hidden transition ease-in-out cursor-pointer group"
       onClick={() => onClick(activity)}
       title={Activity_name}
     >
       {/* Image with status badge */}
       <div className="relative w-full aspect-square">
-        <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-semibold text-white ${statusColor}`}>
-          {activity.Activity_status || 'Ongoing'}
+        <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-semibold text-off-black z-10 bg-mid-gray`}>
+          {status}
         </div>
-        <img 
-          src={Activity_image || DefaultPicture}
-          alt={Activity_name}
-          className="w-full h-full object-cover rounded-b-md"
-        />
+        <div className="w-full h-full">
+          <img 
+            src={Activity_image || DefaultPicture}
+            alt={Activity_name}
+            className="w-full h-full object-cover rounded-b-md group-hover:opacity-80"
+          />
+        </div>
       </div>
 
       {/* Content */}
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-off-black text-lg line-clamp-1">
+          <h3 className="font-bold text-off-black text-lg line-clamp-3 group-hover:underline">
             {Activity_name}
           </h3>
-          <div className="flex items-center bg-background px-2 py-1 rounded-full">
+          {/* <div className="flex items-center bg-background px-2 py-1 rounded-full">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-4 w-4 text-[#312895]" 
@@ -52,15 +63,15 @@ function ActivityCard({
             <span className="text-xs font-medium text-[#312895] ml-1">
               {Activity_registration_total}
             </span>
-          </div>
+          </div> */}
         </div>
 
         <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-          {Activity_description}
+          {RSO_acronym}
         </p>
 
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center text-gray-400">
+          <div className="flex items-center text-gray-600">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-4 w-4 mr-1" 
@@ -73,10 +84,10 @@ function ActivityCard({
                 clipRule="evenodd" 
               />
             </svg>
-            <span>{Activity_datetime}</span>
+            <span className="text-sm">{Activity_datetime}</span>
           </div>
-
-          <div className="flex items-center text-gray-400">
+        </div>
+        <div className="flex items-center text-gray-600">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               className="h-4 w-4 mr-1" 
@@ -89,9 +100,8 @@ function ActivityCard({
                 clipRule="evenodd" 
               />
             </svg>
-            <span className="truncate max-w-[40px]">{activity.Activity_place}</span>
+            <span className="text-sm">{activity.Activity_place}</span>
           </div>
-        </div>
       </div>
     </div>
   );

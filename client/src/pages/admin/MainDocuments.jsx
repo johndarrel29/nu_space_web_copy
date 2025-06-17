@@ -363,7 +363,7 @@ console.log("Filtered Activities:", filteredActivities);
       !loading && !error ? (
         <>
         <div className="flex items-center justify-center mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 ">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 ">
 
             {activitiesToShow?.map((activity) => (
               <ActivityCard
@@ -371,7 +371,7 @@ console.log("Filtered Activities:", filteredActivities);
                 activity={activity}
                 Activity_name={activity.Activity_name}
                 Activity_description={activity.Activity_description}
-
+                RSO_acronym={activity.RSO_id?.RSO_acronym || "N/A"}
                 //user imageUrl if student/rso role
                 Activity_image={ 
                   user?.role === "student/rso" ? activity?.imageUrl || DefaultPicture :
@@ -381,9 +381,7 @@ console.log("Filtered Activities:", filteredActivities);
                 onClick={handleActivityClick}
                 Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
                 Activity_place={activity.Activity_place}
-                statusColor={activity.Activity_status === 'done' ? 'bg-green-500' : 
-                            activity.Activity_status === 'pending' ? 'bg-[#FFCC33]' : 
-                            'bg-red-500'}
+                statusColor={activity.Activity_status}
               />
             ))}
 
