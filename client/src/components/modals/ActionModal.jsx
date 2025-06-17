@@ -7,16 +7,43 @@ import { motion } from "framer-motion";
 import { Backdrop, Dropdown, DropdownSearch, Button, CloseButton } from "../../components";
 import  { DropIn }  from "../../animations/DropIn";
 
-export default function ActionModal({ onClose, mode, id, name, createdAt, email, role, category, onConfirm }) {
+export default function ActionModal({ onClose, mode, id, name, createdAt, email, role, category, onConfirm, success, loading }) {
   const [selectedRole, setSelectedRole] = useState(role || "student");
   const [selectedCategory, setSelectedCategory] = useState(category || "N/A");
   const formattedDate = FormatDate(createdAt);
+  const [localError, setLocalError] = useState(null);
 
   useEffect(() => {
     if (mode === "edit") {
       setSelectedRole(role);
+      setLocalError(null);
     }
   }, [mode, role]);
+
+  useEffect(() => {
+    if (mode === "edit") {
+      setSelectedCategory(category || "N/A");
+      setLocalError(null);
+    }
+  }, [mode, category]);
+
+  // Add new effect to clear category when role is student
+  useEffect(() => {
+    if (selectedRole === "student") {
+      setSelectedCategory("N/A");
+    }
+  }, [selectedRole]);
+
+  useEffect(() => {
+    if (success) {
+      setTimeout(() => {
+        onClose();
+      }, 3000); 
+
+      // Reset the selected role and category after a successful action
+    }
+  }, [success, onClose]);
+
 
   console.log("onConfirm exists?", typeof onConfirm === "function");
 
@@ -25,6 +52,13 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
     console.log("handleConfirm inside ActionModal triggered");
 
     if (mode === "edit") {
+      // Validate if role is student/rso and category is selected
+      if (selectedRole === "student/rso" && (!selectedCategory || selectedCategory === "N/A")) {
+        setLocalError("Please select a category for student/rso role");
+        return;
+      }
+
+      setLocalError(null);
       console.log("role: ", selectedRole)
       
       const updatedData = {
@@ -32,18 +66,18 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
         // category: selectedCategory,
               // Only include the category if the role is not "student"
       ...(selectedRole !== "student" && { category: selectedCategory }),
-        assignedRSO: selectedCategory, 
+        assignedRSO: selectedCategory,  
       };
       console.log("category: ", selectedCategory);
       console.log("Inside ActionModal: Data before calling onConfirm:", updatedData);
-      console.log("ID being sent:", id);
+      console.log("ID being sent:", id);  
       onConfirm(id, updatedData);
     } else if (mode === "delete") {
       console.log("Inside ActionModal (DELETE MODE): Calling onConfirm with:", id);
       onConfirm(id); 
     }
   
-    onClose();
+    // onClose();
   };
 
   return (
@@ -129,6 +163,7 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                       category={category}
                       setSelectedCategory={setSelectedCategory}
                       selectedCategory={selectedCategory}
+                      role={selectedRole}
                       />
                     </div>
 
@@ -141,7 +176,20 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                 )}
 
           {/* Buttons */}
-              <div className="flex flex-row justify-end space-x-2">
+              <div className="flex flex-row justify-end items-center space-x-2">
+                { success && !localError && (
+                  <div className="text-green-600 text-sm font-semibold">
+                    {mode === 'delete' ? 'Account deleted successfully.' : 'Account updated successfully.'}
+                  </div>
+                )}
+
+                {localError && (
+                  <div className="text-red-600 text-sm font-semibold">
+                    {localError}
+                  </div>
+                )}
+
+
                 <Button
                     type="button"
                     style="secondary"
@@ -154,11 +202,16 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                     type="button"
                     onClick={handleConfirm}
                     className={`
-                      px-4 py-2 text-sm font-semibold text-white rounded-md shadow 
-                      ${mode === 'delete' ? 'bg-red-600 hover:bg-red-500' : 'bg-primary hover:bg-primary-dark'}
+                      ${mode === 'delete' ? 'bg-red-600 hover:bg-red-500' : ''}
                     `}
                   >
-                    {mode === 'delete' ? 'Delete' : 'Save'}
+                    {(loading && !success)
+                      ? (mode === 'delete' ? 'Deleting...' : 'Saving...')
+                      :   
+                    (mode === 'delete' ? 'Delete' : 'Save')
+                    }
+
+                    
                   </Button>
               </div>    
               

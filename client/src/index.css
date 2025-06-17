@@ -5,6 +5,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
 body {
+  background-color: var(--background-color);
   margin: 0;
   @apply font-sans; 
   -webkit-font-smoothing: antialiased;
@@ -13,10 +14,10 @@ body {
 }
 
 :root {
-  background-color: #F0F6FF;
-  --primary: #263170;
-  --primary-rso: #F2BE28;
-  --primary-rso-hover: #FFC92D;
+  --background-color: #F0F6FF;
+  --primary: #312895;
+  --primary-rso: #FFCC33;
+  --primary-rso-hover: #ffd041;
   --primary-rso-border: #E68E0A;
   --mid-gray: #e0e0e0;
   --dark-gray: #333333;

@@ -6,13 +6,14 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import { CardSkeleton } from '../../components'; 
 import { AnimatePresence } from "framer-motion";
 import   { useModal }  from "../../hooks";
-import axios from "axios";
 
+import axios from "axios";
+import { toast } from 'react-toastify';
 //Even when the data is null in assigned_rso, the data still retains on the server.
 //make a way to display that if the user contains assigned_rso, then display it in the dropdownsearch.
 
 // Table Component
-const Table = React.memo(({ searchQuery, data, selectedRole }) => {
+const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   const [mode, setMode] = useState('delete');
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
@@ -20,6 +21,8 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const [postsPerPage, setPostsPerPage] = useState(10);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const { isOpen, openModal, closeModal } = useModal();
+  const [ loading, setLoading ] = useState(false);
+  const [ success, setSuccess ] = useState(false);
 
   useEffect(() => {
     console.log("Data received:", data, "Type:", typeof data);
@@ -32,7 +35,6 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   }, [data]);
 
 
-  
   console.log("Users data before filtering:", users);
 
   // Makes the search query debounced so that it doesn't render on every key stroke
@@ -64,7 +66,11 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
       console.log("user role:", user.role);
       const matchesRole = !selectedRole || 
       (selectedRole === "student" ? user.role?.toLowerCase() === "student" : 
-      selectedRole === "student/rso" ? user.role?.toLowerCase()?.includes("/rso") : false);
+      selectedRole === "student/rso" ? user.role?.toLowerCase()?.includes("/rso") : 
+      selectedRole === "admin" ? user.role?.toLowerCase() === "admin" :
+      selectedRole === "superadmin" ? user.role?.toLowerCase() === "superadmin" :
+      false
+    );
     
     
       return matchesSearch && matchesRole;
@@ -80,6 +86,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const npage = useMemo(() => Math.ceil(filteredRecords.length / postsPerPage), [filteredRecords, postsPerPage]);
 
   const handleOpenModal = useCallback((mode, user) => {
+    setSuccess(false);
     openModal();
     setMode(mode);
     setSelectedUser(user);
@@ -110,6 +117,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const deleteCategory = async (_id) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    setLoading(true);
   
     try {
       console.log("Attempting to delete category for user with ID:", _id);
@@ -120,8 +128,15 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
       });
   
       console.log("Category deleted successfully:", response.data);
+      setSuccess(true);
+      toast.success("Category deleted successfully");
     } catch (error) {
       console.error("Error deleting category:", error);
+    } finally  {
+      setLoading(false);
+      setTimeout(() => {
+        setSuccess(false);
+      }, 3000); // Reset success state after 3 seconds
     }
   };
   
@@ -129,21 +144,8 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   const handleConfirm = useCallback(async (_id, updatedData) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    setLoading(true);
   
-    // if (updatedData) {
-    //   console.log("Updated data being sent:", updatedData);
-      
-    //   // Ensure that assigned_rso is part of updatedData
-    //   if (updatedData.category && !updatedData.assignedRSO) {
-    //     updatedData.assigned_rso = updatedData.category; // Add category to assigned_rso
-    //   }
-  
-    //   // Ensure that assigned_rso is in updatedData
-    //   if (!updatedData.assignedRSO) {
-    //     console.error("Missing assignedRSO in updatedData!");
-    //     // Handle this case accordingly (perhaps set a default value)
-    //   }
-    // }
 
     if (updatedData) {
       console.log("Updated data being sent:", updatedData);
@@ -161,6 +163,22 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
       if (updatedData.role === 'student/rso' && updatedData.category) {
         updatedData.assigned_rso = updatedData.category;
       }
+
+      if (updatedData.role === 'superadmin') {
+        await deleteCategory(_id); // Call the delete function
+        // Don't send category data in the update request when role is superadmin
+        updatedData.category = null;
+        updatedData.assignedRSO = null;
+        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'superadmin'
+      }
+
+      if (updatedData.role === 'admin') {
+        await deleteCategory(_id); // Call the delete function
+        // Don't send category data in the update request when role is admin
+        updatedData.category = null;
+        updatedData.assignedRSO = null;
+        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'admin'
+      }
   
       // Log to check if assigned_rso is being set correctly
       console.log("Final updated data:", updatedData);
@@ -176,8 +194,8 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
   
     try {
       if (updatedData) {
-        console.log("ID being sent:", _id); // Should be a valid MongoDB ObjectId
-        console.log("Data being sent:", updatedData); // Should contain type: "student/rso"
+        console.log("ID being sent:", _id); 
+        console.log("Data being sent:", updatedData); 
         console.log("Update API URL:", `${process.env.REACT_APP_UPDATE_USER_URL}/${_id}`);
         
         const response = await axios.patch(
@@ -197,20 +215,25 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
             user._id === _id ? { ...user, ...response.data.user } : user
           )
         );
+        toast.success("User updated successfully");
       } else {
         console.log("Delete URL:", `${process.env.REACT_APP_DELETE_USER_URL}/${_id}`);
         // Delete user
         await axios.delete(`${process.env.REACT_APP_DELETE_USER_URL}/${_id}`, { headers });
   
         setUsers(prevUsers => prevUsers.filter(user => user._id !== _id));
+        toast.success("User deleted successfully");
       }
       // Refetch users after the operation
+      setSuccess(true);
       await fetchUsers();
     } catch (error) {
       console.error("Error updating/deleting user:", error);
+      toast.error("Error updating/deleting user");
     } finally {
-      // Close the modal after the operation
       closeModal();
+      setLoading(false);
+      setSuccess(false);
     }
   }, [fetchUsers]);
   
@@ -243,7 +266,9 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
           category={selectedUser?.assigned_rso?.RSO_acronym}
           user={selectedUser}
           onConfirm={handleConfirm}
-
+          loading={loading}
+          success={success}
+          
         />
         
         
@@ -269,12 +294,34 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
         </li>
       </div>
 
-      {data.length > 0 ? (
+      {error ? (
+            <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center">
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-12 w-12 text-red-500 mb-2" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                >
+                    <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                    />
+                </svg>
+                <p className="text-red-500 font-medium text-center max-w-md px-4">
+                    {error}
+                </p>
+            </div>
+      )
+      :
+      data.length > 0 ? (
         <div className="w-full">
-          <div className=' overflow-x-auto w-full'>
+          <div className=' overflow-x-auto w-full border border-mid-gray rounded-md'>
         <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
-          <thead className="bg-card-bg rounded-md border-b border-gray-400">
-            <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider'>
+          <thead className="border-b border-mid-gray bg-textfield ">
+            <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider '>
               <th scope="col" className='px-6 py-3'>
                   <div className="flex items-center justify-center">
                     Name
@@ -306,7 +353,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
             {records.length > 0 ? records.map((user, index) => (
               
               
-              <TableRow key={index} user={user} onOpenModal={handleOpenModal} index={(currentPage - 1) * postsPerPage + index + 1}/>
+              <TableRow key={index} userRow={user} onOpenModal={handleOpenModal} index={(currentPage - 1) * postsPerPage + index + 1}/>
             )) : (
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={5}>
@@ -320,7 +367,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole }) => {
         </div>
       ) : <CardSkeleton/>}
 
-      <div className='w-full bottom-20'>
+      <div className='w-full bottom-20 mt-4'>
         <nav>
           <ul className="flex justify-center space-x-2">
 

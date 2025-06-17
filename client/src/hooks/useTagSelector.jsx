@@ -1,69 +1,191 @@
 // hooks/useTagSelector.js
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useSearchQuery from "./useSearchQuery";
 
+async function fetchTags() {
+  const token = localStorage.getItem("token");
+  const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+  
+
+  const headers = {
+    "Content-Type": "application/json",
+    "Authorization": token ? `Bearer ${formattedToken}` : "",
+  };
+
+  const response = await fetch(`${process.env.REACT_APP_FETCH_TAGS_URL}`, {
+    method: "GET",
+    headers,
+  });
+  
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+}
+
 export default function useTagSelector() {
-    const { searchQuery, setSearchQuery } = useSearchQuery();
-    const [tags, setTags] = useState([]);
-    const [selectedTags, setSelectedTags] = useState([]);
-    const [isFocused, setIsFocused] = useState(false);
-    const [apiTags, setApiTags] = useState([]);
+  const { searchQuery, setSearchQuery } = useSearchQuery();
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [isFocused, setIsFocused] = useState(false);
+  const [apiTags, setApiTags] = useState([]);
+  const queryClient = useQueryClient();
 
-    useEffect(() => {
-        async function fetchTags() {
-            const token = localStorage.getItem("token");
-            const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+  const { data: tagsData } = useQuery({
+    queryKey: ['tags'],
+    queryFn: fetchTags,
+    onError: (error) => {
+      console.error('Error fetching tags:', error);
+    }
+  });
 
-            const headers = {
-                "Content-Type": "application/json",
-                "Authorization": token ? `Bearer ${formattedToken}` : "",
-            };
+  const tags = tagsData?.tags?.map(tagObj => tagObj.tag) || [];
 
-            try {
-                const response = await fetch(`${process.env.REACT_APP_FETCH_TAGS_URL}`, {
-                    method: "GET",
-                    headers,
-                });
-                
-                const data = await response.json();
-                setTags(data.tags.map(tagObj => tagObj.tag));
-            } catch (error) {
-                console.error('Error fetching tags:', error);
-            }
-        }
-        fetchTags();
-    }, []);
+  const searchedData = isFocused 
+    ? tags.filter(tag => !searchQuery || tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
 
-    const searchedData = isFocused 
-        ? tags.filter(tag => !searchQuery || tag.toLowerCase().includes(searchQuery.toLowerCase()))
-        : [];
+  function handleTagClick(tag) {
+    setSelectedTags((prevTags) =>
+      prevTags.includes(tag) ? prevTags.filter((t) => t !== tag) : [...prevTags, tag]
+    );
+    setSearchQuery("");
+  }
 
-    function handleTagClick(tag) {
-        setSelectedTags((prevTags) =>
-            prevTags.includes(tag) ? prevTags.filter((t) => t !== tag) : [...prevTags, tag]
-        );
-        setSearchQuery("");
+  function handleApiTagRemove(tag) {
+    setApiTags((prev) => prev.filter((t) => t !== tag));
+  }
+
+    const deleteTags = async (tagId) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": token ? `Bearer ${formattedToken}` : "",
+    };
+    console.log("delete url", `${process.env.REACT_APP_DELETE_TAGS_URL}/${tagId}`);
+    const response = await fetch(`${process.env.REACT_APP_DELETE_TAGS_URL}/${tagId}`, {
+        method: "DELETE",
+        headers,
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to delete tag');
     }
 
-    function handleApiTagRemove(tag) {
-        setApiTags((prev) => prev.filter((t) => t !== tag));
-      }
-      
+    return response.json();
+}
+
+    const updateTags = async ({tagId, tagName}) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
 
+    console.log("Update Tag URL:", `${process.env.REACT_APP_UPDATE_TAGS_URL}/${tagId}`);
 
+    const response = await fetch(`${process.env.REACT_APP_UPDATE_TAGS_URL}/${tagId}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${formattedToken}` : "",
+        },
+        body: JSON.stringify({ tag: tagName }),
+
+    });
+        return response.json();
+    }
+
+    const createTags = async (tagName) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    console.log("Create Tag URL:", `${process.env.REACT_APP_CREATE_TAGS_URL}`);
+    console.log("body :", JSON.stringify({ tag: tagName }));
+    const response = await fetch(`${process.env.REACT_APP_CREATE_TAGS_URL}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${formattedToken}` : "",
+        },
+        body: JSON.stringify({ tag: tagName }),
+
+    });
+
+    return response.json();
+
+    }
+
+// create function
+const {
+    mutate: createTagMutation,
+    isLoading: isCreatingTag,
+    error: createTagError,
+} = useMutation({
+    mutationFn: createTags,
+    onSuccess: (data) => {
+        console.log('Tag created successfully:', data);
+        // refetch the tags after creation
+        queryClient.invalidateQueries({ queryKey: ['tags'] });
+    },
+    onError: (error) => {
+        console.error('Error creating tag:', error);
+    },
+});
+
+// edit function
+const {
+    mutate: updateTagMutation,
+    isLoading: isUpdatingTag,
+    error: updateTagError,
+} = useMutation({
+    mutationFn: updateTags,
+    onSuccess: (data) => {
+    console.log('Tag updated successfully:', data);
+    //refetch the tags after update
+    queryClient.invalidateQueries({ queryKey: ['tags'] });
     
+    },
+});
 
-    return {
-        tags,
-        selectedTags,
-        setSelectedTags,
-        searchQuery,
-        setSearchQuery,
-        isFocused,
-        setIsFocused,
-        searchedData,
-        handleTagClick,
-        handleApiTagRemove
-    };
+
+// delete function
+ const {
+    mutate: deleteTagMutation,
+    isLoading: isDeletingTag,
+    error: deleteTagError,
+ } = useMutation({
+    mutationFn: deleteTags,
+    onSuccess: (data) => {
+      console.log('Tag deleted successfully:', data);
+      //refetch the tags after deletion
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      
+    },
+ })
+
+  return {
+    tagsData,
+    selectedTags,
+    setSelectedTags,
+    searchQuery,
+    setSearchQuery,
+    isFocused,
+    setIsFocused,
+    searchedData,
+    handleTagClick,
+    handleApiTagRemove,
+
+    deleteTagMutation,
+    isDeletingTag,
+    deleteTagError,
+
+    updateTagMutation,
+    isUpdatingTag,
+    updateTagError,
+
+    createTagMutation,
+    isCreatingTag,
+    createTagError,
+  };
 }

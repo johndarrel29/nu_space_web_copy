@@ -12,7 +12,9 @@ export default function Documents() {
             tabName="Documents"
             headingTitle="Manage document approval"
             > 
+            <div className="border border-mid-gray bg-white rounded-lg p-4">
                 <Outlet />
+            </div>
                 
 
             </MainLayout>

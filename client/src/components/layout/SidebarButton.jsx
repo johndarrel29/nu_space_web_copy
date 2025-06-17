@@ -33,11 +33,12 @@ function SidebarButton({ icon, text, onClick, active, iconPath }) {
       })
   )} onClick={handleClick}>
         {/* <img src={icon} alt="Dashboard" className={style.icon}/>  */}
-        <svg xmlns="http://www.w3.org/2000/svg" 
+        <svg xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 576 512" 
         height="20"
         width="20"
-        className={  user?.role === "student/rso" ?  `fill-primary flex-shrink-0` : `fill-white flex-shrink-0`}
+        className={classNames( user?.role === "student/rso" ?  `fill-primary flex-shrink-0` : `fill-white flex-shrink-0`,
+        {[sidebar.activeIcon]: user?.role === "student/rso" && active})}
         >
         <path 
         d={iconPath}/>
