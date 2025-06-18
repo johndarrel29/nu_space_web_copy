@@ -1,21 +1,31 @@
-
 .container {
-    @apply fixed z-50 top-0 left-0 h-screen w-[18%] bg-[#314095];
+    @apply fixed z-50 top-0 left-0 h-screen w-[80px] bg-[#314095];
+}
+
+.containerExpanded {
+    @apply fixed z-50 top-0 left-0 h-screen w-[15%] bg-[#314095] pl-4 pr-4;
 }
 
 .RSOcontainer {
-    @apply fixed z-50 top-0 left-0 h-screen w-[18%] bg-white;
+    @apply fixed z-50 top-0 left-0 h-screen w-[80px] bg-white;
+    border-right: 1px solid var(--mid-gray);
+}
+
+.RSOcontainerExpanded {
+    @apply fixed z-50 top-0 left-0 h-screen w-[15%] bg-white pl-4 pr-4;
     border-right: 1px solid var(--mid-gray);
 }
 
 .sidebarContainer {
-    width: 90%;
-    margin-left: 12px;
+    width: 100%;
+    margin-left: 0;
     margin-top: 20%;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
+
+
 
 .hoverDiv {
     margin-top: 24px;

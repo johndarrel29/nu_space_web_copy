@@ -2,7 +2,7 @@
     height: 1rem;  
     margin-left: 3rem; 
     object-fit: contain; 
-    opacity: 1; 
+    opacity: 0; 
     transition: opacity 0.1s ease-out;
 }
 
@@ -15,10 +15,10 @@
 
 .icon {
     height: 2rem;  
-    margin-left: 3rem;  
     object-fit: contain;  
-    opacity: 0; 
-
+    opacity: 1; 
+    margin-left: 0;
+    transition: opacity 0.3s ease-in;
     
 }
 

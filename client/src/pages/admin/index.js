@@ -12,3 +12,4 @@ export { default as RSODetails } from './RSODetails';
 export { default as RSOManagement } from './RSOManagement';
 export { default as UserManagement } from './UserManagement';
 export { default as RSOAction } from './RSOAction';
+export { default as FormsBuilder } from './FormsBuilder';

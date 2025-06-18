@@ -44,7 +44,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         }
 
         console.log("Submitting new activity:", activity);
-        const response = await fetch(`${process.env.REACT_APP_CREATE_ACTIVITIES_URL}`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/createActivity`, {
             method: "POST",
             headers,
             body,
@@ -91,7 +91,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
                 "Authorization": token ? `Bearer ${formattedToken}` : "",
                 ...(!isFileUpload && { "Content-Type": "application/json" }),
             }
-            const response = await fetch(`${process.env.REACT_APP_UPDATE_ACTIVITIES_URL}/${activityId}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/updateActivity/${activityId}`, {
                 method: "PUT",
                 headers,    
                 body: isFileUpload ? formData : JSON.stringify(updatedData),
@@ -127,7 +127,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             "Authorization": token ? `Bearer ${formattedToken}` : "",
         };
         try {
-            const response = await fetch(`${process.env.REACT_APP_DELETE_ACTIVITIES_URL}/${activityId}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/deleteActivity/${activityId}`, {
                 method: "DELETE",
                 headers,
             });
@@ -155,7 +155,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             "Authorization": token ,
         };
         try {
-            const response = await fetch(`${process.env.REACT_APP_FETCH_ACTIVITIES_URL}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/getActivities`, {
                 method: "GET",
                 headers,
             });
@@ -180,7 +180,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             "Authorization": token ? `Bearer ${formattedToken}` : "",
         };
         try {
-            const response = await fetch(`${process.env.REACT_APP_FETCH_ACTIVITIES_URL}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/getActivities`, {
                 method: "GET",
                 headers,
             });
@@ -199,7 +199,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
     const fetchRSOActivity = async (activityId) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-        const BaseURL = process.env.REACT_APP_FETCH_LOCAL_ACTIVITIES_BASE_URL;
+        const BaseURL = `${process.env.REACT_APP_BASE_URL}/api/admin/activities`;
 
         const headers = {
             "Content-Type": "application/json",
@@ -237,7 +237,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         console.log("Stored token:", token);
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-        const url = new URL(process.env.REACT_APP_FETCH_ADMIN_ACTIVITIES_URL);
+        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/`);
         url.searchParams.set("page", pageParam);
         url.searchParams.set("limit", 12);
         if (query) url.searchParams.set("search", query);
@@ -282,7 +282,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-        const response = await fetch(`${process.env.REACT_APP_FETCH_ACTIVITY_DOCUMENTS_BASE_URL}/${activityId}/documents`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/${activityId}/documents`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -298,7 +298,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         setLoading(true);
         // const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
         try {
-            const response = await fetch(`${process.env.REACT_APP_FETCH_ACTIVITY_DOCUMENTS_BASE_URL}/${activityId}/documents`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/${activityId}/documents`, {
                 method: "POST",
                 headers: {
                     "Authorization": token ? token : "",
@@ -321,7 +321,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-        const response = await fetch(`${process.env.REACT_APP_FETCH_ACTIVITY_DOCUMENTS_BASE_URL}/${activityId}/documents/${documentId}`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/${activityId}/documents/${documentId}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -346,7 +346,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         };
 
         // Create URL with query parameters for sorting
-        const url = new URL(process.env.REACT_APP_GET_RSO_ACTIVITIES_URL);
+        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/RSO/Activities`);
         if (sorted) {
             url.searchParams.set("sorted", sorted);
         }
@@ -381,9 +381,9 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         };
 
         try {
-            console.log("finding ", `${process.env.REACT_APP_VIEW_ACTIVITY_URL}/${activityId}`);
+            console.log("finding ", `${process.env.REACT_APP_BASE_URL}/api/activities/viewActivity/${activityId}`);
 
-            const response = await fetch(`${process.env.REACT_APP_VIEW_ACTIVITY_URL}/${activityId}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/viewActivity/${activityId}`, {
                 method: "GET",
                 headers,
             });

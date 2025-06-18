@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, memo  } from "react";
 import { MainLayout, Table, Searchbar, Button } from "../../components";
-import   { useModal, useUser, useRSO }  from "../../hooks";
+import { useModal, useUser, useRSO }  from "../../hooks";
 import { AnimatePresence } from "framer-motion";
 import { CreateUserModal, ReusableTable } from "../../components";
 import { useUserProfile } from "../../hooks";
+import { FormatDate } from "../../utils";
 
   // function to handle the search and filter
   const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole, openModal }) => {
@@ -60,7 +61,7 @@ import { useUserProfile } from "../../hooks";
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState("");
   const { isOpen, openModal, closeModal } = useModal();
-  const {data = [], loading, error, fetchData } = useUser(); // Fetch data from the custom hook
+  const {data = [], loading, error, fetchData } = useUser(); 
   const user = JSON.parse(localStorage.getItem("user"));
   const { user: profileUser, isLoading, isError, error: useError } = useUserProfile();
   const {
@@ -71,6 +72,7 @@ import { useUserProfile } from "../../hooks";
     membersSuccess,
   } = useRSO();
 
+  console.log("profileUser", profileUser);
 
   const isUserStatusActive = profileUser?.assigned_rso?.RSO_status === false && profileUser?.role === "student/rso";
   console.log("isUserStatusActive:", isUserStatusActive);
@@ -90,81 +92,6 @@ import { useUserProfile } from "../../hooks";
       interests: member.interests || [],
       createdAt: member.createdAt
     }))
-
-//     const tableRow = [
-//   {
-//     id: "67db77ff005837fe2394223c",
-//     firstName: "b",
-//     lastName: "b",
-//     email: "b@students.national-u.edu.ph",
-//     college: "CCIT",
-//     role: "student/rso",
-//     rsoMemberships: 7,
-//     activitiesParticipated: 3,
-//     interests: [
-//       "hackaton",
-//       "coding",
-//       "music",
-//       "community building",
-//       "technology",
-//       "problem-solving",
-//       "finance",
-//       "leadership",
-//       "algorithm design"
-//     ],
-//     createdAt: "2025-03-20T02:05:51.778Z"
-//   },
-//   {
-//     id: "68db77ff005837fe2394224d",
-//     firstName: "John",
-//     lastName: "Doe",
-//     email: "john.doe@students.national-u.edu.ph",
-//     college: "Engineering",
-//     role: "student/rso",
-//     rsoMemberships: 5,
-//     activitiesParticipated: 2,
-//     interests: [
-//       "robotics",
-//       "engineering",
-//       "technology",
-//       "problem-solving"
-//     ],
-//     createdAt: "2025-04-15T10:30:22.123Z"
-//   },
-//   {
-//     id: "69db77ff005837fe2394225e",
-//     firstName: "Jane",
-//     lastName: "Smith",
-//     email: "jane.smith@students.national-u.edu.ph",
-//     college: "Business",
-//     role: "student/rso",
-//     rsoMemberships: 3,
-//     activitiesParticipated: 4,
-//     interests: [
-//       "finance",
-//       "leadership",
-//       "entrepreneurship",
-//       "marketing"
-//     ],
-//     createdAt: "2025-02-10T08:15:45.456Z"
-//   },
-//   {
-//     id: "70db77ff005837fe2394226f",
-//     firstName: "Mike",
-//     lastName: "Johnson",
-//     email: "mike.johnson@students.national-u.edu.ph",
-//     college: "Arts",
-//     role: "student/rso",
-//     rsoMemberships: 2,
-//     activitiesParticipated: 1,
-//     interests: [
-//       "music",
-//       "painting",
-//       "community building"
-//     ],
-//     createdAt: "2025-05-01T14:22:33.789Z"
-//   }
-// ];
 
 const tableRowFiltered = useMemo(() => {
   return tableRow.filter((row) => {
@@ -209,7 +136,22 @@ const tableRowFiltered = useMemo(() => {
               )}
 
             {user && user.role === "student/rso" && (
-              
+              <>
+              {(profileUser?.assigned_rso?.RSO_membershipStatus === true) && (
+                <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${profileUser?.assigned_rso?.RSO_membershipStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <h1 className="text-gray-700 font-medium">Membership Status: <span className={`font-semibold ${profileUser?.assigned_rso?.RSO_membershipStatus ? 'text-green-600' : 'text-red-600'}`}>{profileUser?.assigned_rso?.RSO_membershipStatus ? "Active" : "Inactive"}</span></h1>
+                  </div>
+                  <div className="h-6 w-px bg-gray-200"></div>
+                  <div className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                    <h1 className="text-gray-700 font-medium">End Date: <span className="font-semibold text-gray-900">{FormatDate(profileUser?.assigned_rso?.RSO_membershipEndDate)}</span></h1>
+                  </div>
+                </div>
+              )}
               <ReusableTable 
               options={["All", "Student", "RSO"]}
               tableRow={tableRowFiltered} 
@@ -227,6 +169,7 @@ const tableRowFiltered = useMemo(() => {
               >
 
               </ReusableTable>
+              </>
             )}
 
           </div>

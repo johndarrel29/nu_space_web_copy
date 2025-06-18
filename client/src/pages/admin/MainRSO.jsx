@@ -327,7 +327,7 @@ console.log("All RSO Tags:", allTags);
       </div>
 
       {(membershipDateData?.RSO_membershipStatus === true) && (
-        <div className="flex items-center gap-6 w-full justify-start bg-background p-6 rounded-md mt-4">
+        <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${membershipStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
             <h1 className="text-gray-700 font-medium">Membership Status: <span className={`font-semibold ${membershipStatus ? 'text-green-600' : 'text-red-600'}`}>{membershipStatus ? "Active" : "Inactive"}</span></h1>

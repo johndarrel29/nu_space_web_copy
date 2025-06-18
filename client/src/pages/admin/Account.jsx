@@ -213,6 +213,9 @@ const handleOfficer = (officer) => {
       }
     }
 
+    console.log("profilePageData", profilePageData);
+    console.log("user", user);
+
     
 
   return (
@@ -314,9 +317,43 @@ const handleOfficer = (officer) => {
                   })}
                 </div>
               )}
+
+              {console.log("user category", profilePageData)}
               {activeTab === 1 && (
+                <div className="space-y-6 p-6 shadow-sm">
+                <div className="space-y-1">
+                  <h1 className="text-xl font-semibold">
+                    Currently logged in as: {profilePageData?.firstName} {profilePageData?.lastName}
+                  </h1>
+                </div>
+
+                <div className="space-y-2">
+                  <h2 className="text-lg font-medium">
+                    {profilePageData?.assigned_rso?.RSO_category}
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    {profilePageData?.assigned_rso?.RSO_description}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-medium text-sm text-gray-700">Popularity Score</h3>
+                    <p className="text-base">{profilePageData?.assigned_rso?.RSO_popularityScore}</p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-medium text-sm text-gray-700">RSO Forms</h3>
+                    <p className="text-base">{profilePageData?.assigned_rso?.RSO_forms}</p>
+                  </div>
+                </div>
+
                 <div>
-                  <h1>Details</h1>
+                  <p className="text-sm italic">
+                    {profilePageData?.assigned_rso?.RSO_visibility === false
+                      ? "RSO is not visible"
+                      : "RSO is visible"}
+                  </p>
+                </div>
                 </div>
               )}
               </>

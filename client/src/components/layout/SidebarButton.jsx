@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import { useState } from 'react';
 
 
-function SidebarButton({ icon, text, onClick, active, iconPath }) {
+function SidebarButton({ icon, text, onClick, active, iconPath, isCollapsed }) {
 
 
   // State to track whether the button is active or not
@@ -22,13 +22,18 @@ function SidebarButton({ icon, text, onClick, active, iconPath }) {
   return (
 
 <div
+    // title={text}
+    // className={ user?.role === "student/rso" ? 
+    //   (classNames(style.hoverDivRSO, 'relative flex items-center gap-2', sidebar.button,{
+    //   [sidebar.activeButtonRSO]: active
+    // })
     title={text}
-    className={ user?.role === "student/rso" ? 
-      (classNames(style.hoverDivRSO, 'relative flex items-center gap-2', sidebar.button,{
+    className={ (user?.role === "student/rso") ? 
+      (classNames( isCollapsed ? style.hoverDivRSOExpanded : style.hoverDivRSO, 'relative flex items-center gap-2', sidebar.button,{
       [sidebar.activeButtonRSO]: active
     })
   ) : (
-      classNames(style.hoverDiv, 'relative flex items-center gap-2', sidebar.button,{
+      classNames( isCollapsed ? style.hoverDivExpanded : style.hoverDiv, 'relative flex items-center gap-2', sidebar.button,{
         [sidebar.activeButton]: active
       })
   )} onClick={handleClick}>
@@ -43,7 +48,13 @@ function SidebarButton({ icon, text, onClick, active, iconPath }) {
         <path 
         d={iconPath}/>
         </svg>
-        <h1 className={style.sidebarText}>{text}</h1>
+        {user?.role === 'student/rso' &&
+          (<h1 className={ isCollapsed ? style.sidebarTextExpandedRSO : style.sidebarTextRSO}>{text}</h1>)
+        }
+        {(user?.role === 'admin' || user?.role === 'superadmin') &&
+        (
+          (<h1 className={ isCollapsed ? style.sidebarTextExpanded : style.sidebarText}>{text}</h1>)
+        )}
   </div>
   );
 }

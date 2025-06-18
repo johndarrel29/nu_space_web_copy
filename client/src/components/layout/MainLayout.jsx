@@ -6,6 +6,9 @@ import { useUserProfile } from "../../hooks";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 import Skeleton from "react-loading-skeleton";
 import { useLocation } from "react-router-dom";
+import { useSidebar } from "../../context/SidebarContext";
+
+//TODO: make the sidebar collapsed on mobile and it should go over the main content
 
 function MainLayout({ children, tabName, headingTitle }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -14,6 +17,7 @@ function MainLayout({ children, tabName, headingTitle }) {
   const { user, isLoading, isError, error } = useUserProfile();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { isCollapsed } = useSidebar();
   
   const excludedPaths = ["/document"];
   const isUserStatusActive = user?.assigned_rso?.RSO_status === false && user?.role === "student/rso";
@@ -59,10 +63,12 @@ useEffect(() => {
   return (
     <div className="h-screen bg-background flex">
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar/>
 
       {/* Main Content Area */}
-      <div className="relative h-screen z-0 left-[15%] w-[calc(100%-15%)] sm:left-[14%] sm:w-[calc(100%-14%)] md:left-[10%] md:w-[calc(100%-10%)] lg:w-[calc(100%-18%)] lg:left-[18%]">
+      <div 
+      className={`relative h-screen z-0 transition-all duration-300 
+      ${isCollapsed ? 'left-[15%] w-[calc(100%-15%)]' : 'left-[80px] w-[calc(100%-80px)]'}`}>
         {/* Top Navigation Bar */}
         <div className="flex flex-col w-full">
           <div className="fixed top-0 left-0 right-0 bg-white border border-mid-gray h-16 p-4 z-50 flex items-center justify-end gap-4">
@@ -212,7 +218,7 @@ useEffect(() => {
                 </h1>
               </div>
             )}
-          <main className="mt-16 h-[calc(100%-4rem)] overflow-y-auto p-4 pl-12 pr-12">
+          <main className="mt-16 h-full overflow-y-auto p-4 pl-12 pr-12">
             <div className="mb-6 flex flex-col">
               <Breadcrumb style={style.tabName} unSelected={style.disabled} />
             </div>

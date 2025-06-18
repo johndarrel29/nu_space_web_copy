@@ -23,7 +23,7 @@ function useUser() {
       setError(null);
     
       try {
-        const response = await fetch(`${process.env.REACT_APP_FETCH_USERS_URL}`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/fetchUsers`, {
           method: "GET",
           headers, 
         });

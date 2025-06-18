@@ -102,7 +102,7 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
     try {
-      const response = await axios.get(`${process.env.REACT_APP_FETCH_USERS_URL}`, {
+      const response = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/auth/fetchUsers`, {
         headers: {
           Authorization: `Bearer ${formattedToken}`,
         },
@@ -196,10 +196,10 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
       if (updatedData) {
         console.log("ID being sent:", _id); 
         console.log("Data being sent:", updatedData); 
-        console.log("Update API URL:", `${process.env.REACT_APP_UPDATE_USER_URL}/${_id}`);
+        console.log("Update API URL:", `${process.env.REACT_APP_BASE_URL}/api/auth/updateUserRole/${_id}`);
         
         const response = await axios.patch(
-          `${process.env.REACT_APP_UPDATE_USER_URL}/${_id}`,
+          `${process.env.REACT_APP_BASE_URL}/api/auth/updateUserRole/${_id}`,
           updatedData,
           { 
             headers: {
@@ -217,9 +217,9 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
         );
         toast.success("User updated successfully");
       } else {
-        console.log("Delete URL:", `${process.env.REACT_APP_DELETE_USER_URL}/${_id}`);
+        console.log("Delete URL:", `${process.env.REACT_APP_BASE_URL}/api/auth/deleteUser/${_id}`);
         // Delete user
-        await axios.delete(`${process.env.REACT_APP_DELETE_USER_URL}/${_id}`, { headers });
+        await axios.delete(`${process.env.REACT_APP_BASE_URL}/api/auth/deleteUser/${_id}`, { headers });
   
         setUsers(prevUsers => prevUsers.filter(user => user._id !== _id));
         toast.success("User deleted successfully");

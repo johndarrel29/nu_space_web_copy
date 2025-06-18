@@ -13,7 +13,7 @@ async function fetchTags() {
     "Authorization": token ? `Bearer ${formattedToken}` : "",
   };
 
-  const response = await fetch(`${process.env.REACT_APP_FETCH_TAGS_URL}`, {
+  const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/tags/getTags`, {
     method: "GET",
     headers,
   });
@@ -64,8 +64,8 @@ export default function useTagSelector() {
         "Content-Type": "application/json",
         "Authorization": token ? `Bearer ${formattedToken}` : "",
     };
-    console.log("delete url", `${process.env.REACT_APP_DELETE_TAGS_URL}/${tagId}`);
-    const response = await fetch(`${process.env.REACT_APP_DELETE_TAGS_URL}/${tagId}`, {
+    console.log("delete url", `${process.env.REACT_APP_BASE_URL}/api/tags/deleteTag/${tagId}`);
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/tags/deleteTag/${tagId}`, {
         method: "DELETE",
         headers,
     });
@@ -82,9 +82,9 @@ export default function useTagSelector() {
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
 
-    console.log("Update Tag URL:", `${process.env.REACT_APP_UPDATE_TAGS_URL}/${tagId}`);
+    console.log("Update Tag URL:", `${process.env.REACT_APP_BASE_URL}/api/tags/update/${tagId}`);
 
-    const response = await fetch(`${process.env.REACT_APP_UPDATE_TAGS_URL}/${tagId}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/tags/update/${tagId}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
@@ -100,9 +100,9 @@ export default function useTagSelector() {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-    console.log("Create Tag URL:", `${process.env.REACT_APP_CREATE_TAGS_URL}`);
+    console.log("Create Tag URL:", `${process.env.REACT_APP_BASE_URL}/api/tags/createTags`);
     console.log("body :", JSON.stringify({ tag: tagName }));
-    const response = await fetch(`${process.env.REACT_APP_CREATE_TAGS_URL}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/tags/createTags`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

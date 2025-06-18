@@ -1,9 +1,14 @@
 .hoverDiv {
 
     width: 100%;
-    padding: 10px 30px;
+    /* padding: 10px 30px; */
     color: white;
     transition: 0.1s ease;
+
+    flex-direction: column;  
+    align-items: center;     
+    justify-content: center;
+    padding: 10px;
 }
 
 
@@ -11,17 +16,63 @@
 .hoverDiv:hover {
     background-color: #1f2e5d;
     cursor: pointer;
-    border-radius: 5px;    
+    border-radius: 5px;   
+    
+    flex-direction: column;  
+    align-items: center;     
+    justify-content: center;
+    padding: 10px;
 }
 
 .hoverDivRSO {
+    width: 100%;
+    color: var(--primary);
+    transition: 0.1s ease;
+    
+    border : none;
+    border-radius: 5px;
+    
+    flex-direction: column;  
+    align-items: center;     
+    justify-content: center;
+    padding: 10px;
+}
+
+.hoverDivExpanded {
+    color: white;
     width: 100%;
     padding: 10px 30px;
     color: var(--primary);
     transition: 0.1s ease;
     
     border : none;
-    border-radius: 5px;  
+    border-radius: 5px;
+}
+
+.hoverDivExpanded:hover {
+    background-color: #1f2e5d;
+    cursor: pointer;
+    border-radius: 5px;   
+    
+}
+
+
+
+.hoverDivRSOExpanded {
+    width: 100%;
+    padding: 10px 30px;
+    color: var(--primary);
+    transition: 0.1s ease;
+    
+    border : none;
+    border-radius: 5px;
+}
+
+
+.hoverDivRSOExpanded:hover {
+    background-color: var(--background-color);
+    cursor: pointer;
+    border-radius: 5px;    
 }
 
 .hoverDivRSO:hover {
@@ -32,8 +83,28 @@
 }
 
 .sidebarText {
+
+    margin-left: 0; 
+    text-align: center;
+    font-size: 12px;
+}
+
+.sidebarTextExpanded {
+    color: white;
     margin-left: 10px;
     font-size: 16px;
+}
+
+.sidebarTextExpandedRSO {
+    margin-left: 10px;
+    font-size: 16px;
+    text-align: left;
+}
+
+.sidebarTextRSO {
+    text-align: center;
+    font-size: 12px;
+    width: auto;
 }
 
 /* Active (clicked) state */

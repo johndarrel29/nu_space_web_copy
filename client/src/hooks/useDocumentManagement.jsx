@@ -5,7 +5,7 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const baseURL = process.env.REACT_APP_FETCH_RSO_DOCUMENTS_BASE_URL; 
+    const baseURL = `${process.env.REACT_APP_BASE_URL}/api/admin/rso`;
     const queryClient = useQueryClient();
 
 
@@ -57,8 +57,8 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
 
-        console.log("calling url ", `${process.env.REACT_APP_FETCH_DOCUMENTS_URL}`);
-        const response = await fetch(`${process.env.REACT_APP_FETCH_DOCUMENTS_URL}`, {
+        console.log("calling url ", `${process.env.REACT_APP_BASE_URL}/api/documents/getDocuments`);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/documents/getDocuments`, {
             method: "GET",
             headers: {
                 Authorization: token ? `Bearer ${formattedToken}` : "",
@@ -100,8 +100,8 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
                 console.log(`${key}: ${value}`);
               }
             }
-            console.log("Sending request to:", process.env.REACT_APP_SUBMIT_DOCUMENT_URL);
-            const response = await fetch(`${process.env.REACT_APP_SUBMIT_DOCUMENT_URL}`, {
+            console.log("Sending request to:", `${process.env.REACT_APP_BASE_URL}/api/documents/submitDocument`);
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/documents/submitDocument`, {
                 method: "POST",
                 headers,
                 body: formData,
@@ -162,11 +162,11 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
-        console.log("request url: " + `${process.env.REACT_APP_APPROVE_DOCUMENT_URL}/${documentId}`);
+        console.log("request url: " + `${process.env.REACT_APP_BASE_URL}/api/documents/approveDocument/${documentId}`);
         console.log("request body: ", JSON.stringify({ reviewedById }));
 
 
-        const res = await fetch(`${process.env.REACT_APP_APPROVE_DOCUMENT_URL}/${documentId}`, {
+        const res = await fetch(`${process.env.REACT_APP_BASE_URL}/api/documents/approveDocument/${documentId}`, {
             method: "PATCH",
             headers: {
                 'Authorization': formattedToken,
@@ -189,7 +189,7 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
-        const res = await fetch(`${process.env.REACT_APP_REJECT_DOCUMENT_URL}/${documentId}`, {
+        const res = await fetch(`${process.env.REACT_APP_BASE_URL}/api/documents/rejectDocument/${documentId}`, {
             method: "PATCH",
             headers: {
                 'Authorization': formattedToken,

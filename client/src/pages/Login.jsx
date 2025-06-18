@@ -32,7 +32,7 @@ export default function Login () {
         setError("");
         
         try {
-            const response = await axios.post(`${process.env.REACT_APP_LOGIN_URL}`, 
+            const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/auth/userLogin`, 
                 {
                     email: email,
                     password: password,

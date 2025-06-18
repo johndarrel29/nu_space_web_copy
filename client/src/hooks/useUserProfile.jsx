@@ -18,9 +18,9 @@ function useUserProfile() {
 
       const token = localStorage.getItem('token');
       console.log('Token available:', !!token);
-      console.log('API URL:', process.env.REACT_APP_FETCH_USER_PROFILE_URL);
+      console.log('API URL:', `${process.env.REACT_APP_BASE_URL}/api/auth/userProfile`);
 
-      const response = await fetch(process.env.REACT_APP_FETCH_USER_PROFILE_URL, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/userProfile`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -46,9 +46,9 @@ function useUserProfile() {
     const fetchProfilePage = async () => {
       const token = localStorage.getItem('token');
       console.log('Token available:', !!token);
-      console.log('API URL:', process.env.REACT_APP_FETCH_USER_PROFILE_URL);
+      console.log('API URL:', `${process.env.REACT_APP_BASE_URL}/api/auth/userProfile`);
 
-      const response = await fetch(process.env.REACT_APP_FETCH_USER_PROFILE_URL, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/userProfile`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -83,7 +83,7 @@ function useUserProfile() {
     };
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_DELETE_OFFICER_URL}/${officerId}`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/deleteRSOOfficer/${officerId}`, {
         method: "DELETE",
         headers,
       });

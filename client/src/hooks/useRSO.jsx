@@ -29,8 +29,8 @@ const [organizations, setOrganizations] = useState([]);
     
 
     try {
-      console.log("Fetching data from:", process.env.REACT_APP_FETCH_RSO_URL);
-      const response = await fetch(`${process.env.REACT_APP_FETCH_RSO_URL}`, {
+      console.log("Fetching data from:", `${process.env.REACT_APP_BASE_URL}/api/rso/getRSO`);
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/getRSO`, {
         method: "GET",
         headers,
       });
@@ -64,7 +64,7 @@ const [organizations, setOrganizations] = useState([]);
       const token = localStorage.getItem("token");
       const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
       console.log("Submitting new RSO:", newOrg);
-      console.log("Request URL:", process.env.REACT_APP_CREATE_RSO_URL);
+      console.log("Request URL:", `${process.env.REACT_APP_BASE_URL}/api/rso/createRSO`);
 
           // Create FormData if RSO_picture exists (file upload)
     const isFileUpload = newOrg.RSO_picture instanceof File;
@@ -105,7 +105,7 @@ const [organizations, setOrganizations] = useState([]);
 
       
 
-    const response = await fetch(`${process.env.REACT_APP_CREATE_RSO_URL}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/createRSO`, {
       method: "POST",
       headers,
       body,
@@ -199,7 +199,7 @@ const updateRSO = async (id, updatedOrg) => {
       ...(!isFileUpload && { "Content-Type": "application/json" }),
     };
 
-    const response = await fetch(`${process.env.REACT_APP_UPDATE_RSO_URL}/${id}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/update-rso/${id}`, {
       method: "PATCH",
       headers,
       body: isFileUpload ? formData : JSON.stringify(updatedOrg),
@@ -265,7 +265,7 @@ const updateRSOStatus = async ({id, status}) => {
         "Authorization": token ? `Bearer ${formattedToken}` : "",
       };
 
-      const response = await fetch(`${process.env.REACT_APP_DELETE_RSO_URL}/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/deleteRSO/${id}`, {
         method: "DELETE",
         headers,
       });
@@ -293,8 +293,8 @@ const updateRSOStatus = async ({id, status}) => {
     console.log("Stored token:", token);
 
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-    console.log("Fetching web RSO data from:", process.env.REACT_APP_FETCH_RSO_WEB_URL);
-    const response = await fetch(`${process.env.REACT_APP_FETCH_RSO_WEB_URL}`, {
+    console.log("Fetching web RSO data from:", `${process.env.REACT_APP_BASE_URL}/api/rso/allRSOweb`);
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/allRSOweb`, {
       method: "GET",
       headers: {
       "Content-Type": "application/json",
@@ -319,8 +319,8 @@ const updateRSOStatus = async ({id, status}) => {
     
 
     try {
-      console.log("Fetching members from:", process.env.REACT_APP_FETCH_MEMBERS_URL);
-      const response = await fetch(`${process.env.REACT_APP_FETCH_MEMBERS_URL}`, {
+      console.log("Fetching members from:", `${process.env.REACT_APP_BASE_URL}/api/rso/members`);
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/members`, {
         method: "GET",
         headers,
       });
@@ -349,8 +349,8 @@ const updateRSOStatus = async ({id, status}) => {
     const headers = {
        Authorization: `Bearer ${formattedToken}`,
     };
-    console.log("request sent: ", `${process.env.REACT_APP_UPDATE_OFFICER_URL}/${id}`)
-    const response = await fetch(`${process.env.REACT_APP_UPDATE_OFFICER_URL}/${id}`, {
+    console.log("request sent: ", `${process.env.REACT_APP_BASE_URL}/api/rso/updateRSOOfficer/${id}`)
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/updateRSOOfficer/${id}`, {
       method: "PUT",
       headers,
       body: updatedOfficer,
@@ -370,8 +370,8 @@ const updateRSOStatus = async ({id, status}) => {
     const headers = {
        Authorization: `Bearer ${formattedToken}`,
     };
-    console.log("create request sent: ", `${process.env.REACT_APP_CREATE_OFFICER_URL}/${id}`)
-    const response = await fetch(`${process.env.REACT_APP_CREATE_OFFICER_URL}/${id}`, {
+    console.log("create request sent: ", `${process.env.REACT_APP_BASE_URL}/api/rso/createRSOOfficer/${id}`)
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/createRSOOfficer/${id}`, {
       method: "POST",
       headers,
       body: createdOfficer,
@@ -388,7 +388,7 @@ const updateRSOStatus = async ({id, status}) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
     
-    const response = await fetch(`${process.env.REACT_APP_CREATE_MEMBERSHIP_DATE_URL}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/open-membership`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -408,7 +408,7 @@ const updateRSOStatus = async ({id, status}) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-    const response = await fetch(`${process.env.REACT_APP_GET_MEMBERSHIP_DATE_URL}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/membership-status`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -427,7 +427,7 @@ const updateRSOStatus = async ({id, status}) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
     
-    const response = await fetch(`${process.env.REACT_APP_CLOSE_MEMBERSHIP_DATE_URL}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/manual-close-membership`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -446,7 +446,7 @@ const updateRSOStatus = async ({id, status}) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
     
-    const response = await fetch(`${process.env.REACT_APP_EXTEND_MEMBERSHIP_DATE_URL}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/update-membership-endDate`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
