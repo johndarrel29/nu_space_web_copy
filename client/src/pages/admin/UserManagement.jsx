@@ -43,9 +43,9 @@ import { FormatDate } from "../../utils";
           >
             <option value="">All</option>
             <option value="admin">Admin</option>
-            <option value="superadmin">Superadmin</option>
+            <option value="super_admin">Super Admin</option>
             <option value="student">Student</option>
-            <option value="student/rso">Student/RSO</option>
+            <option value="rso_representative">RSO Representative</option>
           </select>
         </div>
       </div>
@@ -74,7 +74,7 @@ import { FormatDate } from "../../utils";
 
   console.log("profileUser", profileUser);
 
-  const isUserStatusActive = profileUser?.assigned_rso?.RSO_status === false && profileUser?.role === "student/rso";
+  const isUserStatusActive = profileUser?.assigned_rso?.RSO_status === false && profileUser?.role === "rso_representative";
   console.log("isUserStatusActive:", isUserStatusActive);
 
     // Memoize the data to prevent unnecessary re-renders
@@ -119,12 +119,8 @@ const tableRowFiltered = useMemo(() => {
 
     return (
         <>
-            <MainLayout
-            tabName="User Management"
-            headingTitle="Monitor Student/RSO and Student accounts"
-            > 
           <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg  border border-mid-gray p-4 pt-0">
-            {(user && (user.role === "admin" || user.role === "superadmin")) && (
+            {(user && (user.role === "admin" || user.role === "super_admin")) && (
               <>
                 <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery}  setSelectedRole={setSelectedRole} openModal={openModal}/> 
                 <Table 
@@ -135,7 +131,7 @@ const tableRowFiltered = useMemo(() => {
               </>
               )}
 
-            {user && user.role === "student/rso" && (
+            {user && user.role === "rso_representative" && (
               <>
               {(profileUser?.assigned_rso?.RSO_membershipStatus === true) && (
                 <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
@@ -174,7 +170,6 @@ const tableRowFiltered = useMemo(() => {
 
           </div>
 
-
           <AnimatePresence
               initial={false}
               exitBeforeEnter={true}
@@ -185,9 +180,6 @@ const tableRowFiltered = useMemo(() => {
 
             )}
             </AnimatePresence>
-                
-            </MainLayout>
-
         </>
     );
 

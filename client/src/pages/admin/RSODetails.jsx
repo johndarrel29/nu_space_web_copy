@@ -464,7 +464,7 @@ useEffect(() => {
                 </div>
 
                 {/* rso details */}
-                {(userProfile?.role === "admin" || userProfile?.role === "superadmin") && (
+                {(userProfile?.role === "admin" || userProfile?.role === "super_admin") && (
                   <div className='flex flex-col items-center justify-center mt-4 gap-2'>
                     <div className='aspect-square rounded-full bg-gray h-24'>
                       <img 
@@ -486,7 +486,7 @@ useEffect(() => {
                   )}
                   {modalMode === "officers-edit" && isOpen && (
                     <>
-                      {userProfile?.role === "student/rso" && (<Button>Edit Officer</Button>)}
+                      {userProfile?.role === "rso_representative" && (<Button>Edit Officer</Button>)}
                       <Button 
                         style={"secondary"} 
                         onClick={() => {

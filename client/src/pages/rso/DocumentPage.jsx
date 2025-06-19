@@ -1,4 +1,4 @@
-import { MainLayout, Searchbar, ReusableDropdown, Button, Backdrop, CloseButton, TabSelector } from "../../components";
+import { Searchbar, ReusableDropdown, Button, Backdrop, CloseButton, TabSelector } from "../../components";
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import  { DropIn }  from "../../animations/DropIn";
@@ -64,89 +64,83 @@ export default function DocumentPage() {
         },
     ];
 
-
     return (
-        <MainLayout
-            tabName="Documents"
-            headingTitle="View and Upload Documents"
-        >
-            <div className="flex flex-col items-center min-h-screen bg-white rounded-lg shadow-md p-4 mt-4">
-                <div className="flex items-center justify-evenly w-full space-x-2">
-                    <div className="w-1/2">
-                        <Searchbar
-                        placeholder={"Search for documents..."}
-                        />
-                    </div>
-                    <div className="w-1/4">
-                        <ReusableDropdown
-                            showAllOption={true}
-                            options={["Most Recent", "Most Viewed", "Cherry"]}
-                        />
-                    </div>
-                    <Button
-                    onClick={() => {
-                        setModalType("upload");
-                        setShowModal(true)}}
-                    className="w-1/4 pl-4 pr-4 bg-primary-rso hover:bg-primary-rso-dark ">
-                        <div className="flex items-center justify-center space-x-2">
-                            <svg className="fill-primary size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
-                            <h1 className="text-primary">Upload a new document</h1>
-                        </div>
-                        
-                    </Button>
+        <div className="flex flex-col items-center min-h-screen bg-white rounded-lg shadow-md p-4 mt-4">
+            <div className="flex items-center justify-evenly w-full space-x-2">
+                <div className="w-1/2">
+                    <Searchbar
+                    placeholder={"Search for documents..."}
+                    />
                 </div>
-                <div className="flex items-start justify-between w-full mt-4">
-                    <h1 className="text-dark-gray">Showing 10 Entries</h1>
-                    <div className="w-1/4">
-                        <ReusableDropdown
-                                showAllOption={false}
-                                options={["10 Rows", "20 Rows", "30 Rows"]}
-                            />
-                    </div>
-
+                <div className="w-1/4">
+                    <ReusableDropdown
+                        showAllOption={true}
+                        options={["Most Recent", "Most Viewed", "Cherry"]}
+                    />
                 </div>
-
-                 {/* Documents Section */}
-                <div className="w-full">
-                    <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+                <Button
+                onClick={() => {
+                    setModalType("upload");
+                    setShowModal(true)}}
+                className="w-1/4 pl-4 pr-4 bg-primary-rso hover:bg-primary-rso-dark ">
+                    <div className="flex items-center justify-center space-x-2">
+                        <svg className="fill-primary size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/></svg>
+                        <h1 className="text-primary">Upload a new document</h1>
+                    </div>
                     
-                    <div className="mt-4 space-y-2">
-                        {documents
-                            .filter(doc => 
-                                activeTab === 0 || 
-                                (activeTab === 1 && doc.status === "Pending") ||
-                                (activeTab === 2 && doc.status === "Approved") ||
-                                (activeTab === 3 && doc.status === "Declined")
-                            )
-                            .map((doc, index) => (
-                                <div 
-                                    key={index}
-                                    className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md cursor-pointer transition-colors"
-                                    onClick={() => {
-                                        setModalType("view");
-                                        setShowModal(true)}}
-                                >
-                                    <div className="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                        </svg>
-                                        <span className="font-medium">{doc.name}</span>
-                                    </div>
-                                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                                        <span>{doc.date}</span>
-                                        <span className={`px-2 py-1 rounded-full text-xs ${
-                                            doc.status === "Approved" ? "bg-green-100 text-green-800" :
-                                            doc.status === "Declined" ? "bg-red-100 text-red-800" :
-                                            "bg-yellow-100 text-yellow-800"
-                                        }`}>
-                                            {doc.status}
-                                        </span>
-                                        <span className="text-gray-400">{doc.remarks}</span>
-                                    </div>
+                </Button>
+            </div>
+            <div className="flex items-start justify-between w-full mt-4">
+                <h1 className="text-dark-gray">Showing 10 Entries</h1>
+                <div className="w-1/4">
+                    <ReusableDropdown
+                            showAllOption={false}
+                            options={["10 Rows", "20 Rows", "30 Rows"]}
+                        />
+                </div>
+
+            </div>
+
+             {/* Documents Section */}
+            <div className="w-full">
+                <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+                
+                <div className="mt-4 space-y-2">
+                    {documents
+                        .filter(doc => 
+                            activeTab === 0 || 
+                            (activeTab === 1 && doc.status === "Pending") ||
+                            (activeTab === 2 && doc.status === "Approved") ||
+                            (activeTab === 3 && doc.status === "Declined")
+                        )
+                        .map((doc, index) => (
+                            <div 
+                                key={index}
+                                className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-md cursor-pointer transition-colors"
+                                onClick={() => {
+                                    setModalType("view");
+                                    setShowModal(true)}}
+                            >
+                                <div className="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                    <span className="font-medium">{doc.name}</span>
                                 </div>
-                            ))
-                        }
-                    </div>
+                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                    <span>{doc.date}</span>
+                                    <span className={`px-2 py-1 rounded-full text-xs ${
+                                        doc.status === "Approved" ? "bg-green-100 text-green-800" :
+                                        doc.status === "Declined" ? "bg-red-100 text-red-800" :
+                                        "bg-yellow-100 text-yellow-800"
+                                    }`}>
+                                        {doc.status}
+                                    </span>
+                                    <span className="text-gray-400">{doc.remarks}</span>
+                                </div>
+                            </div>
+                        ))
+                    }
                 </div>
             </div>
 
@@ -260,6 +254,6 @@ export default function DocumentPage() {
             </Backdrop>
                 )}
             </AnimatePresence>
-        </MainLayout>
+        </div>
     );
 }

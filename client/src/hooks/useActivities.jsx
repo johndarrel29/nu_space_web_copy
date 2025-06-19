@@ -346,7 +346,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         };
 
         // Create URL with query parameters for sorting
-        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/RSO/Activities`);
+        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/activities/getActivities`);
         if (sorted) {
             url.searchParams.set("sorted", sorted);
         }
@@ -535,6 +535,7 @@ useEffect(() => {
         hasNextPage,
         isFetchingNextPage,
         adminPaginatedActivities,
+        adminError,
 
         activityDocument,
         activityDocumentError,

@@ -14,9 +14,9 @@ export default function FormsBuilder() {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const isStudentRSO = user?.role === "student/rso";
+  const isStudentRSO = user?.role === "rso_representative";
   const isAdmin = user?.role === "admin";
-  const isSuperAdmin = user?.role === "superadmin";
+  const isSuperAdmin = user?.role === "super_admin";
 
   useEffect(() => {
     if (error) {

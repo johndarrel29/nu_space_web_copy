@@ -14,7 +14,7 @@ const TableRow = ({ userRow, onOpenModal, index }) => {
 
   // tooltip style dependency
   const tooltipId = `edit-tooltip-${userRow._id}`;
-  const isRestricted = user?.role === "admin" && (userRow?.role === "admin" || userRow?.role === "superadmin");
+  const isRestricted = user?.role === "admin" && (userRow?.role === "admin" || userRow?.role === "super_admin");
 
 
 
@@ -26,11 +26,11 @@ const TableRow = ({ userRow, onOpenModal, index }) => {
     console.log("userRow role: " + userRole)
 
     switch (userRole) {
-      case 'superadmin':
+      case 'super_admin':
         return 'primary';
       case 'admin':
         return 'secondary';
-      case 'student/rso':
+      case 'rso_representative':
         return 'tertiary'; 
       case 'student':
         return 'quarternary';
@@ -62,7 +62,7 @@ const TableRow = ({ userRow, onOpenModal, index }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
 
-        {!(userRow.role === 'superadmin' || userRow.role === 'admin') && (
+        {!(userRow.role === 'super_admin' || userRow.role === 'admin') && (
           <div className="flex items-center justify-center">
             {console.log("results: " + handleStyle(userRow.role))}
             <Badge style={handleStyle(userRow.role)} text={userRow.role === 'student' ? 'student' : userRow.assigned_rso?.RSO_acronym || 'N/A'}/>

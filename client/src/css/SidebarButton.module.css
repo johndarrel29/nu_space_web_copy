@@ -1,17 +1,13 @@
 .hoverDiv {
-
     width: 100%;
     /* padding: 10px 30px; */
     color: white;
-    transition: 0.1s ease;
-
+    transition: all 0.3s ease-in-out;
     flex-direction: column;  
     align-items: center;     
     justify-content: center;
     padding: 10px;
 }
-
-
 
 .hoverDiv:hover {
     background-color: #1f2e5d;
@@ -27,11 +23,9 @@
 .hoverDivRSO {
     width: 100%;
     color: var(--primary);
-    transition: 0.1s ease;
-    
-    border : none;
+    transition: all 0.3s ease-in-out;
+    border: none;
     border-radius: 5px;
-    
     flex-direction: column;  
     align-items: center;     
     justify-content: center;
@@ -43,9 +37,8 @@
     width: 100%;
     padding: 10px 30px;
     color: var(--primary);
-    transition: 0.1s ease;
-    
-    border : none;
+    transition: all 0.3s ease-in-out;
+    border: none;
     border-radius: 5px;
 }
 
@@ -56,18 +49,14 @@
     
 }
 
-
-
 .hoverDivRSOExpanded {
     width: 100%;
     padding: 10px 30px;
     color: var(--primary);
-    transition: 0.1s ease;
-    
-    border : none;
+    transition: all 0.3s ease-in-out;
+    border: none;
     border-radius: 5px;
 }
-
 
 .hoverDivRSOExpanded:hover {
     background-color: var(--background-color);
@@ -83,28 +72,31 @@
 }
 
 .sidebarText {
-
     margin-left: 0; 
     text-align: center;
     font-size: 12px;
+    transition: all 0.3s ease-in-out;
 }
 
 .sidebarTextExpanded {
     color: white;
     margin-left: 10px;
     font-size: 16px;
+    transition: all 0.3s ease-in-out;
 }
 
 .sidebarTextExpandedRSO {
     margin-left: 10px;
     font-size: 16px;
     text-align: left;
+    transition: all 0.3s ease-in-out;
 }
 
 .sidebarTextRSO {
     text-align: center;
     font-size: 12px;
     width: auto;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Active (clicked) state */

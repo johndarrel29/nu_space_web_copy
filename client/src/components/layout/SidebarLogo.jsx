@@ -10,7 +10,7 @@ function SidebarLogo (logoStyle) {
     <div>
     
         <img 
-        src={user?.role === "student/rso" ? blueLogo : whiteLogo} 
+        src={user?.role === "rso_representative" ? blueLogo : whiteLogo} 
         alt="Logo" className={style.imageStyle}
         draggable="false"
         />

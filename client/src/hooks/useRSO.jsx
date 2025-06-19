@@ -29,8 +29,8 @@ const [organizations, setOrganizations] = useState([]);
     
 
     try {
-      console.log("Fetching data from:", `${process.env.REACT_APP_BASE_URL}/api/rso/getRSO`);
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/getRSO`, {
+      console.log("Fetching data from:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`);
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, {
         method: "GET",
         headers,
       });
@@ -293,8 +293,8 @@ const updateRSOStatus = async ({id, status}) => {
     console.log("Stored token:", token);
 
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-    console.log("Fetching web RSO data from:", `${process.env.REACT_APP_BASE_URL}/api/rso/allRSOweb`);
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/allRSOweb`, {
+    console.log("Fetching web RSO data from:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`);
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, {
       method: "GET",
       headers: {
       "Content-Type": "application/json",

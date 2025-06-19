@@ -10,7 +10,7 @@ export default function CreateUserModal({ closeModal }) {
     const [activeTab, setActiveTab] = useState(0);
     const tabs = [
         {label: "Student"},
-        {label: "Student/RSO"}
+        {label: "RSO Representative"}
     ];
 
 
@@ -40,7 +40,7 @@ export default function CreateUserModal({ closeModal }) {
                     
 
 
-                    {activeTab === 0 ? <StudentForm/> : <StudentRSOForm role="student/rso"/>}
+                    {activeTab === 0 ? <StudentForm/> : <StudentRSOForm role="rso_representative"/>}
 
                     <div className="flex flex-row space-x-2  justify-end">
                         <Button onClick={closeModal} className="text-off-black px-4" style="secondary">Cancel</Button>
@@ -108,7 +108,7 @@ function StudentRSOForm({role}) {
             <label htmlFor="role">Role</label>
             <DropdownSearch 
             id="category"
-            isDisabled={selectedRole !== "student/rso"}
+            isDisabled={selectedRole !== "rso_representative"}
             role={role}
             />
         </div>

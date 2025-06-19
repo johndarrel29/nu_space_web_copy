@@ -52,9 +52,9 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
     console.log("handleConfirm inside ActionModal triggered");
 
     if (mode === "edit") {
-      // Validate if role is student/rso and category is selected
-      if (selectedRole === "student/rso" && (!selectedCategory || selectedCategory === "N/A")) {
-        setLocalError("Please select a category for student/rso role");
+      // Validate if role is rso_representative and category is selected
+      if (selectedRole === "rso_representative" && (!selectedCategory || selectedCategory === "N/A")) {
+        setLocalError("Please select a category for rso_representative role");
         return;
       }
 
@@ -159,7 +159,7 @@ export default function ActionModal({ onClose, mode, id, name, createdAt, email,
                     <div>
                       <h1>Category:</h1>
                       <DropdownSearch 
-                      isDisabled={selectedRole !== "student/rso"}
+                      isDisabled={selectedRole !== "rso_representative"}
                       category={category}
                       setSelectedCategory={setSelectedCategory}
                       selectedCategory={selectedCategory}

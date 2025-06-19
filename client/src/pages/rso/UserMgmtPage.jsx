@@ -1,18 +1,14 @@
-import { MainLayout, Searchbar, ReusableDropdown, Button, Backdrop, CloseButton } from "../../components";
+import { Searchbar, ReusableDropdown, Button, Backdrop, CloseButton } from "../../components";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import  { DropIn }  from "../../animations/DropIn";
 import { motion } from "framer-motion";
 
-
 export default function UserMgmtPage() {
     const [showModal, setShowModal] = useState(false);
 
     return (
-        <MainLayout
-        tabName="User Management"
-        headingTitle="Approve User Membership"
-        >
+        <>
         <div className="flex flex-col items-center  min-h-screen bg-gray-100">
             <div className="bg-white h-auto w-full rounded-lg shadow-md p-4 mt-4">
                 <div className="flex items-center justify-between space-x-2 ">
@@ -48,7 +44,7 @@ export default function UserMgmtPage() {
                         <td>16/04/2024</td>
                         <td>
                             <div className="rounded-full h-8 w-8 bg-light-gray flex items-center justify-center hover:bg-mid-gray cursor-pointer">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="fill-off-black size-4" viewBox="0 0 448 512"><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="fill-off-black size-4" viewBox="0 0 448 512"><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32-14.3 32-32z"/></svg>
                             </div>
                         </td>
                     </tr>
@@ -112,7 +108,7 @@ export default function UserMgmtPage() {
                             onClick={() => setShowModal(false)}
                             className={"rounded-full h-10 w-10 bg-light-gray flex items-center justify-center hover:bg-mid-gray cursor-pointer"}
                             >
-                                <svg className="fill-off-black size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32 14.3 32 32z"/></svg>
+                                <svg className="fill-off-black size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M432 256c0 17.7-14.3 32-32 32L48 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l352 0c17.7 0 32-14.3 32-32z"/></svg>
                             </div>
 
                         </div>
@@ -126,7 +122,6 @@ export default function UserMgmtPage() {
             </Backdrop>
             )}
         </AnimatePresence>
-        </MainLayout>
-
+        </>
     );
 }

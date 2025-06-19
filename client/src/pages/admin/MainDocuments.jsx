@@ -5,10 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import DefaultPicture from "../../assets/images/default-picture.png"; 
 
-// NOTE: Some pages inside adminPaginatedActivities.pages might be undefined
-// if rso, fetch data from http://localhost:5000/api/activities/getRSOCreatedActivities
-// if admin, fetch data from http://localhost:5000/api/admin/activities/
-
 export default function MainDocuments() {
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +20,7 @@ export default function MainDocuments() {
   const [college, setCollege] = useState("All");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedSorting, setSelectedSorting] = useState("");
+  const [documentError, setDocumentError] = useState(null);
   
 
   const { 
@@ -33,11 +30,11 @@ export default function MainDocuments() {
     fetchActivity, 
     fetchLocalActivities, 
     adminActivity, 
-    adminError,
     fetchNextPage, 
     hasNextPage,
     isFetchingNextPage,
     adminPaginatedActivities,
+    adminError,
 
     localActivities,
     isLocalActivitiesLoading,
@@ -47,15 +44,20 @@ export default function MainDocuments() {
     isLocalActivitiesSuccess,
   } = useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college);
 
-
   const allActivities = adminPaginatedActivities?.pages?.flatMap(page => page?.activities || []) || [];
-  // console.log("Admin Paginated Activities Images:", adminPaginatedActivities?.pages?.flatMap(page => page.activities.map(activity => activity.activityImageUrl)));
-
-  console.log("adminPaginatedActivities:", allActivities);
-  console.log("role of user:", user?.role);
 
   const rso = (organizations ?? []).map((orgs) => orgs.RSO_acronym);
 
+  // set document error based on user role
+  useEffect(() => {
+    if (user?.role === "admin" || user?.role === "super_admin") {
+      setDocumentError(adminError);
+    } else if (user?.role === "rso_representative") {
+      setDocumentError(error);
+    } else {
+      setDocumentError(null);
+    }
+  }, [adminError, error, user?.role]);
 
   useEffect(() => {
     const loadActivities = async () => {
@@ -71,10 +73,10 @@ export default function MainDocuments() {
   }, [fetchActivity]);
 
   useEffect(() => {
-    if (user?.role === "student/rso") {
+    if (user?.role === "rso_representative") {
       refetchLocalActivities();
     }
-  }, [user?.role]); // Only re-run if user role changes
+  }, [user?.role]); 
 
   const handleCreate = () => {
     navigate("document-action", {
@@ -93,7 +95,6 @@ export default function MainDocuments() {
 
   const handleRSO = (value) => {
     console.log("Selected RSO:", value); 
-    // console.log("selectedSorting:", selectedSorting);
     setRSO(value);
   }
 
@@ -104,7 +105,6 @@ export default function MainDocuments() {
     } else {
       setSorted(value);
     }
-    // Sorting is handled by the backend through the URL parameters
   }
   const handleRSOType = (value) => {
     console.log("Selected RSO Type:", value);
@@ -113,7 +113,6 @@ export default function MainDocuments() {
     } else {
       setRSOType(value);
     }
-    // Implement RSO Type filtering logic here based on the selected value
   }
 
   const handleCollege = (value) => {
@@ -122,7 +121,6 @@ export default function MainDocuments() {
       setCollege(null);
     }
     setCollege(value);
-    // Implement college filtering logic here based on the selected value
   }
 
     const handleActivityClick = (activity) => {
@@ -133,11 +131,17 @@ export default function MainDocuments() {
 
     console.log("activities:", fetchActivity);
 
+const assignedRSOs = Array.isArray(user?.assigned_rso)
+? user.assigned_rso
+: user?.assigned_rso
+  ? [user.assigned_rso]
+  : [];
+
 
 // Filter activities for RSO members to only show their RSO's activities
-const filteredActivities = user?.role === "student/rso" 
+const filteredActivities = user?.role === "rso_representative" 
   ? activities.filter(activity => 
-      user.assigned_rso?.some(rso => rso._id === activity.RSO_id._id)
+      assignedRSOs.some(rso => rso._id === activity.RSO_id._id)
     )
   : activities;
 
@@ -157,7 +161,7 @@ console.log("Filtered Activities:", filteredActivities);
   }
 
   const activitiesToShow = 
-  user.role === "student/rso" ? 
+  user.role === "rso_representative" ? 
     (localActivities || [])
       // First apply search filter if there's a search query
       .filter(activity => {
@@ -184,18 +188,20 @@ console.log("Filtered Activities:", filteredActivities);
             return 0;
         }
       }) :
-  (user.role === "admin" || user.role === "superadmin") ? allActivities :
+  (user.role === "admin" || user.role === "super_admin") ? allActivities :
   [];
+
+  console.log("user role:", user.role);
+  console.log("activitiesToShow:", activitiesToShow?.length === 0);
 
   return (
     <div className="w-full">
 
       {/* Header and Create Button */}
       <div >
-        
-        {user?.role === "student/rso" && (
+        {user?.role === "rso_representative" && (
           <div className="flex justify-end mb-4 gap-2">
-            {user?.role === "student/rso" && (
+            {user?.role === "rso_representative" && (
               <Button
               onClick={refetchLocalActivities}
               style={"secondary"}
@@ -204,7 +210,6 @@ console.log("Filtered Activities:", filteredActivities);
                 <svg xmlns="http://www.w3.org/2000/svg" className={`size-4 ${isLocalActivitiesLoading ? "fill-gray-400" : "fill-off-black"}`} viewBox="0 0 512 512"><path d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160 352 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l111.5 0c0 0 0 0 0 0l.4 0c17.7 0 32-14.3 32-32l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 35.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1L16 432c0 17.7 14.3 32 32 32s32-14.3 32-32l0-35.1 17.6 17.5c0 0 0 0 0 0c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.8c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-.1-.1L125.6 352l34.4 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L48.4 288c-1.6 0-3.2 .1-4.8 .3s-3.1 .5-4.6 1z"/></svg>
               </Button>
             )}
-
             <Button 
               onClick={handleCreate}
               className="bg-[#312895] hover:bg-[#312895]/90 text-white px-4 py-2"
@@ -214,9 +219,7 @@ console.log("Filtered Activities:", filteredActivities);
                 Create an Activity
               </div>
             </Button>
-
           </div>
-
         )}
       </div>
 
@@ -230,7 +233,7 @@ console.log("Filtered Activities:", filteredActivities);
               setSearchQuery={setSearchQuery}
             />
           </div>
-          { user.role === "student/rso" ? (            
+          { user.role === "rso_representative" ? (            
           <div>
             <ReusableDropdown
               icon={true}
@@ -245,10 +248,7 @@ console.log("Filtered Activities:", filteredActivities);
           :
           (
             <DropdownSearch 
-            //fetch acronym for category
             isSorting={true}
-            // options={rso}
-            // setSelectedCategory={(val) => handleRSO(val)}
             setSelectedSorting={handleRSO}
             setSelectedCategory={() => {}} 
             />
@@ -256,7 +256,8 @@ console.log("Filtered Activities:", filteredActivities);
         }
         </div>
 
-        {(user.role === "admin" || user.role === "superadmin") && (
+        {/* More Filter Section for Admin and Super Admin */}
+        {(user.role === "admin" || user.role === "super_admin") && (
           <div
             aria-disabled="false"
             data-accordion-container
@@ -338,7 +339,7 @@ console.log("Filtered Activities:", filteredActivities);
         </div>
       )
       :
-      error ? (
+      (documentError) ? (
             <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center">
                 <svg 
                     xmlns="http://www.w3.org/2000/svg" 
@@ -355,12 +356,13 @@ console.log("Filtered Activities:", filteredActivities);
                     />
                 </svg>
                 <p className="text-red-500 font-medium text-center max-w-md px-4">
-                    {error || "An error occurred while fetching activities."}
+                    {documentError?.message || "An error occurred while fetching activities."}
                 </p>
             </div>
       )
       :
-      !loading && !error ? (
+
+      !loading && !adminError ? (
         <>
         <div className="flex items-center justify-center mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 ">
@@ -372,10 +374,10 @@ console.log("Filtered Activities:", filteredActivities);
                 Activity_name={activity.Activity_name}
                 Activity_description={activity.Activity_description}
                 RSO_acronym={activity.RSO_id?.RSO_acronym || "N/A"}
-                //user imageUrl if student/rso role
+                //user imageUrl if rso_representative role
                 Activity_image={ 
-                  user?.role === "student/rso" ? activity?.imageUrl || DefaultPicture :
-                  user?.role === "admin" || user?.role === "superadmin" ?
+                  user?.role === "rso_representative" ? activity?.imageUrl || DefaultPicture :
+                  user?.role === "admin" || user?.role === "super_admin" ?
                   activity?.activityImageUrl || DefaultPicture : DefaultPicture}
                 Activity_registration_total={activity.Activity_registration_total}
                 onClick={handleActivityClick}
@@ -385,19 +387,19 @@ console.log("Filtered Activities:", filteredActivities);
               />
             ))}
 
-            {activitiesToShow?.length === 0 && (
-              <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-4 flex flex-col items-center justify-center p-8 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#312895]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="mt-2 text-lg font-medium text-[#312895]">No activities found</h3>
-                <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
-              </div>
-              )  
-            }
+          {/* { !activitiesToShow && (
+            <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-4 flex flex-col items-center justify-center p-8 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#312895]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="mt-2 text-lg font-medium text-[#312895]">No activities found</h3>
+              <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+            </div>
+          )} */}
+
           </div>
         </div>
-          {(user.role === "admin" || user.role === "superadmin") && (
+          {(user.role === "admin" || user.role === "super_admin") && (
             <div className="flex justify-center mt-6">
               {hasNextPage && (
                 <Button 
@@ -424,8 +426,6 @@ console.log("Filtered Activities:", filteredActivities);
         </div>
       )
     }
-
-
     </div>
   );
 }

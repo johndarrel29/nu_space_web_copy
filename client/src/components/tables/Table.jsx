@@ -6,11 +6,10 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import { CardSkeleton } from '../../components'; 
 import { AnimatePresence } from "framer-motion";
 import   { useModal }  from "../../hooks";
-
 import axios from "axios";
 import { toast } from 'react-toastify';
-//Even when the data is null in assigned_rso, the data still retains on the server.
-//make a way to display that if the user contains assigned_rso, then display it in the dropdownsearch.
+
+// error: update role doesnt refetch the data
 
 // Table Component
 const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
@@ -66,9 +65,9 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
       console.log("user role:", user.role);
       const matchesRole = !selectedRole || 
       (selectedRole === "student" ? user.role?.toLowerCase() === "student" : 
-      selectedRole === "student/rso" ? user.role?.toLowerCase()?.includes("/rso") : 
+      selectedRole === "rso_representative" ? user.role?.toLowerCase()?.includes("/rso") : 
       selectedRole === "admin" ? user.role?.toLowerCase() === "admin" :
-      selectedRole === "superadmin" ? user.role?.toLowerCase() === "superadmin" :
+      selectedRole === "super_admin" ? user.role?.toLowerCase() === "super_admin" :
       false
     );
     
@@ -159,17 +158,18 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
         updatedData.assigned_rso = null; // Remove assigned_rso if role is 'student'
       }
   
-      // If the role is 'student/rso', ensure the category is assigned to assigned_rso
-      if (updatedData.role === 'student/rso' && updatedData.category) {
-        updatedData.assigned_rso = updatedData.category;
+      // If the role is 'rso_representative', ensure the category is assigned to assigned_rso
+      if (updatedData.role === 'rso_representative' && updatedData.category) {
+        updatedData.category = null;
+        // updatedData.assigned_rso = updatedData.category;
       }
 
-      if (updatedData.role === 'superadmin') {
+      if (updatedData.role === 'super_admin') {
         await deleteCategory(_id); // Call the delete function
-        // Don't send category data in the update request when role is superadmin
+        // Don't send category data in the update request when role is super_admin
         updatedData.category = null;
         updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'superadmin'
+        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'super_admin'
       }
 
       if (updatedData.role === 'admin') {
@@ -194,12 +194,12 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
   
     try {
       if (updatedData) {
-        console.log("ID being sent:", _id); 
+        // console.log("ID being sent:", _id); 
         console.log("Data being sent:", updatedData); 
-        console.log("Update API URL:", `${process.env.REACT_APP_BASE_URL}/api/auth/updateUserRole/${_id}`);
+        // console.log("Update API URL:", `${process.env.REACT_APP_BASE_URL}/api/admin/user/updateUserRole/${_id}`);
         
         const response = await axios.patch(
-          `${process.env.REACT_APP_BASE_URL}/api/auth/updateUserRole/${_id}`,
+          `${process.env.REACT_APP_BASE_URL}/api/admin/user/updateUserRole/${_id}`,
           updatedData,
           { 
             headers: {
@@ -216,10 +216,11 @@ const Table = React.memo(({ searchQuery, data, selectedRole, error }) => {
           )
         );
         toast.success("User updated successfully");
+        
       } else {
-        console.log("Delete URL:", `${process.env.REACT_APP_BASE_URL}/api/auth/deleteUser/${_id}`);
+        // console.log("Delete URL:", `${process.env.REACT_APP_BASE_URL}/api/auth/deleteUser/${_id}`);
         // Delete user
-        await axios.delete(`${process.env.REACT_APP_BASE_URL}/api/auth/deleteUser/${_id}`, { headers });
+        await axios.delete(`${process.env.REACT_APP_BASE_URL}/api/admin/user/deleteUser/${_id}`, { headers });
   
         setUsers(prevUsers => prevUsers.filter(user => user._id !== _id));
         toast.success("User deleted successfully");

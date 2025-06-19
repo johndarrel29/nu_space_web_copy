@@ -32,7 +32,7 @@ export default function Login () {
         setError("");
         
         try {
-            const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/auth/userLogin`, 
+            const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/admin/user/webLogin`, 
                 {
                     email: email,
                     password: password,
@@ -58,9 +58,9 @@ export default function Login () {
 
                     navigate("/dashboard"); 
                 }
-                else if (role === "student/rso") {
+                else if (role === "rso_representative") {
                     navigate("/document"); 
-                } else if (role === "superadmin") {
+                } else if (role === "super_admin") {
                     navigate("/user-management"); 
                 }
 

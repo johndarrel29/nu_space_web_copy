@@ -20,7 +20,7 @@ function useUserProfile() {
       console.log('Token available:', !!token);
       console.log('API URL:', `${process.env.REACT_APP_BASE_URL}/api/auth/userProfile`);
 
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/userProfile`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user//fetchWebProfile`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -46,9 +46,9 @@ function useUserProfile() {
     const fetchProfilePage = async () => {
       const token = localStorage.getItem('token');
       console.log('Token available:', !!token);
-      console.log('API URL:', `${process.env.REACT_APP_BASE_URL}/api/auth/userProfile`);
+      console.log('API URL:', `${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchWebProfile`);
 
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/userProfile`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchWebProfile`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -73,7 +73,7 @@ function useUserProfile() {
 
   
 
-      const deleteOfficer = async (officerId) => {
+  const deleteOfficer = async (officerId) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
@@ -98,6 +98,48 @@ function useUserProfile() {
       console.error("Error deleting officer:", err);
     }
   }
+
+  const fetchWebProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchWebProfile`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Web profile data received:', data ? 'Yes' : 'No');
+
+      return data.user;
+    } catch (err) {
+      console.error("Error fetching web profile:", err);
+      throw err;
+    }
+  };
+
+
+  const {
+    data: webProfile,
+    error: webProfileError,
+    isLoading: isWebProfileLoading,
+    isError: isWebProfileError,
+    refetch: refetchWebProfile,
+  } = useQuery({
+    queryKey: ['webProfile'],
+    queryFn: fetchWebProfile,
+    staleTime: Infinity,
+    cacheTime: Infinity,
+  });
 
   const {
     data: profilePageData,
@@ -142,7 +184,7 @@ function useUserProfile() {
     
 
 
-  return { user, error, isLoading, isError, refetch, 
+  return { user, error, isLoading, isError, refetch, webProfile, isWebProfileLoading, isWebProfileError, refetchWebProfile,
     deleteOfficerMutate, isDeleting, isDeleteError, profilePageData };
 }
 

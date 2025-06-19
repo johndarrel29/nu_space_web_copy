@@ -356,7 +356,7 @@ export default function Activities() {
 
             {activeTab === 0 && ( 
               <>
-                {user?.role === "student/rso" && (
+                {user?.role === "rso_representative" && (
                   <div className="flex justify-end w-full mt-4">
                     <Button 
                       onClick={handleDocumentUpload}
@@ -374,7 +374,7 @@ export default function Activities() {
                 
                 <div className="w-full mt-4 overflow-x-auto">
                   <ReusableTable
-                    columnNumber={user.role === "student/rso" ? 5 : 4}
+                    columnNumber={user.role === "rso_representative" ? 5 : 4}
                     tableHeading={tableHeading}
                     tableRow={filterActivityDocuments}
                     options={["All", "PDF", "Word Document", "Excel Sheet"]}
