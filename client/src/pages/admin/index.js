@@ -6,8 +6,6 @@ export { default as Documents } from './Documents';
 export { default as MainActivities } from './MainActivities';
 export { default as MainDocuments } from './MainDocuments';
 export { default as MainRSO } from './MainRSO';
-export { default as Requirements } from './Requirements';
-export { default as Review } from './Review';
 export { default as RSODetails } from './RSODetails';
 export { default as RSOManagement } from './RSOManagement';
 export { default as UserManagement } from './UserManagement';

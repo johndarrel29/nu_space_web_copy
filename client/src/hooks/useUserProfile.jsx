@@ -139,6 +139,7 @@ function useUserProfile() {
     queryFn: fetchWebProfile,
     staleTime: Infinity,
     cacheTime: Infinity,
+    enabled: false, // Disable automatic fetching
   });
 
   const {

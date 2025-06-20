@@ -200,7 +200,7 @@ console.log("All RSO Tags:", allTags);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleSelectedUser = (user) => {
     console.log("Selected user:", user);

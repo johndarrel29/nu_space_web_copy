@@ -141,7 +141,7 @@ const assignedRSOs = Array.isArray(user?.assigned_rso)
 // Filter activities for RSO members to only show their RSO's activities
 const filteredActivities = user?.role === "rso_representative" 
   ? activities.filter(activity => 
-      assignedRSOs.some(rso => rso._id === activity.RSO_id._id)
+      assignedRSOs.some(rso => rso?._id === activity?.RSO_id?._id)
     )
   : activities;
 

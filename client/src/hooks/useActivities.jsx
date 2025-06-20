@@ -346,7 +346,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         };
 
         // Create URL with query parameters for sorting
-        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/activities/getActivities`);
+        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/activities/getRSOCreatedActivities`);
         if (sorted) {
             url.searchParams.set("sorted", sorted);
         }
@@ -381,9 +381,9 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         };
 
         try {
-            console.log("finding ", `${process.env.REACT_APP_BASE_URL}/api/activities/viewActivity/${activityId}`);
+            console.log("finding ", `${process.env.REACT_APP_BASE_URL}/api/admin/activities/${activityId}`);
 
-            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/viewActivity/${activityId}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/${activityId}`, {
                 method: "GET",
                 headers,
             });

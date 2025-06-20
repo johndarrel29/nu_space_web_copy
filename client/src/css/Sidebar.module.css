@@ -1,10 +1,10 @@
 .container {
-    @apply fixed z-50 top-0 left-0 h-screen w-[80px] bg-[#314095];
+    @apply fixed z-50 top-0 left-0 h-screen w-[80px] bg-primary;
     transition: all 0.3s ease-in-out;
 }
 
 .containerExpanded {
-    @apply fixed z-50 top-0 left-0 h-screen w-[15%] bg-[#314095] pl-4 pr-4;
+    @apply fixed z-50 top-0 left-0 h-screen w-[250px] bg-primary pl-4 pr-4;
     transition: all 0.3s ease-in-out;
 }
 
@@ -15,7 +15,7 @@
 }
 
 .RSOcontainerExpanded {
-    @apply fixed z-50 top-0 left-0 h-screen w-[15%] bg-white pl-4 pr-4;
+    @apply fixed z-50 top-0 left-0 h-screen w-[250px] bg-white pl-4 pr-4;
     border-right: 1px solid var(--mid-gray);
     transition: all 0.3s ease-in-out;
 }

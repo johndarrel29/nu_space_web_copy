@@ -227,7 +227,7 @@ const handleOfficer = (officer) => {
           <div className="flex flex-col items-start gap-2">
             {isStudentRSO ? (
               <img
-                src={user?.assigned_rso?.signed_picture || DefaultPicture}
+                src={profilePageData?.assigned_rso?.signed_picture || DefaultPicture}
                 alt="Profile"
                 className="size-24 rounded-full object-cover"
               />

@@ -4,13 +4,10 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import axios from 'axios';
-
-// Components
-import { ReusableTable, Backdrop, Button, TabSelector, CloseButton } from '../../components';
+import { ReusableTable, Backdrop, Button, TabSelector, CloseButton, UploadDocumentsModal } from '../../components';
 import { DropIn } from "../../animations/DropIn";
+import { useModal, useActivities, useDocumentManagement, useUserProfile } from "../../hooks";
 
-// Hooks
-import { useModal, useActivities, useDocumentManagement } from "../../hooks";
 
 export default function Activities() {
   // Router hooks
@@ -30,6 +27,9 @@ export default function Activities() {
   const [activeTab, setActiveTab] = useState(0);
   const [titles, setTitles] = useState("");
   const [showStatusMessage, setShowStatusMessage] = useState(false);
+  const {   webProfile } = useUserProfile();
+
+  console.log("User Profile:", webProfile);
   
   // User data
   const user = JSON.parse(localStorage.getItem("user"));
@@ -253,7 +253,7 @@ export default function Activities() {
             <div className='h-12 w-12 bg-[#312895] rounded-full flex items-center justify-center text-white font-bold'>
               <img
                 className='h-full w-full object-cover rounded-full' 
-                src={activity?.RSO_id?.imageUrl || DefaultPicture} 
+                src={activity?.RSO_id?.RSO_imageUrl || DefaultPicture} 
                 alt="Activity Picture" 
               />
             </div>
@@ -282,7 +282,7 @@ export default function Activities() {
             {/* Activity Image */}
             <div className='aspect-square w-full sm:w-[60%] md:w-[50%] lg:w-[40%] bg-mid-gray rounded-lg overflow-hidden'>
               <img 
-                src={activity?.imageUrl || defaultPic} 
+                src={activity?.activityImageUrl || defaultPic} 
                 alt="Activity" 
                 className='w-full h-full object-cover'
               />
@@ -292,12 +292,13 @@ export default function Activities() {
             <div className='flex w-full justify-start mt-4 gap-4'>
               <h1 className='text-2xl font-bold text-off-black'>{activity?.Activity_name}</h1>
               <div className='flex items-center gap-2'>
-                <Button  onClick={handleEditClick} style={"secondary"}>
-                 
-                  <div className="flex items-center gap-2 text-sm font-light ">
-                    Edit
-                  </div>
-                </Button>
+                {webProfile?.role === "rso_representative" && (
+                  <Button  onClick={handleEditClick} style={"secondary"}>
+                    <div className="flex items-center gap-2 text-sm font-light ">
+                      Edit
+                    </div>
+                  </Button>
+                )}
               </div>
             </div>
             <div className='w-full flex flex-col sm:flex-row justify-start gap-4 mt-4'>
@@ -446,13 +447,12 @@ export default function Activities() {
               animate="visible"
               exit="exit"
             >
-              <div className="p-6">
+              {/* <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-[#312895]">Upload Documents</h2>
                   <CloseButton onClick={handleCloseModal} />
                 </div>
                 
-                {/* File Upload Area */}
                 <div className="file-upload-container">
                   <input
                     type="file"
@@ -473,7 +473,6 @@ export default function Activities() {
                   </label>
                 </div>
 
-                {/* Selected Files List */}
                 {files && files.length > 0 && (
                   <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
                     {files.map((file, index) => (
@@ -544,7 +543,6 @@ export default function Activities() {
                   </div>
                 )}
 
-                {/* Status Messages */}
                 {msg && (
                   <div className="mt-4 p-3 rounded-lg text-sm bg-yellow-100 text-yellow-800">
                     {msg}
@@ -569,7 +567,6 @@ export default function Activities() {
                   </div>
                 )}
 
-                {/* Modal Actions */}
                 <div className="mt-6 flex justify-end space-x-3">
                   <Button style={"secondary"} onClick={handleCloseModal}>
                     Cancel
@@ -582,7 +579,8 @@ export default function Activities() {
                     Upload
                   </Button>
                 </div>
-              </div>
+              </div> */}
+              <UploadDocumentsModal handleCloseModal={handleCloseModal}></UploadDocumentsModal>
             </motion.div>
           </Backdrop>
         )}

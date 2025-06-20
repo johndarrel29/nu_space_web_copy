@@ -1,5 +1,5 @@
 import React from 'react'
-import { ReusableTable, Button, Backdrop, CloseButton, TabSelector, CardSkeleton, TextInput } from '../../components'
+import { ReusableTable, Button, Backdrop, CloseButton, TabSelector, CardSkeleton, TextInput, UploadDocumentsModal } from '../../components'
 import { useDocumentManagement, useModal } from '../../hooks';
 import { useEffect, useState } from 'react';
 import useNotification from '../../utils/useNotification';
@@ -7,6 +7,8 @@ import { AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import {useCallback} from 'react'
+import {useDropzone} from 'react-dropzone'
 
 function Document() {
   // State and hooks initialization
@@ -38,6 +40,7 @@ function Document() {
   const [descriptions, setDescriptions] = useState([]);
   const user = JSON.parse(localStorage.getItem("user"));
   const userID = user?.id || "";
+  
   const {         
     documentsData,
     documentsLoading,
@@ -45,16 +48,7 @@ function Document() {
     documentsQueryError,
     refetchDocuments
   } = useDocumentManagement({ userID });
-
-  console.log("user ", user);
-  console.log("user id", userID)
-  console.log("documentsData", documentsData);
-
-  // Fetch documents on component mount
-  // useEffect(() => {
-  //   console.log("Fetching documents on component mount...");
-  //   fetchDocuments();
-  // }, [fetchDocuments]);
+  console.log("generalDocuments", generalDocuments);
 
   /**
    * Formats a date string to a readable format
@@ -67,27 +61,49 @@ function Document() {
     return date.toLocaleDateString(undefined, options);
   };
 
+  const onDrop = useCallback(acceptedFiles => {
+        acceptedFiles.forEach((file) => {
+      const reader = new FileReader()
+
+      reader.onabort = () => console.log('file reading was aborted')
+      reader.onerror = () => console.log('file reading has failed')
+      reader.onload = () => {
+      // Do whatever you want with the file contents
+        const binaryStr = reader.result
+        console.log(binaryStr)
+      }
+      reader.readAsArrayBuffer(file)
+    })
+  }, [])
+  const {getRootProps, getInputProps,  isDragActive, acceptedFiles} = useDropzone({onDrop})
+
 
 
 // console.log("generalDocuments", Array.isArray(generalDocuments) ? generalDocuments.map(doc => doc.title) : []);
 
 
   // Prepare table data from documents
-  const tableRow = Array.isArray(documentsData)
-  ? documentsData
+  const tableRow = Array.isArray(generalDocuments)
+  ? generalDocuments
   .filter(doc => doc.purpose !== "activities")
-  .map((doc) => ({
-    id: doc._id,
-    contentType: doc.contentType || '',
-    createdAt: formatDate(doc.createdAt) || '',
-    updatedAt: formatDate(doc.updatedAt) || '',
-    file: doc.file || '',
-    status: doc.status || '',
-    submittedBy: doc.submittedBy.firstName + " " + doc.submittedBy.lastName || "N/A",
-    title: doc.title || '',
-    url: doc.url || '',
-    __v: doc.__v || 0
-  })) :
+  .map((doc) => {
+    console.log("doc", doc); // inside your map
+
+    return {
+      id: doc._id,
+      contentType: doc.contentType || '',
+      createdAt: formatDate(doc.createdAt) || '',
+      updatedAt: formatDate(doc.updatedAt) || '',
+      file: doc.file || '',
+      status: doc.status || '',
+      submittedBy: doc.submittedBy
+            ? `${doc.submittedBy.firstName} ${doc.submittedBy.lastName}`
+            : "N/A",
+      title: doc.title || '',
+      url: doc.url || '',
+    };
+  }) :
+
   [];
 
   /**
@@ -332,7 +348,7 @@ function Document() {
         )} 
 
         {/* Upload Document Modal */}
-        {isOpen && modalType === "upload" && (
+        {/* {isOpen && modalType === "upload" && (
           <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <motion.div
               className="bg-white rounded-lg shadow-lg w-[90%] max-w-[600px] border border-[#312895]/20"
@@ -396,7 +412,7 @@ function Document() {
                               </div>
                             </div>
                             <div id={`basicAccordion${index}`} className="overflow-hidden transition-all duration-300 border-b border-slate-200 dark:border-slate-700 pl-1 pr-1">
-                              {/* commented since title is already made from the file uploaded */}
+                              
                               <input
                                 type="text"
                                 value={files[index].title || ""}
@@ -482,7 +498,22 @@ function Document() {
               </div>
             </motion.div>
           </Backdrop>
+        )} */}
+        { isOpen && modalType === "upload" && (
+          <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <motion.div
+              className="bg-white rounded-lg shadow-lg w-[90%] max-w-2xl border border-[#312895]/20"
+              variants={DropIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+          <UploadDocumentsModal handleCloseModal={handleCloseModal}/>
+          </motion.div>
+        </Backdrop>
         )}
+
+
       </AnimatePresence>
     </div>
   )

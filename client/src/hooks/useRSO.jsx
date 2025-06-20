@@ -14,48 +14,6 @@ const [organizations, setOrganizations] = useState([]);
   const [deleteError, setDeleteError] = useState(null);
   const [updateError, setUpdateError] = useState(null);
 
-  const fetchData = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    console.log("Stored token:", token);
-
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-
-    const headers = {
-      "Content-Type": "application/json",
-      "Authorization": token ? `Bearer ${formattedToken}` : "",
-    };
-
-    setLoading(true);
-    
-
-    try {
-      console.log("Fetching data from:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`);
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, {
-        method: "GET",
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        setFetchError(`Error: ${response.status} - ${response.statusText}`);
-      }
-
-      const json = await response.json();
-      console.log("Fetched data:", json);
-      setOrganizations(Array.isArray(json.rsos) ? json.rsos : []);
-    } catch (err) {
-      setFetchError(err.message);
-      console.error("Error loading data:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []); // Empty dependency array ensures fetchData is created only once
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]); 
-        
-
   const createRSO = async (newOrg) => {
     setLoading(true);
     setSuccess(false);
@@ -462,6 +420,24 @@ const updateRSOStatus = async ({id, status}) => {
 
   }
 
+    const {
+    data,
+    isError: fetchWebRSOError,
+    refetch: fetchData,
+  } = useQuery({
+    queryKey:["rsoData"],
+    queryFn: fetchWebRSO,
+    enabled: false, // Disable automatic fetching
+    onSuccess: (data) => {
+      console.log("Web RSO data fetched successfully:", data);
+      queryClient.setQueryData(["rsoData"], data);
+    },
+    onError: (error) => {
+      console.error("Error fetching web RSO data:", error);
+    },
+
+  })
+
   const {
     mutate: extendMembershipDateMutate,
     isLoading: isExtendingMembershipDate,
@@ -596,28 +572,14 @@ const updateRSOStatus = async ({id, status}) => {
       console.log("RSO status updated successfully:", data);
       // Optionally, you can refetch the data or update the state here
       queryClient.invalidateQueries(["rsoData"]);
-      fetchData();
+      
     },
     onError: (error) => {
       console.error("Error updating RSO status:", error);
     },
   })
 
-  const {
-    data,
-    isError: fetchWebRSOError,
-  } = useQuery({
-    queryKey:["rsoData"],
-    queryFn: fetchWebRSO,
-    onSuccess: (data) => {
-      console.log("Web RSO data fetched successfully:", data);
-      queryClient.setQueryData(["rsoData"], data);
-    },
-    onError: (error) => {
-      console.error("Error fetching web RSO data:", error);
-    },
 
-  })
 
 
 
