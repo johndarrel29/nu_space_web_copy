@@ -11,3 +11,5 @@ export { default as RSOManagement } from './RSOManagement';
 export { default as UserManagement } from './UserManagement';
 export { default as RSOAction } from './RSOAction';
 export { default as FormsBuilder } from './FormsBuilder';
+export { default as AnnouncementsPage } from './AnnouncementsPage';
+export { default as FormViewerPage } from './FormViewerPage';

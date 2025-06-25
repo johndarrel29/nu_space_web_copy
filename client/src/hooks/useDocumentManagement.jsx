@@ -1,55 +1,12 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
+function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {}) {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const baseURL = `${process.env.REACT_APP_BASE_URL}/api/admin/rso`;
     const queryClient = useQueryClient();
-
-
-    // const fetchDocuments = async () => {
-    //     const token = localStorage.getItem("token");
-    //     console.log("Stored token:", token);
-
-    //     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-
-    //     const headers = {
-    //         Authorization: token ? `Bearer ${formattedToken}` : "",
-    //     };
-
-    //     setLoading(true);
-    //     setError(null);
-
-    //     try {
-    //         console.log("Fetching documents from:", process.env.REACT_APP_FETCH_DOCUMENTS_URL);
-    //         const response = await fetch(`${process.env.REACT_APP_FETCH_DOCUMENTS_URL}`, {
-    //             method: "GET",
-    //             headers,
-    //         });
-
-
-    //         if (!response.ok) {
-    //             throw new Error(`Error: ${response.status} - ${response.statusText}`);
-    //         }
-
-    //         const json = await response.json();
-    //         console.log("Fetched documents response:", json);
-           
-
-    //         if (json.success && Array.isArray(json.documents)) {
-    //             setDocuments(json.documents);
-    //             console.log("Updated documents state:", json.documents);
-    //             return json.documents; // Return the documents for further use
-    //         } else {
-    //             throw new Error("Invalid response structure");
-    //         }
-    //     } catch (err) {
-    //         console.error("Error fetching documents:", err);
-    //         throw err;
-    //     } 
-    // };
 
     const fetchDocuments = async () => {
         const token = localStorage.getItem("token");
@@ -57,28 +14,28 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
 
-        console.log("calling url ", `${process.env.REACT_APP_BASE_URL}/api/documents/getDocuments`);
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/documents/getDocuments`, {
+        console.log("calling url ", `${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/getDocuments`);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/getDocuments`, {
             method: "GET",
             headers: {
                 Authorization: token ? `Bearer ${formattedToken}` : "",
                 'Content-Type': 'application/json'
             },
         })
-         
 
-          if (!response.ok) {
-                throw new Error(`Fetch failed: ${response.status} - ${response.statusText}`);
-            }
 
-            const json = await response.json();
-            console.log("Fetched data:", json);
+        if (!response.ok) {
+            throw new Error(`Fetch failed: ${response.status} - ${response.statusText}`);
+        }
 
-            return json.documents ?? []; // ← Return only the array of docs
+        const json = await response.json();
+        console.log("Fetched data:", json);
+
+        return json.documents ?? []; // ← Return only the array of docs
 
     }
 
-    const submitDocument = async ({formData}) => {
+    const submitDocument = async ({ formData }) => {
         const token = localStorage.getItem("token");
         console.log("Stored token:", token);
 
@@ -93,28 +50,28 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
 
         // try {
         console.log("FormData entries:");
-            for (const [key, value] of formData.entries()) {
-              if (value instanceof File) {
+        for (const [key, value] of formData.entries()) {
+            if (value instanceof File) {
                 console.log(`${key}: File - name: ${value.name}, type: ${value.type}, size: ${value.size}`);
-              } else {
+            } else {
                 console.log(`${key}: ${value}`);
-              }
             }
-            console.log("Sending request to:", `${process.env.REACT_APP_BASE_URL}/api/documents/submitDocument`);
-            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/documents/submitDocument`, {
-                method: "POST",
-                headers,
-                body: formData,
-            });
+        }
+        console.log("Sending request to:", `${process.env.REACT_APP_BASE_URL}/api/documents/submitDocument`);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/documents/submitDocument`, {
+            method: "POST",
+            headers,
+            body: formData,
+        });
 
-            console.log("Response received:", response);
+        console.log("Response received:", response);
 
-            if (!response.ok) {
-                throw new Error(`Error: ${response.status} - ${response.statusText}`);
-            }
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
 
-            const json = await response.json();
-            console.log("Response from server:", json);
+        const json = await response.json();
+        console.log("Response from server:", json);
 
     };
 
@@ -128,13 +85,13 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
         const res = await fetch(`${baseURL}/${rsoID}/general-documents`, {
             method: "GET",
             headers: {
-                'Authorization':  formattedToken,
-                'Content-Type': 'application/json' 
+                'Authorization': formattedToken,
+                'Content-Type': 'application/json'
 
             },
         });
 
-                // Log all response headers for debugging
+        // Log all response headers for debugging
         console.log("Response headers:");
         res.headers.forEach((value, key) => {
             console.log(`${key}: ${value}`);
@@ -148,16 +105,16 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
         const json = await res.json();
 
         if (json.success && Array.isArray(json.documents)) {
-            return json.documents || [];  
+            return json.documents || [];
         }
 
-    throw new Error("Unexpected response structure");
+        throw new Error("Unexpected response structure");
     }
 
     const approveRSODocument = async (documentId, reviewedById) => {
-  console.log("approveRSODocument called with:");
-  console.log("documentId:", documentId);
-  console.log("reviewedById:", reviewedById);
+        console.log("approveRSODocument called with:");
+        console.log("documentId:", documentId);
+        console.log("reviewedById:", reviewedById);
 
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
@@ -180,7 +137,7 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
             throw new Error(`Approval failed: ${errorText}`);
         }
 
-        
+
 
         return res.json();
     };
@@ -225,50 +182,50 @@ function useDocumentManagement({rsoID, documentId, reviewedById, userID} = {}) {
         }
         const json = await res.json();
         if (json.success && Array.isArray(json.documents)) {
-            return json.documents || [];  
+            return json.documents || [];
         }
         throw new Error("Unexpected response structure");
 
     }
 
-const {
-    data: documentsData,
-    isLoading: documentsLoading,
-    isError: documentsError,
-    error: documentsQueryError,
-    refetch: refetchDocuments,
+    const {
+        data: documentsData,
+        isLoading: documentsLoading,
+        isError: documentsError,
+        error: documentsQueryError,
+        refetch: refetchDocuments,
 
-} = useQuery({
-    queryKey: ["documents", userID],
-    queryFn: () => fetchDocumentsStudentRso(userID), 
-    enabled: !!userID, // Only run this query if rsoID is available
-    onSuccess: (data) => {
-        console.log("Documents fetched successfully:", data);
-    },
-    onError: (error) => {
-        console.error("Error fetching documents:", error);
-        setError(error.message);
-    },
-});
+    } = useQuery({
+        queryKey: ["documents", userID],
+        queryFn: () => fetchDocumentsStudentRso(userID),
+        enabled: !!userID, // Only run this query if rsoID is available
+        onSuccess: (data) => {
+            console.log("Documents fetched successfully:", data);
+        },
+        onError: (error) => {
+            console.error("Error fetching documents:", error);
+            setError(error.message);
+        },
+    });
 
-const {
-    data: generalDocuments,
-    isLoading: generalDocumentsLoading,
-    isError: generalDocumentsError,
-    error: generalDocumentsQueryError,
-    refetch: refetchGeneralDocuments,
-} = useQuery({
-    queryKey: ["documents"],
-    queryFn: fetchDocuments,
-    onSuccess: (data) => {
-        setDocuments(data);
-        console.log("Documents fetched successfully:", data);
-    },
-    onError: (error) => {
-        console.error("Error fetching documents:", error);
-        setError(error.message);
-    },
-})
+    const {
+        data: generalDocuments,
+        isLoading: generalDocumentsLoading,
+        isError: generalDocumentsError,
+        error: generalDocumentsQueryError,
+        refetch: refetchGeneralDocuments,
+    } = useQuery({
+        queryKey: ["documents"],
+        queryFn: fetchDocuments,
+        onSuccess: (data) => {
+            setDocuments(data);
+            console.log("Documents fetched successfully:", data);
+        },
+        onError: (error) => {
+            console.error("Error fetching documents:", error);
+            setError(error.message);
+        },
+    })
 
     // mutation for submitting documents
     const {
@@ -278,9 +235,9 @@ const {
         isError: submitDocumentError,
         error: submitDocumentQueryError,
     } = useMutation({
-        mutationFn: ({formData}) => submitDocument({formData}),
+        mutationFn: ({ formData }) => submitDocument({ formData }),
         onSuccess: () => {
-            queryClient.invalidateQueries(["documents"]); 
+            queryClient.invalidateQueries(["documents"]);
         },
     });
 
@@ -304,10 +261,10 @@ const {
         isError: approveError,
         error: approveQueryError,
     } = useMutation({
-        mutationFn: ({documentId, reviewedById}) => approveRSODocument(documentId, reviewedById),
+        mutationFn: ({ documentId, reviewedById }) => approveRSODocument(documentId, reviewedById),
         onSuccess: () => {
-        queryClient.invalidateQueries(["rso-documents", rsoID]); // Refetch updated documents
-    },
+            queryClient.invalidateQueries(["rso-documents", rsoID]); // Refetch updated documents
+        },
     });
 
     //Query to reject RSO documents
@@ -318,10 +275,10 @@ const {
         isError: rejectError,
         error: rejectQueryError,
     } = useMutation({
-        mutationFn: ({documentId, reviewedById}) => rejectRSODocument(documentId, reviewedById),
+        mutationFn: ({ documentId, reviewedById }) => rejectRSODocument(documentId, reviewedById),
         onSuccess: () => {
-        queryClient.invalidateQueries(["rso-documents", rsoID]); // Refetch updated documents
-    },
+            queryClient.invalidateQueries(["rso-documents", rsoID]); // Refetch updated documents
+        },
     });
 
     // Add new function to fetch general documents with direct ID
@@ -348,7 +305,7 @@ const {
         const json = await res.json();
 
         if (json.success && Array.isArray(json.documents)) {
-            return json.documents || [];  
+            return json.documents || [];
         }
 
         throw new Error("Unexpected response structure");

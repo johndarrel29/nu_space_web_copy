@@ -1,77 +1,77 @@
 import { useState, useEffect, useCallback } from "react";
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient  } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 
 function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college) {
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [ success, setSuccess ] = useState(false);
+    const [success, setSuccess] = useState(false);
     const queryClient = useQueryClient();
 
     const createActivity = useCallback(async (activity) => {
-    setLoading(true);
-    setError(null);
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+        setLoading(true);
+        setError(null);
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-    try {
-        const isFileUpload = activity.Activity_image instanceof File;
-        let body;
-        let headers = {
-            "Authorization": token ? `Bearer ${formattedToken}` : "",
-        };
+        try {
+            const isFileUpload = activity.Activity_image instanceof File;
+            let body;
+            let headers = {
+                "Authorization": token ? `Bearer ${formattedToken}` : "",
+            };
 
-        if (isFileUpload) {
-            const formData = new FormData();
+            if (isFileUpload) {
+                const formData = new FormData();
 
-            Object.entries(activity).forEach(([key, value]) => {
-                if (key === "Activity_imagePreview") {
-                    return; 
-                } else if (key === "Activity_image" && value instanceof File) {
-                    formData.append("file", value); 
-                } else {
-                    formData.append(key, value); 
-                }
+                Object.entries(activity).forEach(([key, value]) => {
+                    if (key === "Activity_imagePreview") {
+                        return;
+                    } else if (key === "Activity_image" && value instanceof File) {
+                        formData.append("file", value);
+                    } else {
+                        formData.append(key, value);
+                    }
+                });
+
+
+
+                body = formData;
+            } else {
+                headers["Content-Type"] = "application/json";
+                body = JSON.stringify(activity);
+            }
+
+            console.log("Submitting new activity:", activity);
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/createActivity`, {
+                method: "POST",
+                headers,
+                body,
             });
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+            }
 
+            const json = await response.json();
+            console.log("Activity created:", json);
+            setSuccess(true);
+            return json.activity || null;
 
-            body = formData;
-        } else {
-            headers["Content-Type"] = "application/json";
-            body = JSON.stringify(activity);
+        } catch (err) {
+            console.error("Error creating activity:", err);
+            setError(`Error: ${err.message}`);
+        } finally {
+            setLoading(false);
         }
-
-        console.log("Submitting new activity:", activity);
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/createActivity`, {
-            method: "POST",
-            headers,
-            body,
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const json = await response.json();
-        console.log("Activity created:", json);
-        setSuccess(true);
-        return json.activity || null;
-
-    } catch (err) {
-        console.error("Error creating activity:", err);
-        setError(`Error: ${err.message}`);
-    } finally {
-        setLoading(false);
-    }
-    }, []); 
+    }, []);
 
     const updateActivity = useCallback(async (activityId, updatedData) => {
         setLoading(true);
         setError(null);
-        
+
         try {
             const token = localStorage.getItem("token");
             const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -79,7 +79,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
 
             const isFileUpload = updatedData.Activity_image instanceof File;
             const formData = new FormData();
-            
+
             if (isFileUpload) {
 
                 Object.entries(updatedData).forEach(([key, value]) => {
@@ -91,9 +91,9 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
                 "Authorization": token ? `Bearer ${formattedToken}` : "",
                 ...(!isFileUpload && { "Content-Type": "application/json" }),
             }
-            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/updateActivity/${activityId}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/updateActivity/${activityId}`, {
                 method: "PUT",
-                headers,    
+                headers,
                 body: isFileUpload ? formData : JSON.stringify(updatedData),
             });
             if (!response.ok) {
@@ -117,7 +117,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             setLoading(false);
         }
     }
-    , []);
+        , []);
 
     const deleteActivity = useCallback(async (activityId) => {
         const token = localStorage.getItem("token");
@@ -152,10 +152,10 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
         const headers = {
             "Content-Type": "application/json",
-            "Authorization": token ,
+            "Authorization": token,
         };
         try {
-            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/getActivities`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/allRSOActivities`, {
                 method: "GET",
                 headers,
             });
@@ -194,7 +194,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             setError(err);
         }
     }
-    , []);
+        , []);
 
     const fetchRSOActivity = async (activityId) => {
         const token = localStorage.getItem("token");
@@ -208,31 +208,31 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
 
         console.log("url sending: " + `${BaseURL}/${activityId}/documents`);
 
-            const response = await fetch(`${BaseURL}/${activityId}/documents`, {
-                method: "GET",
-                headers,
-            });
-            if (!response.ok) {
-                throw new Error(`Error: ${response.status} - ${response.statusText}`);
-            }
-            const json = await response.json();
-            console.log("Full activity fetch response:", json);
+        const response = await fetch(`${BaseURL}/${activityId}/documents`, {
+            method: "GET",
+            headers,
+        });
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+        const json = await response.json();
+        console.log("Full activity fetch response:", json);
 
-            return {
-                documents: json.documents || [],
-                preActivityDocuments: json.preActivityDocuments || [],
-                postActivityDocuments: json.postActivityDocuments || [],
-                };
+        return {
+            documents: json.documents || [],
+            preActivityDocuments: json.preActivityDocuments || [],
+            postActivityDocuments: json.postActivityDocuments || [],
+        };
     };
 
-    const fetchAdminActivity = async ({ 
-            pageParam = 1, 
-            query = "", 
-            sorted = "", 
-            RSO = "", 
-            RSOType = "", 
-            college = "" 
-        }) => {
+    const fetchAdminActivity = async ({
+        pageParam = 1,
+        query = "",
+        sorted = "",
+        RSO = "",
+        RSOType = "",
+        college = ""
+    }) => {
         const token = localStorage.getItem("token");
         console.log("Stored token:", token);
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -252,7 +252,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         const response = await fetch(url, {
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": token ? `Bearer ${formattedToken}` : "",               
+                "Authorization": token ? `Bearer ${formattedToken}` : "",
             }
         }
         )
@@ -275,7 +275,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             nextPage: data.pagination?.hasNextPage ? pageParam + 1 : undefined,
         }
         // return response.json();
-        
+
     }
 
     const fetchActivityDocument = async (activityId) => {
@@ -293,7 +293,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         return response.json();
     }
 
-    const createActivityDocument = async ({activityId, formData}) => {
+    const createActivityDocument = async ({ activityId, formData }) => {
         const token = localStorage.getItem("token");
         setLoading(true);
         // const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -312,7 +312,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             throw err;
         } finally {
             setLoading(false);
-        
+
         }
 
     }
@@ -346,7 +346,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         };
 
         // Create URL with query parameters for sorting
-        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/activities/getRSOCreatedActivities`);
+        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/getRSOCreatedActivities`);
         if (sorted) {
             url.searchParams.set("sorted", sorted);
         }
@@ -371,7 +371,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         return json.activities || []
     }
 
-    const viewActivity = async ({activityId}) => {
+    const viewActivity = async ({ activityId }) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
@@ -399,139 +399,140 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         }
     }
 
-const {
-    data: viewActivityData,
-    isSuccess: viewActivitySuccess,
-    isLoading: viewActivityLoading,
-    isError: viewActivityError
-} = useQuery ({
-    queryKey: ["activity", activityId],
-    queryFn: () => viewActivity({ activityId }),
-    enabled: !!activityId,
-    onSuccess: (data) => {
-        console.log("Activities fetched successfully:", data);
-    },
-    onError: (error) => {
-        console.error("Error fetching activities:", error);
-    },
-})
 
-const {
-    data: localActivities,
-    isLoading: isLocalActivitiesLoading,
-    isError: isLocalActivitiesError,
-    error: localActivitiesError,
-    refetch: refetchLocalActivities,
-    isSuccess: isLocalActivitiesSuccess,
-} = useQuery ({
-    queryKey: ["localActivities"],
-    queryFn: fetchLocalActivity,
-    enabled: false,
-    onSuccess: (data) => {
-        console.log("Local activities fetched successfully:", data);
-        queryClient.invalidateQueries(["localActivities"]);
-    },
-    onError: (error) => {
-        console.error("Error fetching local activities:", error);
-        setError(error);
-    },
-})
+    const {
+        data: viewActivityData,
+        isSuccess: viewActivitySuccess,
+        isLoading: viewActivityLoading,
+        isError: viewActivityError
+    } = useQuery({
+        queryKey: ["activity", activityId],
+        queryFn: () => viewActivity({ activityId }),
+        enabled: !!activityId,
+        onSuccess: (data) => {
+            console.log("Activities fetched successfully:", data);
+        },
+        onError: (error) => {
+            console.error("Error fetching activities:", error);
+        },
+    })
 
-const {
-    mutate: deleteActivityDoc,
-    data: deletedActivity,
-    error: deleteError,
-    isLoading: isDeleting,
-} = useMutation ({
-    mutationFn: deleteActivityDocument,
-    onSuccess: (data) => {
-        console.log("Activity created successfully:", data);
-        queryClient.invalidateQueries(["activities"]); 
-    },
-    onError: (error) => {
-        console.error("Error creating activity:", error);
-        setError(error);
-    },
-})
+    const {
+        data: localActivities,
+        isLoading: isLocalActivitiesLoading,
+        isError: isLocalActivitiesError,
+        error: localActivitiesError,
+        refetch: refetchLocalActivities,
+        isSuccess: isLocalActivitiesSuccess,
+    } = useQuery({
+        queryKey: ["localActivities"],
+        queryFn: fetchLocalActivity,
+        enabled: false,
+        onSuccess: (data) => {
+            console.log("Local activities fetched successfully:", data);
+            queryClient.invalidateQueries(["localActivities"]);
+        },
+        onError: (error) => {
+            console.error("Error fetching local activities:", error);
+            setError(error);
+        },
+    })
 
-
-const {
-    mutateAsync: createActivityDoc,
-    data: createdActivity,
-    isError: createError,
-    isSuccess: isCreatingSuccess,
-    isLoading: isCreatingLoading,
-} = useMutation ({
-    mutationFn: createActivityDocument,
-    onSuccess: () => {
-        queryClient.invalidateQueries(["activities", activityId]); 
-    },
-})
+    const {
+        mutate: deleteActivityDoc,
+        data: deletedActivity,
+        error: deleteError,
+        isLoading: isDeleting,
+    } = useMutation({
+        mutationFn: deleteActivityDocument,
+        onSuccess: (data) => {
+            console.log("Activity created successfully:", data);
+            queryClient.invalidateQueries(["activities"]);
+        },
+        onError: (error) => {
+            console.error("Error creating activity:", error);
+            setError(error);
+        },
+    })
 
 
-const {
-    data: activityDocument,
-    error: activityDocumentError,
-    isLoading: isActivityDocumentLoading,
-    isError: isActivityDocumentError,
-} = useQuery({
-    queryKey: ["activities", activityId],
-    queryFn: () => fetchActivityDocument(activityId),
-    enabled: !!activityId,
-})
+    const {
+        mutateAsync: createActivityDoc,
+        data: createdActivity,
+        isError: createError,
+        isSuccess: isCreatingSuccess,
+        isLoading: isCreatingLoading,
+    } = useMutation({
+        mutationFn: createActivityDocument,
+        onSuccess: () => {
+            queryClient.invalidateQueries(["activities", activityId]);
+        },
+    })
 
 
-const {
-    data: adminPaginatedActivities,
-    error: adminError,
-    fetchNextPage, 
-    hasNextPage,
-    isFetchingNextPage,
-} = useInfiniteQuery ({
-  queryKey: ["adminActivities", debouncedQuery, sorted, RSO, RSOType, college], 
-  queryFn: ({ pageParam = 1 }) =>
-    fetchAdminActivity({ pageParam, query: debouncedQuery, sorted: sorted, RSO: RSO, RSOType: RSOType, college: college }),
-    // enabled: !!debouncedQuery || !!sorted || !!RSO || !!RSOType || !!college,
-  getNextPageParam: (lastPage) => lastPage.nextPage,
-})
+    const {
+        data: activityDocument,
+        error: activityDocumentError,
+        isLoading: isActivityDocumentLoading,
+        isError: isActivityDocumentError,
+    } = useQuery({
+        queryKey: ["activities", activityId],
+        queryFn: () => fetchActivityDocument(activityId),
+        enabled: !!activityId,
+    })
 
 
-const {
-    data: rsoActivity,
-    error: errorQuery,
-    isLoading, 
-    isError
-} = useQuery({
-    queryKey: ["rso-activity", activityId],
-    queryFn: () => fetchRSOActivity(activityId),
-    enabled: !!activityId, 
-})
+    const {
+        data: adminPaginatedActivities,
+        error: adminError,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteQuery({
+        queryKey: ["adminActivities", debouncedQuery, sorted, RSO, RSOType, college],
+        queryFn: ({ pageParam = 1 }) =>
+            fetchAdminActivity({ pageParam, query: debouncedQuery, sorted: sorted, RSO: RSO, RSOType: RSOType, college: college }),
+        // enabled: !!debouncedQuery || !!sorted || !!RSO || !!RSOType || !!college,
+        getNextPageParam: (lastPage) => lastPage.nextPage,
+    })
 
 
-
-useEffect(() => {
-    fetchData();
-}, [fetchData]);
+    const {
+        data: rsoActivity,
+        error: errorQuery,
+        isLoading,
+        isError
+    } = useQuery({
+        queryKey: ["rso-activity", activityId],
+        queryFn: () => fetchRSOActivity(activityId),
+        enabled: !!activityId,
+    })
 
 
 
-    return { 
-        activities, 
-        fetchActivity, 
-        loading, 
-        error, 
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+
+
+    return {
+        activities,
+        fetchActivity,
+        loading,
+        error,
         success,
-        createActivity, 
-        updateActivity, 
-        deleteActivity, 
-        rsoActivity, 
-        errorQuery, 
-        isLoading, 
+        createActivity,
+        updateActivity,
+        deleteActivity,
+        rsoActivity,
+        errorQuery,
+        isLoading,
         isError,
 
         adminError,
 
-        fetchNextPage, 
+        fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
         adminPaginatedActivities,

@@ -1,10 +1,12 @@
 import { Outlet, Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const ProtectedRoutes = () => {
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    console.log(localStorage.getItem("user"));
+    const { user } = useAuth();
+    // Check if the user is authenticated
+    // If user is authenticated, return the Outlet to render child routes
 
-    return user ? <Outlet/> : <Navigate to="/login" />;
+    return user ? <Outlet /> : <Navigate to="/" />;
 }
 
 export default ProtectedRoutes;

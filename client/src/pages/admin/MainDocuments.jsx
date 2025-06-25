@@ -3,7 +3,7 @@ import { ActivityCard, Searchbar, ReusableDropdown, Button, ActivitySkeleton, Dr
 import { useActivities, useUser, useRSO } from "../../hooks";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import DefaultPicture from "../../assets/images/default-picture.png"; 
+import DefaultPicture from "../../assets/images/default-picture.png";
 
 export default function MainDocuments() {
 
@@ -12,7 +12,7 @@ export default function MainDocuments() {
   const user = JSON.parse(localStorage.getItem("user"));
   const { data } = useUser();
   const { organizations } = useRSO();
-  const activityId = data?.activityId 
+  const activityId = data?.activityId
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [sorted, setSorted] = useState(null);
   const [RSO, setRSO] = useState("All");
@@ -21,16 +21,16 @@ export default function MainDocuments() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedSorting, setSelectedSorting] = useState("");
   const [documentError, setDocumentError] = useState(null);
-  
 
-  const { 
-    activities, 
-    loading, 
-    error, 
-    fetchActivity, 
-    fetchLocalActivities, 
-    adminActivity, 
-    fetchNextPage, 
+
+  const {
+    activities,
+    loading,
+    error,
+    fetchActivity,
+    fetchLocalActivities,
+    adminActivity,
+    fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     adminPaginatedActivities,
@@ -76,25 +76,25 @@ export default function MainDocuments() {
     if (user?.role === "rso_representative") {
       refetchLocalActivities();
     }
-  }, [user?.role]); 
+  }, [user?.role]);
 
   const handleCreate = () => {
     navigate("document-action", {
-      state: { 
+      state: {
         mode: "create",
       },
     });
   }
 
   useEffect(() => {
-      const timeout = setTimeout(() => {
-        setDebouncedQuery(searchQuery);
-      }, 300);
-      return () => clearTimeout(timeout);
+    const timeout = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timeout);
   }, [searchQuery]);
 
   const handleRSO = (value) => {
-    console.log("Selected RSO:", value); 
+    console.log("Selected RSO:", value);
     setRSO(value);
   }
 
@@ -123,30 +123,30 @@ export default function MainDocuments() {
     setCollege(value);
   }
 
-    const handleActivityClick = (activity) => {
-        setSelectedActivity(activity);
-        console.log("Selected Activity:", activity);
-        navigate(`/documents/${activity._id}`);
-    };
+  const handleActivityClick = (activity) => {
+    setSelectedActivity(activity);
+    console.log("Selected Activity:", activity);
+    navigate(`/documents/${activity._id}`);
+  };
 
-    console.log("activities:", fetchActivity);
+  console.log("activities:", fetchActivity);
 
-const assignedRSOs = Array.isArray(user?.assigned_rso)
-? user.assigned_rso
-: user?.assigned_rso
-  ? [user.assigned_rso]
-  : [];
+  const assignedRSOs = Array.isArray(user?.assigned_rso)
+    ? user.assigned_rso
+    : user?.assigned_rso
+      ? [user.assigned_rso]
+      : [];
 
 
-// Filter activities for RSO members to only show their RSO's activities
-const filteredActivities = user?.role === "rso_representative" 
-  ? activities.filter(activity => 
+  // Filter activities for RSO members to only show their RSO's activities
+  const filteredActivities = user?.role === "rso_representative"
+    ? activities.filter(activity =>
       assignedRSOs.some(rso => rso?._id === activity?.RSO_id?._id)
     )
-  : activities;
+    : activities;
 
-// Log after the assignment (not inside the filter)
-console.log("Filtered Activities:", filteredActivities);
+  // Log after the assignment (not inside the filter)
+  console.log("Filtered Activities:", filteredActivities);
 
   const handleDateTime = (dateTime) => {
     const date = new Date(dateTime);
@@ -160,36 +160,36 @@ console.log("Filtered Activities:", filteredActivities);
     });
   }
 
-  const activitiesToShow = 
-  user.role === "rso_representative" ? 
-    (localActivities || [])
-      // First apply search filter if there's a search query
-      .filter(activity => {
-        if (!searchQuery) return true;
-        return (
-          activity.Activity_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          activity.Activity_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          activity.Activity_place?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      })
-      // Then apply sorting
-      .sort((a, b) => {
-        if (!sorted) return 0;
-        switch (sorted) {
-          case "A-Z":
-            return (a.Activity_name || "").localeCompare(b.Activity_name || "");
-          case "Most Joined":
-            return (b.Activity_registration_total || 0) - (a.Activity_registration_total || 0);
-          case "Recently Added":
-            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-          case "All":
-            return 0;
-          default:
-            return 0;
-        }
-      }) :
-  (user.role === "admin" || user.role === "super_admin") ? allActivities :
-  [];
+  const activitiesToShow =
+    user.role === "rso_representative" ?
+      (localActivities || [])
+        // Apply search filter first
+        .filter(activity => {
+          if (!searchQuery) return true;
+          return (
+            activity.Activity_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            activity.Activity_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            activity.Activity_place?.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        })
+        // Then apply sorting
+        .sort((a, b) => {
+          if (!sorted) return 0;
+          switch (sorted) {
+            case "A-Z":
+              return (a.Activity_name || "").localeCompare(b.Activity_name || "");
+            case "Most Joined":
+              return (b.Activity_registration_total || 0) - (a.Activity_registration_total || 0);
+            case "Recently Added":
+              return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            case "All":
+              return 0;
+            default:
+              return 0;
+          }
+        }) :
+      (user.role === "admin" || user.role === "super_admin") ? allActivities :
+        [];
 
   console.log("user role:", user.role);
   console.log("activitiesToShow:", activitiesToShow?.length === 0);
@@ -203,19 +203,26 @@ console.log("Filtered Activities:", filteredActivities);
           <div className="flex justify-end mb-4 gap-2">
             {user?.role === "rso_representative" && (
               <Button
-              onClick={refetchLocalActivities}
-              style={"secondary"}
-              disabled={isLocalActivitiesLoading}
+                onClick={refetchLocalActivities}
+                style={"secondary"}
+                disabled={isLocalActivitiesLoading}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className={`size-4 ${isLocalActivitiesLoading ? "fill-gray-400" : "fill-off-black"}`} viewBox="0 0 512 512"><path d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160 352 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l111.5 0c0 0 0 0 0 0l.4 0c17.7 0 32-14.3 32-32l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 35.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1L16 432c0 17.7 14.3 32 32 32s32-14.3 32-32l0-35.1 17.6 17.5c0 0 0 0 0 0c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.8c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-.1-.1L125.6 352l34.4 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L48.4 288c-1.6 0-3.2 .1-4.8 .3s-3.1 .5-4.6 1z"/></svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`size-4 ${isLocalActivitiesLoading ? "fill-gray-400 animate-spin" : "fill-off-black"}`}
+                  viewBox="0 0 512 512"
+                >
+                  <path d="M105.1 202.6c7.7-21.8 20.2-42.3 37.8-59.8c62.5-62.5 163.8-62.5 226.3 0L386.3 160 352 160c-17.7 0-32 14.3-32 32s14.3 32 32 32l111.5 0c0 0 0 0 0 0l.4 0c17.7 0 32-14.3 32-32l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 35.2L414.4 97.6c-87.5-87.5-229.3-87.5-316.8 0C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5zM39 289.3c-5 1.5-9.8 4.2-13.7 8.2c-4 4-6.7 8.8-8.1 14c-.3 1.2-.6 2.5-.8 3.8c-.3 1.7-.4 3.4-.4 5.1L16 432c0 17.7 14.3 32 32 32s32-14.3 32-32l0-35.1 17.6 17.5c0 0 0 0 0 0c87.5 87.4 229.3 87.4 316.7 0c24.4-24.4 42.1-53.1 52.9-83.8c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.5 62.5-163.8 62.5-226.3 0l-.1-.1L125.6 352l34.4 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L48.4 288c-1.6 0-3.2 .1-4.8 .3s-3.1 .5-4.6 1z" />
+                </svg>
+                {isLocalActivitiesLoading && <span className="ml-2">Refreshing...</span>}
               </Button>
             )}
-            <Button 
+            <Button
               onClick={handleCreate}
               className="bg-[#312895] hover:bg-[#312895]/90 text-white px-4 py-2"
             >
               <div className="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="fill-white size-4" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" className="fill-white size-4" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z" /></svg>
                 Create an Activity
               </div>
             </Button>
@@ -227,33 +234,33 @@ console.log("Filtered Activities:", filteredActivities);
       <div className="mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="md:col-span-2">
-            <Searchbar 
-              placeholder="Search an Activity"  
-              searchQuery={searchQuery} 
+            <Searchbar
+              placeholder="Search an Activity"
+              searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
             />
           </div>
-          { user.role === "rso_representative" ? (            
-          <div>
-            <ReusableDropdown
-              icon={true}
-              options={["All", "A-Z", "Most Joined", "Recently Added"]}
-              showAllOption={false}
-              onChange={(e) => handleSorted(e.target.value)}
-              value={sorted}
-              buttonClass="border-[#312895] text-[#312895]"
-            />
-          </div>
-          ) 
-          :
-          (
-            <DropdownSearch 
-            isSorting={true}
-            setSelectedSorting={handleRSO}
-            setSelectedCategory={() => {}} 
-            />
+          {user.role === "rso_representative" ? (
+            <div>
+              <ReusableDropdown
+                icon={true}
+                options={["All", "A-Z", "Most Joined", "Recently Added"]}
+                showAllOption={false}
+                onChange={(e) => handleSorted(e.target.value)}
+                value={sorted}
+                buttonClass="border-[#312895] text-[#312895]"
+              />
+            </div>
           )
-        }
+            :
+            (
+              <DropdownSearch
+                isSorting={true}
+                setSelectedSorting={handleRSO}
+                setSelectedCategory={() => { }}
+              />
+            )
+          }
         </div>
 
         {/* More Filter Section for Admin and Super Admin */}
@@ -285,7 +292,7 @@ console.log("Filtered Activities:", filteredActivities);
               id="basicAccordion1"
               className="overflow-hidden transition-all duration-300 border-b border-slate-200 pl-1 pr-1"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 py-2 gap-2">
                 <div className="flex flex-col gap-1">
                   <label htmlFor="RSO" className="text-sm font-medium text-gray-600">
                     Sort By
@@ -338,94 +345,83 @@ console.log("Filtered Activities:", filteredActivities);
           <ActivitySkeleton count={8} />
         </div>
       )
-      :
-      (documentError) ? (
-            <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center">
-                <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-12 w-12 text-red-500 mb-2" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                >
-                    <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-                    />
-                </svg>
-                <p className="text-red-500 font-medium text-center max-w-md px-4">
-                    {documentError?.message || "An error occurred while fetching activities."}
-                </p>
-            </div>
-      )
-      :
-
-      !loading && !adminError ? (
-        <>
-        <div className="flex items-center justify-center mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 ">
-
-            {activitiesToShow?.map((activity) => (
-              <ActivityCard
-                key={activity._id}
-                activity={activity}
-                Activity_name={activity.Activity_name}
-                Activity_description={activity.Activity_description}
-                RSO_acronym={activity.RSO_id?.RSO_acronym || "N/A"}
-                //user imageUrl if rso_representative role
-                Activity_image={ 
-                  user?.role === "rso_representative" ? activity?.imageUrl || DefaultPicture :
-                  user?.role === "admin" || user?.role === "super_admin" ?
-                  activity?.activityImageUrl || DefaultPicture : DefaultPicture}
-                Activity_registration_total={activity.Activity_registration_total}
-                onClick={handleActivityClick}
-                Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
-                Activity_place={activity.Activity_place}
-                statusColor={activity.Activity_status}
+        :
+        (user?.role === 'admin' && documentError) ? (
+          <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-red-500 mb-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
-            ))}
-
-          {/* { !activitiesToShow && (
-            <div className="col-span-1 sm:col-span-2 lg:col-span-2 xl:col-span-4 flex flex-col items-center justify-center p-8 rounded-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#312895]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h3 className="mt-2 text-lg font-medium text-[#312895]">No activities found</h3>
-              <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
-            </div>
-          )} */}
-
+            </svg>
+            <p className="text-red-500 font-medium text-center max-w-md px-4">
+              {documentError?.message || "An error occurred while fetching activities."}
+            </p>
           </div>
-        </div>
-          {(user.role === "admin" || user.role === "super_admin") && (
-            <div className="flex justify-center mt-6">
-              {hasNextPage && (
-                <Button 
-                style={"secondary"}
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                >
-                  {isFetchingNextPage ? 'Loading more...' : 'Load More'}
-                </Button>
-              )}
-            </div>
-          )}
+        )
+          :
 
-        </>
-      )
-      :
-       (
-        <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#312895]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <h3 className="mt-2 text-lg font-medium text-[#312895]">No activities found</h3>
-          <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
-        </div>
-      )
-    }
+          !loading && !adminError ? (
+            <>
+              <div className="flex items-center justify-center mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 ">
+
+                  {activitiesToShow?.map((activity) => (
+                    <ActivityCard
+                      key={activity._id}
+                      activity={activity}
+                      Activity_name={activity.Activity_name}
+                      Activity_description={activity.Activity_description}
+                      RSO_acronym={activity.RSO_id?.RSO_acronym || "N/A"}
+                      //user imageUrl if rso_representative role
+                      Activity_image={
+                        user?.role === "rso_representative" ? activity?.imageUrl || DefaultPicture :
+                          user?.role === "admin" || user?.role === "super_admin" ?
+                            activity?.activityImageUrl || DefaultPicture : DefaultPicture}
+                      Activity_registration_total={activity.Activity_registration_total}
+                      onClick={handleActivityClick}
+                      Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
+                      Activity_place={activity.Activity_place}
+                      statusColor={activity.Activity_status}
+                    />
+                  ))}
+                </div>
+              </div>
+              {(user.role === "admin" || user.role === "super_admin") && (
+                <div className="flex justify-center mt-6">
+                  {hasNextPage && (
+                    <Button
+                      style={"secondary"}
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage ? 'Loading more...' : 'Load More'}
+                    </Button>
+                  )}
+                </div>
+              )}
+
+            </>
+          )
+            :
+            (
+              <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#312895]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="mt-2 text-lg font-medium text-[#312895]">No activities found</h3>
+                <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+              </div>
+            )
+      }
     </div>
   );
 }

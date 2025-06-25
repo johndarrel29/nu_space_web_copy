@@ -27,6 +27,7 @@
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.8",
     "react-easy-crop": "^5.4.2",
+    "react-hook-form": "^7.58.1",
     "react-lazy-load-image-component": "^1.6.3",
     "react-loading-skeleton": "^3.5.0",
     "react-router-dom": "^7.1.5",
