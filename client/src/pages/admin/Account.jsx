@@ -5,9 +5,9 @@ import DefaultPicture from "../../assets/images/default-profile.jpg";
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
 import ErrorBoundary from '../../components/ErrorBoundary';
-
 import Cropper from "react-easy-crop";
 import getCroppedImg from '../../utils/cropImage';
+import { toast } from "react-toastify";
 
 const tabs = [
   { label: "Officers" },
@@ -21,16 +21,22 @@ export default function Account() {
     isUserProfileLoading,
     isUserProfileError,
     refetchUserProfile,
+
     deleteOfficerMutate,
     isDeleting,
     isDeleteError,
+    isDeleteSuccess
   } = useUserProfile();
+
   const {
     updateOfficerMutate,
     isUpdatingOfficer,
     isUpdateOfficerError,
     isUpdateOfficerSuccess,
+
     createOfficerMutate,
+    isCreatingOfficerError,
+    isCreatingSuccess,
   } = useRSO();
   const user = JSON.parse(localStorage.getItem("user"));
   const { isOpen, openModal, closeModal } = useModal();
@@ -56,7 +62,37 @@ export default function Account() {
     OfficerPosition: "",
   });
 
-  console.log("user page data", userProfile);
+  useEffect(() => {
+    refetchUserProfile();
+  }, [refetchUserProfile]);
+
+  useEffect(() => {
+    // Handle errors
+    if (isUpdateOfficerError) {
+      toast.error("Error updating officer. Please try again.");
+    } else if (isDeleteError) {
+      toast.error("Error deleting officer. Please try again.");
+    } else if (isCreatingOfficerError) {
+      toast.error("Error creating officer. Please try again.");
+    }
+
+    // Handle success states
+    if (isUpdateOfficerSuccess) {
+      toast.success("Officer updated successfully!");
+      refetchUserProfile();
+      handleCloseModal();
+    } else if (isCreatingSuccess) {
+      toast.success("Officer created successfully!");
+      refetchUserProfile();
+      handleCloseModal();
+    } else if (isDeleteSuccess) {
+      refetchUserProfile();
+      toast.success("Officer deleted successfully!");
+    }
+  }, [
+    isUpdateOfficerError, isDeleteError, isCreatingOfficerError,
+    isUpdateOfficerSuccess, isCreatingSuccess, isDeleteSuccess
+  ]);
 
   // Set profile data based on user role
   useEffect(() => {
@@ -88,10 +124,11 @@ export default function Account() {
     }
 
     setOfficerId(officer._id);
+    console.log("officerId: ", officer._id);
     setFormData({
       OfficerName: officer.OfficerName || "",
       OfficerPosition: officer.OfficerPosition || "",
-      OfficerPicture: officer.signed_picture || null,
+      OfficerPicture: officer.OfficerPicture || null,
       OfficerPicturePreview: officer.OfficerPicture || "",
     });
     setCreate(false);
@@ -103,6 +140,9 @@ export default function Account() {
   const handleSubmit = () => {
     // Clear error state at the start
     setOfficerError("");
+    console.log("officerPicture: ", formData.OfficerPicture);
+    console.log("officerName: ", formData.OfficerName);
+    console.log("officerPosition: ", formData.OfficerPosition);
 
     // Handle form submission logic here
     const { OfficerPicture, OfficerName, OfficerPosition } = formData;
@@ -122,8 +162,11 @@ export default function Account() {
 
     if (create) {
       console.log("Creating new officer...");
+      { console.log("userProfile", userProfile) }
+      { console.log("formDataToSubmit", formDataToSubmit) }
+      { console.log("officerId: ", officerId) }
       createOfficerMutate({
-        id: userProfile?._id,
+        id: userProfile?.rso?._id,
         createdOfficer: formDataToSubmit
       });
     } else {
@@ -309,11 +352,6 @@ export default function Account() {
               {console.log("user category", userProfile)}
               {activeTab === 1 && (
                 <div className="space-y-6 p-6 shadow-sm">
-                  <div className="space-y-1">
-                    <h1 className="text-xl font-semibold">
-                      Currently RSO Representative: {user?.firstName} {user?.lastName}
-                    </h1>
-                  </div>
 
                   <div className="space-y-2">
                     <h2 className="text-lg font-medium">
@@ -324,16 +362,24 @@ export default function Account() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-medium text-sm text-gray-700">Popularity Score</h3>
-                      <p className="text-base">{profileData?.RSO_popularityScore}</p>
+                  <div className="flex flex-col md:flex-row items-start justify-center gap-6 gap-8">
+                    <div className="flex flex-col items-start ">
+                      <h2 className="text-sm text-gray-600">Logged in user:</h2>
+                      <h1 className="text-md font-semibold">{user?.firstName} {user?.lastName}
+                      </h1>
                     </div>
-                    <div className="p-4 border rounded-lg">
-                      <h3 className="font-medium text-sm text-gray-700">RSO Forms</h3>
-                      <p className="text-base">{profileData?.RSO_forms}</p>
+                    <div className="flex flex-col items-start ">
+                      <h2 className="text-sm text-gray-600">Popularity Score</h2>
+                      <h1 className="text-md font-semibold">{Math.floor(profileData?.RSO_popularityScore)}
+                      </h1>
+                    </div>
+                    <div className="flex flex-col items-start ">
+                      <h2 className="text-sm text-gray-600">RSO Forms</h2>
+                      <h1 className="text-md font-semibold">{profileData?.RSO_forms}
+                      </h1>
                     </div>
                   </div>
+
 
                   <div>
                     <p className="text-sm italic">

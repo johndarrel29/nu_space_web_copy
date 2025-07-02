@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from '../context/AuthContext';
 
+
+// fetch getrsocreatedactivities and map that to be used for the activities mapping
 
 function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college) {
     const [activities, setActivities] = useState([]);
@@ -8,6 +11,11 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
     const queryClient = useQueryClient();
+    const { user, token } = useAuth();
+
+    if (!user?.role) {
+        throw new Error('user role is missing. Cannot fetch profile.');
+    }
 
     const createActivity = useCallback(async (activity) => {
         setLoading(true);
@@ -246,9 +254,6 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         if (college) url.searchParams.set("college", college);
         if (sorted) url.searchParams.set("sorted", sorted);
 
-        console.log("Fetching admin activities with URL:", url.toString());
-        console.log("url search params:", url.searchParams.set("search", query));
-
         const response = await fetch(url, {
             headers: {
                 "Content-Type": "application/json",
@@ -256,13 +261,6 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             }
         }
         )
-        // const response = await fetch(`${process.env.REACT_APP_FETCH_ADMIN_ACTIVITIES_URL}?${queryParams.toString()}`, {
-        //     method: "GET",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         "Authorization": token ? `Bearer ${formattedToken}` : "",
-        //     },
-        // });
 
         if (!response.ok) {
             throw new Error(`Error: ${response.status} - ${response.statusText}`);
@@ -375,15 +373,35 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
+        console.log("viewActivity has been called with activityId:", activityId);
+
         const headers = {
             "Content-Type": "application/json",
             "Authorization": token ? `Bearer ${formattedToken}` : "",
         };
 
-        try {
-            console.log("finding ", `${process.env.REACT_APP_BASE_URL}/api/admin/activities/${activityId}`);
+        // display url based on the role 
+        let url = '';
 
-            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/${activityId}`, {
+        const role = user?.role || '';
+
+        switch (role) {
+            case 'admin':
+                url = `${process.env.REACT_APP_BASE_URL}/api/admin/activities/${activityId}`;
+                console.log("Admin URL:", url);
+                break;
+            case 'rso_representative':
+                url = `${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/viewRSOActivity/${activityId}`;
+                console.log("RSO Representative URL:", url);
+                break;
+            default:
+                break;
+        }
+
+
+        try {
+            console.log("Fetching activity with URL:", url);
+            const response = await fetch(url, {
                 method: "GET",
                 headers,
             });

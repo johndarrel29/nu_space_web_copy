@@ -4,10 +4,22 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import axios from 'axios';
-import { ReusableTable, Backdrop, Button, TabSelector, CloseButton, UploadDocumentsModal } from '../../components';
+import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal } from '../../components';
 import { DropIn } from "../../animations/DropIn";
 import { useModal, useActivities, useDocumentManagement, useUserProfile } from "../../hooks";
 import { useAuth } from "../../context/AuthContext";
+import Switch from '@mui/material/Switch';
+
+// from rso rep if review forms, show the stored data (edit, delete, & view)
+// from admin also have review forms, only review forms (view & flag/ review)
+// if create forms, show the form builder
+
+
+//if pre document, show Activity_pre_activity_documents
+// if post document, show Activity_post_activity_documents
+//make that condition on filter for table
+
+// then, continue with integrating web service for document upload
 
 
 export default function Activities() {
@@ -31,6 +43,7 @@ export default function Activities() {
   const [titles, setTitles] = useState("");
   const [showStatusMessage, setShowStatusMessage] = useState(false);
   const { webProfile } = useUserProfile();
+  const [filter, setFilter] = useState("All");
 
 
   const isAdmin = user?.role === "admin";
@@ -81,8 +94,29 @@ export default function Activities() {
     }
   }, [msg]);
 
+
+  let filteredDocuments = [];
+  // Filter documents based on selected filter
+
+  switch (filter) {
+    case "Pre Documents":
+      filteredDocuments = activity?.Activity_pre_activity_documents || [];
+      break;
+    case "Post Documents":
+      filteredDocuments = activity?.Activity_post_activity_documents || [];
+      break;
+    case "All":
+      filteredDocuments = ((activity?.Activity_pre_activity_documents ?? []).concat(activity?.Activity_post_activity_documents ?? []));
+      break;
+    default:
+      filteredDocuments = activity?.Activity_pre_activity_documents || [];
+      break;
+  }
+  console.log("Filter applied:", filter);
+  console.log("Filtered documents:", filteredDocuments);
+
   // Process activity documents for table display
-  const filterActivityDocuments = (activityDocument?.documents ?? []).map((doc) => ({
+  const filterActivityDocuments = (filteredDocuments).map((doc) => ({
     id: doc._id,
     title: doc.title,
     purpose: doc.purpose,
@@ -94,6 +128,9 @@ export default function Activities() {
     url: doc.url,
     status: doc.status,
   }));
+
+
+
 
   // Table configuration
   const tableHeading = [
@@ -271,22 +308,30 @@ export default function Activities() {
           </div>
 
           {/* Forms Management */}
+          {/* if activitySurvey has no content stored in it, show the first content. if it has 
+          then show the second content. else, show nothing.
+          */}
           <div>
-            {isRSORepresentative ? (
+
+          </div>
+
+          <div>
+            {(isRSORepresentative && (!viewActivityData?.activitySurvey || viewActivityData.activitySurvey.length === 0)) ? (
               <Button style={"secondary"} onClick={() => navigate("/forms-builder")}>
                 <div className="flex items-center gap-2 text-sm font-light ">
                   <svg xmlns="http://www.w3.org/2000/svg" className='fill-off-black size-4' viewBox="0 0 384 512"><path d="M192 0c-41.8 0-77.4 26.7-90.5 64L64 64C28.7 64 0 92.7 0 128L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64l-37.5 0C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM72 272a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm104-16l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zM72 368a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm88 0c0-8.8 7.2-16 16-16l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16z" /></svg>
                   Create Forms
                 </div>
               </Button>
-            ) : isAdmin ? (
+            ) : (viewActivityData?.activitySurvey) ? (
               <Button
                 onClick={() => navigate("/form-viewer")}
               >
                 Review Forms
               </Button>
+            ) : (
+              <h1 className='text-sm text-gray-600'>No Forms Created</h1>
             )
-              : null
             }
           </div>
         </div>
@@ -394,9 +439,9 @@ export default function Activities() {
                     columnNumber={user.role === "rso_representative" ? 5 : 4}
                     tableHeading={tableHeading}
                     tableRow={filterActivityDocuments}
-                    options={["All", "PDF", "Word Document", "Excel Sheet"]}
-                    value={"All"}
-                    onChange={(e) => console.log("Filter changed:", e.target.value)}
+                    options={["All", "Pre Documents", "Post Documents"]}
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
                     showAllOption={false}
                     onClick={handleDocumentClick}
                     headerColor="#312895"
@@ -455,148 +500,15 @@ export default function Activities() {
 
         {/* Upload Document Modal */}
         {modalType === "upload" && (
-          <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <Backdrop className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-50 pt-8">
             <motion.div
-              className="bg-white rounded-lg shadow-lg w-[90%] max-w-[600px] border border-[#312895]/20"
+              className="bg-white rounded-lg shadow-lg w-[75vh] h-[90vh] border border-[#312895]/20 flex flex-col"
               variants={DropIn}
               initial="hidden"
               animate="visible"
               exit="exit"
             >
-              {/* <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-[#312895]">Upload Documents</h2>
-                  <CloseButton onClick={handleCloseModal} />
-                </div>
-                
-                <div className="file-upload-container">
-                  <input
-                    type="file"
-                    id="file-upload"
-                    className="hidden"
-                    onChange={handleFileChange}
-                    multiple
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#312895]/30 rounded-lg bg-[#312895]/5 hover:bg-[#312895]/10 cursor-pointer transition-colors"
-                  >
-                    <svg className="fill-[#312895] size-12 mb-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                      <path d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"/>
-                    </svg>
-                    <span className="text-[#312895] font-medium">Click to browse files here</span>
-                    <span className="text-sm text-[#312895]/70 mt-1">Supports: PDF, DOCX, XLSX (Max 10MB)</span>
-                  </label>
-                </div>
-
-                {files && files.length > 0 && (
-                  <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
-                    {files.map((file, index) => (
-                      <div key={index} className="flex items-start justify-between p-3 bg-[#312895]/5 rounded-lg gap-2">
-                        <div className="flex-col items-start w-full">
-                          <div className="group block w-full" aria-disabled="false" data-accordion-container data-accordion-mode="exclusive">
-                            <div
-                              className="flex items-start justify-between w-full text-left font-medium dark:text-white text-slate-800 cursor-pointer"
-                              data-accordion-toggle
-                              data-accordion-target={`#basicAccordion${index}`}
-                              aria-expanded="false"
-                            >   
-                              <div className="flex flex-col">
-                                <p className="text-[#312895] font-medium truncate max-w-[300px]">{file.name}</p>
-                                <p className="text-sm text-[#312895]/70">{(file.size / 1024).toFixed(2)} KB</p>                      
-                              </div>
-                              <div
-                                title='Add title and description' 
-                                className='flex gap-2 hover:underline hover:decoration-primary cursor-pointer'
-                              >
-                                <h1 className='text-sm text-[#312895]/70 hidden'>Add title and description</h1>
-                                <svg data-accordion-icon-close xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="#312895" className="size-5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                                <svg data-accordion-icon-open xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="#312895" className="size-5">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
-                                </svg>
-                              </div>
-                            </div>
-                            <div id={`basicAccordion${index}`} className="overflow-hidden transition-all duration-300 border-b border-slate-200 dark:border-slate-700 pl-1 pr-1">
-                              <input
-                                type="text"
-                                name="title"
-                                value={files[index].title || ""}
-                                onChange={(e) => {
-                                  const updated = [...files];
-                                  updated[index].title = e.target.value;
-                                  setFiles(updated);
-                                }}
-                                className="mt-2 w-full p-2 border border-[#312895]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#312895]/50"
-                                placeholder="File title"
-                              />
-                              <textarea
-                                rows="4"
-                                name="description"
-                                value={files[index].description || ""}
-                                onChange={(e) => {
-                                  const updated = [...files];
-                                  updated[index].description = e.target.value;
-                                  setFiles(updated);
-                                }}
-                                className="mt-2 w-full p-2 border border-[#312895]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#312895]/50"
-                                placeholder="File description"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => removeFile(index)}
-                          className="text-[#312895] hover:text-red-500"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 384 512">
-                            <path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {msg && (
-                  <div className="mt-4 p-3 rounded-lg text-sm bg-yellow-100 text-yellow-800">
-                    {msg}
-                  </div>
-                )}
-                
-                {showStatusMessage && 
-                  (isCreatingSuccess ? (
-                    <div className={`mt-4 p-3 rounded-lg text-sm bg-green-100 text-green-800`}>
-                      File uploaded successfully!
-                    </div>
-                  ) : createError && (
-                    <div className={`mt-4 p-3 rounded-lg text-sm bg-red-100 text-red-800`}>
-                      Error uploading file: {createError.message}
-                    </div>
-                  ))
-                }
-              
-                {isCreatingLoading && (
-                  <div className="mt-4 p-3 rounded-lg text-sm bg-yellow-100 text-yellow-800">
-                    Uploading file... 
-                  </div>
-                )}
-
-                <div className="mt-6 flex justify-end space-x-3">
-                  <Button style={"secondary"} onClick={handleCloseModal}>
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleSubmit}
-                    className="px-6 py-2 bg-[#312895] hover:bg-[#312895]/90 text-white"
-                    disabled={!files || files.length === 0}
-                  >
-                    Upload
-                  </Button>
-                </div>
-              </div> */}
-              <UploadDocumentsModal handleCloseModal={handleCloseModal}></UploadDocumentsModal>
+              <UploadBatchModal handleCloseModal={handleCloseModal}></UploadBatchModal>
             </motion.div>
           </Backdrop>
         )}

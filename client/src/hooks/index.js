@@ -8,3 +8,4 @@ export { default as useDocumentManagement } from './useDocumentManagement';
 export { default as useKeyBinding } from './useKeyBinding';
 export { default as useUserProfile } from './useUserProfile';
 export { default as useTags } from './useTags';
+export { default as useAnnouncements } from './useAnnouncements';

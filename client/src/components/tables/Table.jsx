@@ -6,10 +6,7 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import { CardSkeleton } from '../../components';
 import { AnimatePresence } from "framer-motion";
 import { useModal, useUser } from "../../hooks";
-import axios from "axios";
 import { toast } from 'react-toastify';
-
-// error: update role doesnt refetch the data
 
 // Table Component
 const Table = React.memo(({ searchQuery, selectedRole }) => {
@@ -20,7 +17,6 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
   const [postsPerPage, setPostsPerPage] = useState(10);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const { isOpen, openModal, closeModal } = useModal();
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -47,6 +43,8 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
       return [];
     }
 
+    console.log("data:", data);
+
     return data.filter(user => {
       const matchesSearch = ['firstName', 'lastName', 'email'].some(field =>
         typeof user[field] === 'string' && user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
@@ -54,11 +52,13 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
 
       const matchesRole = !selectedRole ||
         (selectedRole === "student" ? user.role?.toLowerCase() === "student" :
-          selectedRole === "rso_representative" ? user.role?.toLowerCase()?.includes("/rso") :
+          selectedRole === "rso_representative" ? user.role?.toLowerCase() === "rso_representative" :
             selectedRole === "admin" ? user.role?.toLowerCase() === "admin" :
               selectedRole === "super_admin" ? user.role?.toLowerCase() === "super_admin" :
                 false
         );
+      { console.log("user role: " + user.role) }
+      { console.log("matchesRole: " + matchesRole) }
 
 
       return matchesSearch && matchesRole;
@@ -132,6 +132,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
 
       } else {
         // Delete user
+        console.log("Deleting user with ID:", _id);
         await deleteUserMutate.mutateAsync(_id);
         console.log("User deleted successfully with ID:", _id);
 
@@ -249,7 +250,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
                     </th>
                     <th scope="col" className='px-6 py-3'>
                       <div className="flex items-center justify-center">
-                        Category
+                        Assigned RSO
                       </div>
                     </th>
                     <th scope="col" className='px-6 py-3'>

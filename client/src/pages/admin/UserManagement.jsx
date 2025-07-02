@@ -64,15 +64,13 @@ export default function UserManagement() {
   const [selectedRole, setSelectedRole] = useState("");
   const { isOpen, openModal, closeModal } = useModal();
   const user = JSON.parse(localStorage.getItem("user"));
-  const { user: profileUser, isLoading } = useUserProfile();
+  const { userProfile, isLoading } = useUserProfile();
   const {
     membersData,
   } = useRSO();
 
-  const isUserStatusActive = profileUser?.assigned_rso?.RSO_status === false && profileUser?.role === "rso_representative";
 
-  // Memoize the data to prevent unnecessary re-renders
-  // const memoizedData = useMemo(() => data, [data]);
+  console.log("userProfile", userProfile);
 
   const tableRow = (membersData ?? []).map(member => ({
     id: member.id,
@@ -124,21 +122,21 @@ export default function UserManagement() {
               selectedRole={selectedRole} />
           </>
         )}
-
+        {console.log("userProfile?.rso?.RSO_membershipStatus", userProfile?.rso?.RSO_membershipStatus)}
         {user && user.role === "rso_representative" && (
           <>
-            {(profileUser?.assigned_rso?.RSO_membershipStatus === true) && (
+            {(!userProfile?.rso?.RSO_membershipStatus === true) && (
               <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${profileUser?.assigned_rso?.RSO_membershipStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <h1 className="text-gray-700 font-medium">Membership Status: <span className={`font-semibold ${profileUser?.assigned_rso?.RSO_membershipStatus ? 'text-green-600' : 'text-red-600'}`}>{profileUser?.assigned_rso?.RSO_membershipStatus ? "Active" : "Inactive"}</span></h1>
+                  <div className={`w-3 h-3 rounded-full ${userProfile?.rso?.RSO_membershipStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <h1 className="text-gray-700 font-medium">Membership Status: <span className={`font-semibold ${userProfile?.rso?.RSO_membershipStatus ? 'text-green-600' : 'text-red-600'}`}>{userProfile?.assigned_rso?.RSO_membershipStatus ? "Active" : "Inactive"}</span></h1>
                 </div>
                 <div className="h-6 w-px bg-gray-200"></div>
                 <div className="flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                   </svg>
-                  <h1 className="text-gray-700 font-medium">End Date: <span className="font-semibold text-gray-900">{FormatDate(profileUser?.assigned_rso?.RSO_membershipEndDate)}</span></h1>
+                  <h1 className="text-gray-700 font-medium">End Date: <span className="font-semibold text-gray-900">{FormatDate(userProfile?.rso?.RSO_membershipEndDate)}</span></h1>
                 </div>
               </div>
             )}

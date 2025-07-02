@@ -42,8 +42,6 @@ function MainLayout({ children, tabName, headingTitle }) {
   const isAdmin = user?.role === "admin";
   const isSuperAdmin = user?.role === "super_admin";
 
-  console.log("User profile:", userProfile);
-
   useEffect(() => {
     if (userProfile) {
       console.log("User profile loaded successfully:", userProfile);
@@ -72,8 +70,6 @@ function MainLayout({ children, tabName, headingTitle }) {
       setProfileData(userProfile?.user);
     }
   })
-
-  console.log("Profile data is now:", profileData);
 
   useEffect(() => {
     if (userProfileError) {
@@ -203,19 +199,16 @@ function MainLayout({ children, tabName, headingTitle }) {
 
             {/* group notification module and profile picture */}
             <div className="flex items-center gap-4">
-              {/* admin and super admin only */}
-              {(isAdmin || isSuperAdmin) && (
-                <Button
-                  onClick={() => navigate(isOnAnnouncementPage ? -1 : "/announcements")}
-                  style={"secondary"}
-                  className={`${isOnAnnouncementPage ? "bg-gray-100" : ""}`}
+              <Button
+                onClick={() => navigate(isOnAnnouncementPage ? -1 : "/announcements")}
+                style={"secondary"}
+                className={`${isOnAnnouncementPage ? "bg-gray-100" : ""}`}
 
-                >
-                  <div className={`flex items-center gap-2 text-sm font-light`}>
-                    {isOnAnnouncementPage ? "Cancel" : "Create Announcement"}
-                  </div>
-                </Button>
-              )}
+              >
+                <div className={`flex items-center gap-2 text-sm font-light`}>
+                  {isOnAnnouncementPage ? "Cancel" : "Create Announcement"}
+                </div>
+              </Button>
               {/* student rso only */}
               {isStudentRSO && (
                 <>
@@ -422,6 +415,18 @@ function MainLayout({ children, tabName, headingTitle }) {
             {/* Page Content */}
             {children}
           </main>
+          {(location.pathname === '/form-viewer' && isAdmin) && (
+            <div className="w-full py-6 bg-white fixed bottom-0 z-40 mt-auto flex items-center justify-center gap-4 border-t border-mid-gray">
+              <Button
+                style="secondary"
+              >
+                Reject
+              </Button>
+              <Button>
+                Approve
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

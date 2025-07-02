@@ -71,7 +71,7 @@ function useUserProfile() {
     };
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/deleteRSOOfficer/${officerId}`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/deleteRSOOfficer/${officerId}`, {
         method: "DELETE",
         headers,
       });
@@ -106,6 +106,7 @@ function useUserProfile() {
     mutate: deleteOfficerMutate,
     isLoading: isDeleting,
     isError: isDeleteError,
+    isSuccess: isDeleteSuccess,
   } = useMutation({
     mutationFn: deleteOfficer,
     onSuccess: () => {
@@ -127,9 +128,11 @@ function useUserProfile() {
     isUserProfileLoading,
     isUserProfileError,
     refetchUserProfile,
+
     deleteOfficerMutate,
     isDeleting,
     isDeleteError,
+    isDeleteSuccess,
   };
 }
 

@@ -20,6 +20,7 @@ export default function ReusableTable({
     error,
     isLoading,
     onDocumentClick,
+    showFilters = true,
     activityId = null, // Default to null if not provided
 }) {
     const [searchQuery, setSearchQuery] = useState('');
@@ -75,7 +76,6 @@ export default function ReusableTable({
         if (selectedPage < 1 || selectedPage > pages.length) return; // Prevent going out of bounds
         setCurrentPage(selectedPage);
     }
-    console.log("searchQUery", searchQuery);
 
     const handlePostsPerPageChange = (event) => {
         const value = event.target.value;
@@ -84,38 +84,43 @@ export default function ReusableTable({
 
     return (
         <>
-            {/* searchbar and dropdown */}
-            <div className="mt-4 mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
-                <div className="w-full lg:w-full md:w-full">
-                    <Searchbar placeholder={placeholder || "Search an organization"} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-                </div>
-                <div className="w-full mt-4 md:mt-0 lg:w-1/2 md:w-full">
-                    <ReusableDropdown
-                        icon={true}
-                        options={options}
-                        showAllOption={showAllOption}
-                        value={value}
-                        onChange={onChange}
-                    />
-                </div>
-            </div>
+            {showFilters && (
+                <>
+                    {/* searchbar and dropdown */}
+                    <div className="mt-4 mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
+                        <div className="w-full lg:w-full md:w-full">
+                            <Searchbar placeholder={placeholder || "Search an organization"} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+                        </div>
+                        <div className="w-full mt-4 md:mt-0 lg:w-1/2 md:w-full">
+                            <ReusableDropdown
+                                icon={true}
+                                options={options}
+                                showAllOption={showAllOption}
+                                value={value}
+                                onChange={onChange}
+                            />
+                        </div>
+                    </div>
 
-            <div className="flex justify-between items-center mb-4 w-full">
-                <span className="text-gray-700 font-semibold">
-                    Showing {filteredRows.length > 0 ? filteredRows.length : "0"} results
-                </span>
-                <li className="flex justify-center ">
-                    <select
-                        className={`w-24 h-10 rounded-md bg-white border border-mid-gray p-1 font-bold`}
-                        value={postsPerPage}
-                        onChange={handlePostsPerPageChange}
-                    >
-                        <option value={10}>10 rows</option>
-                        <option value={20}>20 rows</option>
-                        <option value={50}>50 rows</option>
-                    </select>
-                </li>
-            </div>
+                    <div className="flex justify-between items-center mb-4 w-full">
+                        <span className="text-gray-700 font-semibold">
+                            Showing {filteredRows.length > 0 ? filteredRows.length : "0"} results
+                        </span>
+                        <li className="flex justify-center ">
+                            <select
+                                className={`w-24 h-10 rounded-md bg-white border border-mid-gray p-1 font-bold`}
+                                value={postsPerPage}
+                                onChange={handlePostsPerPageChange}
+                            >
+                                <option value={10}>10 rows</option>
+                                <option value={20}>20 rows</option>
+                                <option value={50}>50 rows</option>
+                            </select>
+                        </li>
+                    </div>
+                </>
+
+            )}
 
             {/* children */}
             {children ? (
