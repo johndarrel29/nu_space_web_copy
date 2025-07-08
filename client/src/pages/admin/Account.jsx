@@ -14,6 +14,10 @@ const tabs = [
   { label: "RSO Details" },
 ]
 
+const adminTabs = [
+  { label: "Admin Details" }
+]
+
 export default function Account() {
   const {
     userProfile,
@@ -392,7 +396,25 @@ export default function Account() {
               )}
             </>
           )}
+          {(isAdmin || isSuperAdmin) && (
+            <>
+              <TabSelector tabs={adminTabs} activeTab={activeTab} onTabChange={setActiveTab}></TabSelector>
+              {activeTab === 0 && (
+                <div className="space-y-6 p-6 shadow-sm">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">
+                      Manage your admin account details here.
+                    </p>
+                  </div>
 
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="w-full h-48 bg-mid-gray rounded-md "></div>
+                    <div className="w-full h-48 bg-mid-gray rounded-md "></div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 

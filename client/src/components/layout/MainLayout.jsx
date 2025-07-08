@@ -63,11 +63,13 @@ function MainLayout({ children, tabName, headingTitle }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   })
 
+  console.log("User profile data:", userProfile);
+
   useEffect(() => {
     if (isStudentRSO) {
-      setProfileData(userProfile?.rso);
+      setProfileData(userProfile?.rso || null);
     } else if (isAdmin || isSuperAdmin) {
-      setProfileData(userProfile?.user);
+      setProfileData(userProfile?.user || null);
     }
   })
 
@@ -206,70 +208,19 @@ function MainLayout({ children, tabName, headingTitle }) {
 
               >
                 <div className={`flex items-center gap-2 text-sm font-light`}>
-                  {isOnAnnouncementPage ? "Cancel" : "Create Announcement"}
+                  {isOnAnnouncementPage ? (
+                    <div className="flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="currentColor" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" /></svg>
+                      Cancel
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="currentColor" viewBox="0 0 448 512"><path d="M224 0c-17.7 0-32 14.3-32 32l0 19.2C119 66 64 130.6 64 208l0 18.8c0 47-17.3 92.4-48.5 127.6l-7.4 8.3c-8.4 9.4-10.4 22.9-5.3 34.4S19.4 416 32 416l384 0c12.6 0 24-7.4 29.2-18.9s3.1-25-5.3-34.4l-7.4-8.3C401.3 319.2 384 273.9 384 226.8l0-18.8c0-77.4-55-142-128-156.8L256 32c0-17.7-14.3-32-32-32zm45.3 493.3c12-12 18.7-28.3 18.7-45.3l-64 0-64 0c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7z" /></svg>
+                      Announcements
+                    </div>
+                  )}
                 </div>
               </Button>
-              {/* student rso only */}
-              {isStudentRSO && (
-                <>
-                  <div
-                    ref={notificationRef}
-                    onClick={() => setIsNotificationClicked(!isNotificationClicked)}
-                    className="rounded-full h-8 w-8 hover:bg-gray-200 flex items-center justify-center cursor-pointer relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5 fill-gray-800" viewBox="0 0 448 512"><path d="M224 0c-17.7 0-32 14.3-32 32l0 19.2C119 66 64 130.6 64 208l0 18.8c0 47-17.3 92.4-48.5 127.6l-7.4 8.3c-8.4 9.4-10.4 22.9-5.3 34.4S19.4 416 32 416l384 0c12.6 0 24-7.4 29.2-18.9s3.1-25-5.3-34.4l-7.4-8.3C401.3 319.2 384 273.9 384 226.8l0-18.8c0-77.4-55-142-128-156.8L256 32c0-17.7-14.3-32-32-32zm45.3 493.3c12-12 18.7-28.3 18.7-45.3l-64 0-64 0c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7z" /></svg>
-                  </div>
-
-                  {/* notification dropdown component */}
-                  {isNotificationClicked && (
-                    <div
-
-                      className="absolute top-10 right-16 mt-2 w-128 bg-white rounded-md border border-mid-gray z-40 pl-2 pr-2 h-[400px] flex flex-col">
-                      {/* Header - stays at top */}
-                      <div className="w-full flex items-start gap-2 py-2 text-sm">
-                        <h1>Notifications</h1>
-                      </div>
-                      <div className="w-full h-[1px] bg-mid-gray"></div>
-
-                      {/* Content area - takes available space and scrolls if needed */}
-                      <div className="flex-1 overflow-y-auto">
-                        <div className="flex flex-col">
-                          {/* notification cards go here */}
-                          <div className="w-full flex items-start gap-2 py-2 text-sm">
-                            <div className="flex items-start gap-2 justify-center cursor-pointer hover:bg-gray-100 p-2 rounded">
-                              <div className="rounded-full h-8 w-8 bg-gray-200 flex-shrink-0">
-                                <img src={DefaultPicture} alt="Notification" className="rounded-full h-full w-full object-cover" />
-                              </div>
-                              <div className="flex flex-col justify-center items-start flex-1 min-w-0">
-                                <h1 className="text-sm font-bold">Document Update:</h1>
-                                <h2 className="text-xs text-gray-500">Mr. Doe has approved an activity document.</h2>
-                              </div>
-                            </div>
-                          </div>
-                          {/* Add more notification cards here */}
-                        </div>
-                      </div>
-
-                      {/* Footer with pagination - stays fixed at bottom */}
-                      <div className="py-2 border-t border-mid-gray mt-auto">
-                        <div className="flex items-center justify-center gap-1 text-xs">
-                          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="size-3 fill-current" viewBox="0 0 320 512">
-                              <path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z" />
-                            </svg>
-                          </button>
-                          <button className="w-7 h-7 flex items-center justify-center rounded bg-primary text-white">1</button>
-                          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600">2</button>
-                          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-600">3</button>
-                          <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="size-3 fill-current" viewBox="0 0 320 512">
-                              <path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>)}
-                </>
-              )}
 
 
               <div className='flex items-center justify-between text-center pr-6 '>

@@ -3,12 +3,10 @@ import DefaultPicture from "../../assets/images/default-profile.jpg";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import axios from 'axios';
 import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal } from '../../components';
 import { DropIn } from "../../animations/DropIn";
 import { useModal, useActivities, useDocumentManagement, useUserProfile } from "../../hooks";
 import { useAuth } from "../../context/AuthContext";
-import Switch from '@mui/material/Switch';
 
 // from rso rep if review forms, show the stored data (edit, delete, & view)
 // from admin also have review forms, only review forms (view & flag/ review)
@@ -20,7 +18,6 @@ import Switch from '@mui/material/Switch';
 //make that condition on filter for table
 
 // then, continue with integrating web service for document upload
-
 
 export default function Activities() {
   const { user } = useAuth();
@@ -339,14 +336,16 @@ export default function Activities() {
         {/* Main Content */}
         <div className='w-full px-4 sm:px-8 lg:px-12 mt-6'>
           {/* Image and Details Section */}
-          <div className='flex flex-col items-center w-full'>
+          <div className=' flex flex-col items-center w-full'>
             {/* Activity Image */}
-            <div className='aspect-square w-full sm:w-[60%] md:w-[50%] lg:w-[40%] bg-mid-gray rounded-lg overflow-hidden'>
-              <img
-                src={activity?.activityImageUrl || defaultPic}
-                alt="Activity"
-                className='w-full h-full object-cover'
-              />
+            <div className='bg-dark-gray rounded-md  flex justify-center items-center w-full'>
+              <div className='aspect-square w-full sm:w-[60%] md:w-[50%] lg:w-[40%] bg-mid-gray overflow-hidden'>
+                <img
+                  src={activity?.activityImageUrl || defaultPic}
+                  alt="Activity"
+                  className='w-full h-full object-cover'
+                />
+              </div>
             </div>
 
             {/* Details Section */}
@@ -354,7 +353,7 @@ export default function Activities() {
               <h1 className='text-2xl font-bold text-off-black'>{activity?.Activity_name}</h1>
               <div className='flex items-center gap-2'>
                 {isRSORepresentative && (
-                  <Button onClick={handleEditClick} style={"secondary"}>
+                  <Button onClick={handleEditClick} >
                     <div className="flex items-center gap-2 text-sm font-light ">
                       Edit
                     </div>
@@ -502,13 +501,13 @@ export default function Activities() {
         {modalType === "upload" && (
           <Backdrop className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-50 pt-8">
             <motion.div
-              className="bg-white rounded-lg shadow-lg w-[75vh] h-[90vh] border border-[#312895]/20 flex flex-col"
+              className="bg-white rounded-lg shadow-lg w-[120vh] h-[90vh] border border-[#312895]/20 flex flex-col"
               variants={DropIn}
               initial="hidden"
               animate="visible"
               exit="exit"
             >
-              <UploadBatchModal handleCloseModal={handleCloseModal}></UploadBatchModal>
+              <UploadBatchModal handleCloseModal={handleCloseModal} page={"activity"}></UploadBatchModal>
             </motion.div>
           </Backdrop>
         )}

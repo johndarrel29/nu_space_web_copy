@@ -16,6 +16,13 @@ function useRSO() {
     setLoading(true);
     setSuccess(false);
 
+    // change RSO_picture to RSO_image
+    if (newOrg.RSO_picture && newOrg.RSO_picture instanceof File) {
+      newOrg.RSO_image = newOrg.RSO_picture;
+      delete newOrg.RSO_picture;
+
+    }
+
     try {
       const token = localStorage.getItem("token");
       const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -23,7 +30,7 @@ function useRSO() {
       console.log("Request URL:", `${process.env.REACT_APP_BASE_URL}/api/rso/createRSO`);
 
       // Create FormData if RSO_picture exists (file upload)
-      const isFileUpload = newOrg.RSO_picture instanceof File;
+      const isFileUpload = newOrg.RSO_image instanceof File;
 
 
       let body;
@@ -61,15 +68,19 @@ function useRSO() {
 
 
 
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/createRSO`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/createRSO`, {
         method: "POST",
         headers,
         body,
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        setCreateError(`Error: ${response.status} - ${response.statusText}`);
+        const errorData = await response.json();
+        console.error("Error creating RSO:", errorData);
+
+        setCreateError(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+        console.error("createRSO error:", createError);
+        throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
       }
 
       const result = await response.json();
@@ -79,8 +90,8 @@ function useRSO() {
       // Update the state with the new organization
       setOrganizations((prevOrgs) => [...prevOrgs, result]);
     } catch (error) {
-      console.error("Error creating RSO:", error);
-      setCreateError(`Error: ${error.message}`);
+      const errorData = await error.response?.json();
+      console.error("Error creating RSO:", errorData || error);
     } finally {
       setLoading(false);
     }
@@ -182,7 +193,7 @@ function useRSO() {
         "Authorization": token ? `Bearer ${formattedToken}` : "",
       };
 
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/deleteRSO/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/deleteRSO/${id}`, {
         method: "DELETE",
         headers,
       });
@@ -301,7 +312,7 @@ function useRSO() {
 
   }
 
-  const updateMembershipDate = async ({ date }) => {
+  const updateMembershipDate = async ({ date, hours, minutes }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
@@ -311,7 +322,7 @@ function useRSO() {
         "Content-Type": "application/json",
         "Authorization": token ? `Bearer ${formattedToken}` : "",
       },
-      body: JSON.stringify({ durationInDays: date }),
+      body: JSON.stringify({ durationInDays: date, durationInHours: hours, durationInMinutes: minutes }),
     });
 
     if (!response.ok) {
@@ -359,7 +370,7 @@ function useRSO() {
 
   }
 
-  const extendMembershipDate = async ({ date }) => {
+  const extendMembershipDate = async ({ date, hours, minutes }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
@@ -369,7 +380,7 @@ function useRSO() {
         "Content-Type": "application/json",
         "Authorization": token ? `Bearer ${formattedToken}` : "",
       },
-      body: JSON.stringify({ durationInDays: date }),
+      body: JSON.stringify({ durationInDays: date, durationInHours: hours, durationInMinutes: minutes }),
     });
 
     if (!response.ok) {

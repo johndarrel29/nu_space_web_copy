@@ -18,6 +18,7 @@ export default function MainLogin() {
     const { loginUserMutate } = useUser();
     const { login } = useAuth();
 
+
     const handleLogin = async () => {
         console.log("email ", email, "password", password, "platform", "web");
 
@@ -30,7 +31,6 @@ export default function MainLogin() {
         setError(null);
 
         try {
-
             // Using the custom hook to handle login
             const res = await loginUserMutate.mutateAsync({
                 email: email,
@@ -38,29 +38,66 @@ export default function MainLogin() {
                 platform: "web",
             });
 
-            login({
-                token: res?.token,
-                ...res?.user,
-            })
-            const role = res?.user?.role;
+            // Add detailed logging to see the full response structure
+            console.log("Full login response:", res);
 
-            if (role === "admin") {
-                navigate("/dashboard");
-            } else if (role === "rso_representative") {
-                navigate("/document");
-            } else if (role === "super_admin") {
-                navigate("/user-management");
+            // Decode JWT token to get user information
+            if (res?.token) {
+                try {
+                    const tokenPart = res.token.replace('Bearer ', '');
+                    const base64Payload = tokenPart.split('.')[1];
+                    const decodedPayload = JSON.parse(atob(base64Payload));
+                    console.log("Decoded token payload:", decodedPayload);
+
+                    const role = decodedPayload.role || decodedPayload.userRole || decodedPayload.type;
+                    console.log("User role from token:", role);
+
+                    login({
+                        token: res.token,
+                        id: decodedPayload.id,
+                        email: decodedPayload.email || email,
+                        role: role,
+                        ...decodedPayload
+                    });
+
+                    if (role === "admin") {
+                        navigate("/dashboard");
+                    } else if (role === "rso_representative") {
+                        navigate("/document");
+                    } else if (role === "super_admin") {
+                        navigate("/user-management");
+                    } else {
+                        setError("Invalid role or access denied.");
+                    }
+                } catch (tokenError) {
+                    console.error("Error decoding token:", tokenError);
+                    setError("Login successful but unable to decode user information.");
+                }
             } else {
-                setError("Invalid role or access denied.");
+                setError("Login failed: No token received.");
             }
 
         } catch (err) {
-            console.error("Login error", err);
-            setError(err.message);
+            console.error("Login error details:", {
+                message: err.message,
+                status: err.status,
+                response: err.response?.data,
+                stack: err.stack
+            });
+
+            // Provide more specific error messages
+            if (err.message.includes('403')) {
+                setError("Invalid email or password. Please check your credentials.");
+            } else if (err.message.includes('404')) {
+                setError("Login service unavailable. Please try again later.");
+            } else {
+                setError(err.message || "Login failed. Please try again.");
+            }
         } finally {
             setIsLoading(false);
         }
     };
+
 
     useKeyBinding(
         {

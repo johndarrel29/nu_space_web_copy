@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from '../context/AuthContext';
 
 function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {}) {
     const [documents, setDocuments] = useState([]);
@@ -7,6 +8,7 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
     const [error, setError] = useState(null);
     const baseURL = `${process.env.REACT_APP_BASE_URL}/api/admin/rso`;
     const queryClient = useQueryClient();
+    const { user, token } = useAuth();
 
     const fetchDocuments = async () => {
         const token = localStorage.getItem("token");
@@ -188,6 +190,94 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
 
     }
 
+    // Add new function to fetch general documents with direct ID
+    const fetchGeneralDocuments = async (id) => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        console.log("Fetching general documents for ID:", id);
+        console.log("URL:", `${baseURL}/${id}/general-documents-rso`);
+
+        const res = await fetch(`${baseURL}/${id}/general-documents-rso`, {
+            method: "GET",
+            headers: {
+                'Authorization': formattedToken,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Fetch failed: ${errorText}`);
+        }
+
+        const json = await res.json();
+
+        if (json.success && Array.isArray(json.documents)) {
+            return json.documents || [];
+        }
+
+        throw new Error("Unexpected response structure");
+    };
+
+    const fetchDocumentTemplate = async () => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        let url = '';
+
+        const role = user?.role || '';
+        switch (role) {
+            case 'admin':
+            case 'super_admin':
+                url = `${process.env.REACT_APP_BASE_URL}/api/admin/documents/templateDocuments`;
+                break;
+            case 'rso_representative':
+                url = `${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/template`;
+                break;
+            default:
+                console.warn(`No URL defined for role: ${role}`);
+                throw new Error(`No URL defined for role: ${role}`);
+
+        }
+
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                'Authorization': formattedToken,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Fetch failed: ${errorText}`);
+        }
+
+        const json = await res.json();
+        return json;
+    }
+
+    const {
+        data: documentTemplate,
+        isLoading: documentTemplateLoading,
+        isError: documentTemplateError,
+        error: documentTemplateQueryError,
+        refetch: refetchDocumentTemplate,
+    } = useQuery({
+        queryKey: ["documentTemplate"],
+        queryFn: fetchDocumentTemplate,
+        onSuccess: (data) => {
+            console.log("Document template fetched successfully:", data);
+            setDocuments(data);
+        }
+        ,
+        onError: (error) => {
+            console.error("Error fetching document template:", error);
+            setError(error.message);
+        }
+    });
+
     const {
         data: documentsData,
         isLoading: documentsLoading,
@@ -281,35 +371,7 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
         },
     });
 
-    // Add new function to fetch general documents with direct ID
-    const fetchGeneralDocuments = async (id) => {
-        const token = localStorage.getItem("token");
-        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
-        console.log("Fetching general documents for ID:", id);
-        console.log("URL:", `${baseURL}/${id}/general-documents-rso`);
-
-        const res = await fetch(`${baseURL}/${id}/general-documents-rso`, {
-            method: "GET",
-            headers: {
-                'Authorization': formattedToken,
-                'Content-Type': 'application/json'
-            },
-        });
-
-        if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(`Fetch failed: ${errorText}`);
-        }
-
-        const json = await res.json();
-
-        if (json.success && Array.isArray(json.documents)) {
-            return json.documents || [];
-        }
-
-        throw new Error("Unexpected response structure");
-    };
 
     return {
         documents,
@@ -353,6 +415,12 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
         documentsError,
         documentsQueryError,
         refetchDocuments,
+
+        documentTemplate,
+        documentTemplateLoading,
+        documentTemplateError,
+        documentTemplateQueryError,
+        refetchDocumentTemplate,
     };
 }
 

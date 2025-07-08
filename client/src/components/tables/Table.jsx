@@ -18,6 +18,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const { isOpen, openModal, closeModal } = useModal();
   const [success, setSuccess] = useState(false);
+  const [filterError, setFilterError] = useState(null);
 
   useEffect(() => {
     refetch();
@@ -36,33 +37,35 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
 
   const filteredRecords = useMemo(() => {
+    try {
+      setFilterError(null);
 
-    if (!Array.isArray(data)) {
-      console.error("Users is not an array:", data);
+      if (!Array.isArray(data)) {
+        console.error("Users is not an array:", data);
 
+        return [];
+      }
+
+      return data.filter(user => {
+        const matchesSearch = ['firstName', 'lastName', 'email'].some(field =>
+          typeof user[field] === 'string' && user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
+        );
+
+        const matchesRole = !selectedRole ||
+          (selectedRole === "student" ? user.role?.toLowerCase() === "student" :
+            selectedRole === "rso_representative" ? user.role?.toLowerCase() === "rso_representative" :
+              selectedRole === "admin" ? user.role?.toLowerCase() === "admin" :
+                selectedRole === "super_admin" ? user.role?.toLowerCase() === "super_admin" :
+                  false
+          );
+        return matchesSearch && matchesRole;
+      });
+    } catch (error) {
+      console.error(`Error filtering records: ${error.message}`);
+      setFilterError(error.message);
       return [];
     }
 
-    console.log("data:", data);
-
-    return data.filter(user => {
-      const matchesSearch = ['firstName', 'lastName', 'email'].some(field =>
-        typeof user[field] === 'string' && user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
-      );
-
-      const matchesRole = !selectedRole ||
-        (selectedRole === "student" ? user.role?.toLowerCase() === "student" :
-          selectedRole === "rso_representative" ? user.role?.toLowerCase() === "rso_representative" :
-            selectedRole === "admin" ? user.role?.toLowerCase() === "admin" :
-              selectedRole === "super_admin" ? user.role?.toLowerCase() === "super_admin" :
-                false
-        );
-      { console.log("user role: " + user.role) }
-      { console.log("matchesRole: " + matchesRole) }
-
-
-      return matchesSearch && matchesRole;
-    });
   }, [data, safeSearchQuery, selectedRole]);
 
   const records = useMemo(() => {
@@ -222,61 +225,67 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             />
           </svg>
           <p className="text-red-500 font-medium text-center max-w-md px-4">
-            {error}
+            {typeof error === 'string' ? error : error?.message || 'An unknown error occurred'}
           </p>
         </div>
       )
-        :
-        data?.length > 0 ? (
-          <div className="w-full">
-            <div className=' overflow-x-auto w-full border border-mid-gray rounded-md'>
-              <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
-                <thead className="border-b border-mid-gray bg-textfield ">
-                  <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider '>
-                    <th scope="col" className='px-6 py-3'>
-                      <div className="flex items-center justify-center">
-                        Name
-                      </div>
-                    </th>
-                    <th scope="col" className='px-6 py-3'>
-                      <div className="flex items-center justify-center">
-                        Date Created
-                      </div>
-                    </th>
-                    <th scope="col" className='px-6 py-3'>
-                      <div className="flex items-center justify-center">
-                        Role
-                      </div>
-                    </th>
-                    <th scope="col" className='px-6 py-3'>
-                      <div className="flex items-center justify-center">
-                        Assigned RSO
-                      </div>
-                    </th>
-                    <th scope="col" className='px-6 py-3'>
-                      <div className="flex items-center justify-center">
-                        Actions
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card-bg divide-y divide-gray-200">
-                  {records?.length > 0 ? records?.map((user, index) => (
-
-
-                    <TableRow key={index} userRow={user} onOpenModal={handleOpenModal} index={(currentPage - 1) * postsPerPage + index + 1} />
-                  )) : (
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={5}>
-                        No records found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+        : filterError ? (
+          <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center mb-4">
+            <p className="text-red-500 font-medium text-center">
+              Error filtering data: {filterError}
+            </p>
           </div>
-        ) : <CardSkeleton />}
+        ) :
+          data?.length > 0 ? (
+            <div className="w-full">
+              <div className=' overflow-x-auto w-full border border-mid-gray rounded-md'>
+                <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
+                  <thead className="border-b border-mid-gray bg-textfield ">
+                    <tr className='rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider '>
+                      <th scope="col" className='px-6 py-3'>
+                        <div className="flex items-center justify-center">
+                          Name
+                        </div>
+                      </th>
+                      <th scope="col" className='px-6 py-3'>
+                        <div className="flex items-center justify-center">
+                          Date Created
+                        </div>
+                      </th>
+                      <th scope="col" className='px-6 py-3'>
+                        <div className="flex items-center justify-center">
+                          Role
+                        </div>
+                      </th>
+                      <th scope="col" className='px-6 py-3'>
+                        <div className="flex items-center justify-center">
+                          Assigned RSO
+                        </div>
+                      </th>
+                      <th scope="col" className='px-6 py-3'>
+                        <div className="flex items-center justify-center">
+                          Actions
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-card-bg divide-y divide-gray-200">
+                    {records?.length > 0 ? records?.map((user, index) => (
+
+
+                      <TableRow key={index} userRow={user} onOpenModal={handleOpenModal} index={(currentPage - 1) * postsPerPage + index + 1} />
+                    )) : (
+                      <tr>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center" colSpan={5}>
+                          No records found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : <CardSkeleton />}
 
       <div className='w-full bottom-20 mt-4'>
         <nav>

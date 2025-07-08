@@ -8,14 +8,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
 import DefaultPicture from '../../assets/images/default-profile.jpg';
 import { toast } from 'react-toastify';
+import Switch from '@mui/material/Switch';
 
 // file manipulation
 import Cropper from "react-easy-crop";
-// import { cropImage, createImage } from '../../utils';
 import getCroppedImg from '../../utils/cropImage';
 
 function RSOAction() {
-  // const { tags } = useTags();
   const { createRSO, updateRSO, deleteRSO, loading, updateError, createError, success } = useRSO();
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,6 +29,8 @@ function RSOAction() {
   const [error, setError] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
   const [tagError, setTagError] = useState("");
+  const [rsoStatus, setRsoStatus] = useState(false);
+
 
   //file manipulaion
   const [image, setImage] = useState(null);
@@ -39,8 +40,6 @@ function RSOAction() {
   const [readyCropper, setReadyCropper] = useState(false);
 
   console.log("Location state:", location.state);
-  // console.log("tags from useTags:", tags);
-
 
 
   const isEdit = mode === 'edit';
@@ -74,10 +73,6 @@ function RSOAction() {
     }
   }, [isEdit]);
 
-  // console.log("Selected tags:", selectedTags);
-  // console.log("tag inside tags data:", tagsData);
-  // console.log("compare ", selectedTags, "with", tagsData?.tags);
-
   useEffect(() => {
     if (isEdit && data) {
       setFormData({
@@ -92,6 +87,7 @@ function RSOAction() {
         RSO_picture: data.RSO_picture || null,
         RSO_picturePreview: data.picture || DefaultPicture,
         RSO_forms: data.RSO_forms || "",
+        RSO_probationary: data.RSO_probationary || false,
       });
 
       if (data.RSO_tags?.length) {
@@ -114,7 +110,7 @@ function RSOAction() {
 
 
   const handleOptions = ['CCIT', 'CBA', 'COA', 'COE', 'CAH', 'CEAS', 'CTHM'];
-  const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest', 'Probationary']
+  const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest']
 
   const [RSO_picture, setRSOPicture] = useState(null);
   const [formData, setFormData] = useState({
@@ -128,10 +124,6 @@ function RSOAction() {
     RSO_picture: null,
     RSO_picturePreview: DefaultPicture,
   });
-
-  const onTagEdit = (tag) => {
-    setSelectedTag(tag);
-  };
 
   const fileInputRef = useRef(null);
 
@@ -155,9 +147,6 @@ function RSOAction() {
   const handleTagUpdate = () => {
     const tagId = selectedModalTag?._id;
     const newTag = selectedModalTag?.tag;
-
-    console.log("Updating tag with ID:", tagId, "to new name:", newTag);
-
 
     updateTagMutation({ tagId: tagId, tagName: newTag }, {
       onSuccess: () => {
@@ -197,8 +186,6 @@ function RSOAction() {
       }
     });
 
-    // setShowModal(false);
-    // setSelectedModalTag(null);
   };
 
   const handleTagModal = (tag) => {
@@ -217,8 +204,6 @@ function RSOAction() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("Selected tags before submit:", selectedTags);
-
     const payload = {
       ...formData,
       RSO_tags: selectedTags,
@@ -226,7 +211,6 @@ function RSOAction() {
       updatedAt: new Date().toISOString(),
     };
 
-    console.log("Payload before submission:", payload);
 
     if (formData.RSO_status === "" || formData.RSO_status === null) {
       delete payload.RSO_status;
@@ -276,9 +260,6 @@ function RSOAction() {
         result = await createRSO(payload);
       }
 
-      console.log("RSO operation successful:", result);
-
-
 
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -288,6 +269,7 @@ function RSOAction() {
 
       // Only navigate on success
       if (success) {
+        console.log("RSO operation successful:", result);
         navigate('..', { relative: 'path' });
 
         // Only clear form and navigate on success
@@ -300,6 +282,8 @@ function RSOAction() {
           RSO_College: "",
           RSO_status: "",
           RSO_description: "",
+          RSO_probationary: false,
+          RSO_picture: null,
         });
         setRSOPicture(null);
         setSelectedTags([]);
@@ -415,7 +399,6 @@ function RSOAction() {
                 />
               )}
 
-
               {/* image input */}
               {formData.RSO_picturePreview && (
                 <img
@@ -434,7 +417,6 @@ function RSOAction() {
                   ref={fileInputRef}
                   onChange={handleImageChange}
                 />
-
 
                 <div
                   onClick={() => fileInputRef.current?.click()}
@@ -541,6 +523,28 @@ function RSOAction() {
                   </div>
                 )}
               </div>
+
+              <Switch
+                checked={rsoStatus}
+                value={formData.RSO_probationary}
+                onChange={(e) => {
+                  const isChecked = e.target.checked;
+                  console.log("Switch toggled", e.target.checked)
+                  setRsoStatus(isChecked);
+                  setFormData((prev) => ({
+                    ...prev,
+                    RSO_probationary: isChecked,
+                  }));
+                }}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': {
+                    color: '#312895',
+                    '& + .MuiSwitch-track': {
+                      backgroundColor: '#312895',
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
 
@@ -603,7 +607,7 @@ function RSOAction() {
           ) :
             (updateError || createError) ? (
               <div className='text-red-600 text-sm font-semibold'>
-                {updateError || createError ? 'An error occurred. Please try again.' : ''}
+                {updateError ? updateError : createError}
               </div>
             ) :
               loading && (

@@ -302,25 +302,10 @@ function DocumentAction() {
               />
             </div>
 
-            {/* <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <TextInput 
-              placeholder="Enter " 
-              value={activityData.Activity_description} 
-              onChange={handleChange('Activity_description')} 
-            />
-          </div>
-           */}
             <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700">Date</label>
-              {/* <TextInput 
-              type="date" 
-              value={activityData.Activity_datetime} 
-              onChange={handleChange('Activity_datetime')} 
-            /> */}
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
-                  // label="Activity Date & Time"
                   value={activityData.Activity_datetime}
                   onChange={handleDateChange}
                   className="w-full"

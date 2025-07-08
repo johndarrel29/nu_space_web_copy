@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 const loginUserRequest = async ({ email, password, platform }) => {
-  console.log("Login request initiated with email:", email, "and platform:", platform);
+  console.log("Login request initiated with email:", email, "and platform:", platform, "password:", password);
 
   const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/webLogin`, {
     method: "POST",

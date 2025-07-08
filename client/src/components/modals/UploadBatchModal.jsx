@@ -2,17 +2,58 @@ import { Button, CloseButton, TextInput } from '../../components';
 import Switch from '@mui/material/Switch';
 import { useCallback, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { useDocumentManagement } from '../../hooks';
 
-
-function UploadBatchModal({ handleCloseModal }) {
+function UploadBatchModal({ handleCloseModal, page }) {
     const [file, setFile] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [error, setError] = useState(null);
+    const { documentTemplate } = useDocumentManagement();
     const [formData, setFormData] = useState({
         documentName: '',
         documentDescription: '',
-        isPostDocument: false,
     });
+
+
+    // store document template in its designated category
+    const [activityDocument, setActivityDocument] = useState([]);
+    const [generalDocument, setGeneralDocument] = useState([]);
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        if (page === 'activity') {
+            setData(activityDocument);
+            return;
+        } else if (page === 'general') {
+            setData(generalDocument);
+            return;
+        }
+        return [];
+    }, [activityDocument, generalDocument, page]);
+    console.log("dta:", data);
+
+    // Use this to set designated document for the appropriate category
+    useEffect(() => {
+        if (documentTemplate?.documents) {
+            documentTemplate.documents.forEach((doc) => {
+                console.log("documentFor:", doc.documentFor);
+                console.log("isnew_applicant_recognition? ", doc.documentFor === 'new_applicant_recognition' ? 'Yes' : 'No');
+
+                if (doc.documentFor === 'new_applicant_recognition' || doc.documentFor === 'renewal_recognition') {
+                    setGeneralDocument(prev => [...prev, doc]);
+                } else if (doc.documentFor === 'off_campus_activities' || doc.documentFor === 'on_campus_activities') {
+                    setActivityDocument(prev => [...prev, doc]);
+                }
+            });
+        }
+    }, [documentTemplate]);
+
+    useEffect(() => {
+        // Log the current state of activityDocument and generalDocument
+        console.log("Activity Document:", activityDocument);
+        console.log("General Document:", generalDocument);
+    }, [activityDocument, generalDocument]);
+
 
     const onDrop = useCallback(acceptedFiles => {
         // Do something with the files
@@ -27,7 +68,6 @@ function UploadBatchModal({ handleCloseModal }) {
         multiple: false,
         maxFiles: 1,
         accept: {
-            'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
             'application/pdf': ['.pdf'],
             'application/msword': ['.doc'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
@@ -48,7 +88,6 @@ function UploadBatchModal({ handleCloseModal }) {
                 file: file,
                 name: formData.documentName,
                 description: formData.documentDescription,
-                isPostDocument: formData.isPostDocument,
             }
 
             // add the file to the file list
@@ -59,7 +98,6 @@ function UploadBatchModal({ handleCloseModal }) {
             setFormData({
                 documentName: '',
                 documentDescription: '',
-                isPostDocument: false,
             });
         } else {
             console.error("No file selected");
@@ -73,15 +111,15 @@ function UploadBatchModal({ handleCloseModal }) {
     return (
         <>
             {/* Header - fixed at top */}
-            <div className='flex justify-between items-center p-6 border-b border-mid-gray'>
-                <h1 className="text-2xl font-bold text-[#312895]">Header</h1>
+            <div className='flex justify-between items-center p-6 '>
+                <h1 className="text-2xl font-bold text-[#312895]">Upload Documents</h1>
                 <CloseButton onClick={handleCloseModal}></CloseButton>
             </div>
 
-            {/* Content area - flexible, scrollable */}
-            <div className='flex-1 p-6 overflow-y-auto'>
+            <div className='w-full flex justify-evenly items-start h-full overflow-hidden gap-8 p-6'>
+                {/* Content area - flexible, scrollable */}
                 <div
-                    className='flex flex-col gap-4'>
+                    className='flex flex-col gap-4 w-full'>
                     <input {...getInputProps()} />
                     {!file ? (
                         <div
@@ -116,22 +154,7 @@ function UploadBatchModal({ handleCloseModal }) {
                         placeholder="Provide more details about the document..."
                     />
                     {error && <p className='text-red-500 text-sm'>{error}</p>}
-                    <div className='flex justify-between items-start mt-4'>
-                        <div className='flex items-center'>
-                            <h2 className='text-gray-600'>Is post document?</h2>
-                            <Switch
-                                checked={formData.isPostDocument}
-                                onChange={() => setFormData({ ...formData, isPostDocument: !formData.isPostDocument })}
-                                sx={{
-                                    '& .MuiSwitch-switchBase.Mui-checked': {
-                                        color: '#312895',
-                                        '& + .MuiSwitch-track': {
-                                            backgroundColor: '#312895',
-                                        },
-                                    },
-                                }}
-                            />
-                        </div>
+                    <div className='flex justify-end items-start mt-4'>
 
                         <Button
                             style={"secondary"}
@@ -144,10 +167,39 @@ function UploadBatchModal({ handleCloseModal }) {
                             </div>
                         </Button>
                     </div>
+                    <div className='h-32 overflow-y-auto overflow-x-hidden'>
+                        <div className='flex flex-col items-center gap-2 mt-4 '>
+                            <div className='flex items-start w-full'>
+                                <h1 className='text-sm text-gray-600'>Templates</h1>
+                            </div>
+                            {data && data.length > 0 ? (
+                                data.map((doc) => (
+                                    <div
+                                        key={doc.id}
+                                        onClick={() => console.log("Download document clicked")}
+                                        title='download document'
+                                        className='w-full justify-between items-center p-6 flex h-12 border border-mid-gray rounded cursor-pointer hover:bg-gray-100'>
+                                        <div
+                                            className='flex items-center gap-2'>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className='size-4' fill="gray" viewBox="0 0 384 512"><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z" /></svg>
+                                            <h1 className='truncate'>
+                                                Document Name
+                                            </h1>
+                                        </div>
+                                        <p className='text-sm text-gray-600'>12MB</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className='p-4 text-center text-gray-600'>
+                                    No templates available.
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* list section */}
-                <div className='mt-8 flex flex-col gap-4 border-t border-mid-gray pt-4'>
+                <div className='mt-8 flex flex-col gap-4 pt-4 w-full'>
                     {fileList.length > 0 ? (
                         fileList.map((fileEntry) => (
                             <div key={fileEntry.id} className='p-4 w-full py-4 border border-mid-gray rounded flex items-center justify-between'>
@@ -167,15 +219,19 @@ function UploadBatchModal({ handleCloseModal }) {
                                 No files added yet.
                             </div>
                         )}
+                    <div className={`w-full flex justify-end items-center `}>
+                        <Button
+                            className={`w-full ${fileList.length > 0 ? '' : 'bg-gray-200 text-gray-500 cursor-pointer'}`}
+                            onClick={() => console.log("Upload documents clicked")}
+                            disabled={true}
+                        >
+                            Upload Documents
+                        </Button>
+                    </div>
                 </div>
+
             </div>
 
-            {/* Footer button - fixed at bottom */}
-            <div className='p-6 border-t border-mid-gray'>
-                <Button className="w-full">
-                    Upload Documents
-                </Button>
-            </div>
         </>
     );
 }
