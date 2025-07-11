@@ -218,7 +218,7 @@ export default function MainDocuments() {
             )}
             <Button
               onClick={handleCreate}
-              className="bg-[#312895] hover:bg-[#312895]/90 text-white px-4 py-2"
+              className="bg-primary hover:bg-primary-active text-white px-4 py-2"
             >
               <div className="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="fill-white size-4" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z" /></svg>
@@ -247,7 +247,7 @@ export default function MainDocuments() {
                 showAllOption={false}
                 onChange={(e) => handleSorted(e.target.value)}
                 value={sorted}
-                buttonClass="border-[#312895] text-[#312895]"
+                buttonClass="border-primary  text-primary "
               />
             </div>
           )
@@ -274,7 +274,7 @@ export default function MainDocuments() {
               data-accordion-toggle
               data-accordion-target="#basicAccordion1"
               aria-expanded="false"
-              className="cursor-pointer font-medium text-[#312895]"
+              className="cursor-pointer font-medium text-primary "
             >
               <div className="flex items-center gap-2">
                 More Filter
@@ -302,7 +302,7 @@ export default function MainDocuments() {
                     showAllOption={false}
                     onChange={(e) => handleSorted(e.target.value)}
                     value={sorted}
-                    buttonClass="border-[#312895] text-[#312895]"
+                    buttonClass="border-primary  text-primary "
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -315,7 +315,7 @@ export default function MainDocuments() {
                     showAllOption={false}
                     onChange={(e) => handleRSOType(e.target.value)}
                     value={RSOType}
-                    buttonClass="border-[#312895] text-[#312895]"
+                    buttonClass="border-primary  text-primary "
                   />
                 </div>
                 <div className="flex flex-col gap-1">
@@ -328,7 +328,7 @@ export default function MainDocuments() {
                     value={college}
                     showAllOption={false}
                     onChange={(e) => handleCollege(e.target.value)}
-                    buttonClass="border-[#312895] text-[#312895]"
+                    buttonClass="border-primary  text-primary "
                   />
                 </div>
               </div>
@@ -413,10 +413,10 @@ export default function MainDocuments() {
             :
             (
               <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#312895]/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary /50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <h3 className="mt-2 text-lg font-medium text-[#312895]">No activities found</h3>
+                <h3 className="mt-2 text-lg font-medium text-primary ">No activities found</h3>
                 <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
               </div>
             )

@@ -102,7 +102,7 @@ export default function Account() {
   useEffect(() => {
     if (user?.role === 'rso_representative') {
       console.log("User is RSO representative, setting profile to  ", userProfile);
-      setProfileData(userProfile.rso);
+      setProfileData(userProfile?.rso);
     } else if (user?.role === 'admin' || user?.role === 'super_admin') {
       console.log("User is admin or super admin, setting profile to ", userProfile.user);
       setProfileData(userProfile.user);
@@ -111,6 +111,8 @@ export default function Account() {
       setProfileData(null);
     }
   }, [user, userProfile]);
+
+  console.log("profile data ", profileData)
 
   const handleOfficer = (officer) => {
     if (!officer) {
@@ -133,7 +135,7 @@ export default function Account() {
       OfficerName: officer.OfficerName || "",
       OfficerPosition: officer.OfficerPosition || "",
       OfficerPicture: officer.OfficerPicture || null,
-      OfficerPicturePreview: officer.OfficerPicture || "",
+      OfficerPicturePreview: officer.OfficerPictureUrl || "",
     });
     setCreate(false);
 
@@ -169,8 +171,15 @@ export default function Account() {
       { console.log("userProfile", userProfile) }
       { console.log("formDataToSubmit", formDataToSubmit) }
       { console.log("officerId: ", officerId) }
+
+      // Method 1: Log individual FormData entries
+      console.log("FormData contents:");
+      for (let [key, value] of formDataToSubmit.entries()) {
+        console.log(`${key}:`, value);
+      }
+
       createOfficerMutate({
-        id: userProfile?.rso?._id,
+        // id: userProfile?.rso?._id,
         createdOfficer: formDataToSubmit
       });
     } else {
@@ -319,7 +328,9 @@ export default function Account() {
                     </div>
                     <h1 className="text-primary text-sm">Add Officer</h1>
                   </div>
+                  {console.log("profileData?.RSO_Officers", profileData?.RSO_Officers)}
                   {
+
                     profileData?.RSO_Officers?.map((officer, index) => {
                       return (
                         <>
@@ -339,7 +350,8 @@ export default function Account() {
                               className="bg-white h-8 w-8 aspect-square rounded-full flex items-center justify-center mb-2 absolute top-0 right-0 mr-2 mt-2 cursor-pointer group transition ease-in-out">
                               <svg xmlns="http://www.w3.org/2000/svg" className="size-4 fill-gray-400 group-hover:fill-gray-700" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
                             </div>
-                            <img src={officer.OfficerPicture || DefaultPicture} alt="" className="mx-auto rounded-full dark:bg-gray-500 aspect-square h-32 object-cover shrink-1" />
+                            {console.log("officer.OfficerPicture", officer.OfficerPicture)}
+                            <img src={officer.OfficerPictureUrl || DefaultPicture} alt="" className="mx-auto rounded-full dark:bg-gray-500 aspect-square h-32 object-cover shrink-1" />
                             <div className="space-y-4 text-center divide-y dark:divide-gray-300">
                               <div className="my-2 space-y-1">
                                 <h2 className="text-xl font-semibold sm:text-2xl truncate">{officer.OfficerName || ''}</h2>

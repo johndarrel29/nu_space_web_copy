@@ -523,8 +523,9 @@ function RSOAction() {
                   </div>
                 )}
               </div>
-
+              <label htmlFor="probationary" className='text-sm'>Probationary Status</label>
               <Switch
+                id='probationary'
                 checked={rsoStatus}
                 value={formData.RSO_probationary}
                 onChange={(e) => {

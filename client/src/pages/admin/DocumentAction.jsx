@@ -256,7 +256,7 @@ function DocumentAction() {
 
 
           {!activityData.Activity_picturePreview && (
-            <div className='h-[13rem] w-full lg:w-[13rem] bg-[#312895]/10 rounded-lg overflow-hidden'>
+            <div className='h-[13rem] w-full lg:w-[13rem] bg-primary/10 rounded-lg overflow-hidden'>
               <img
                 src={isEdit && hasSubmitted === false ? activityData?.activityImageUrl : defaultImage === true ? DefaultPicture : null}
                 alt="Activity Preview testing"
@@ -268,7 +268,7 @@ function DocumentAction() {
 
           {console.log("Activity_picturePreview value:", activityData.Activity_picturePreview)}
           {activityData.Activity_picturePreview && (
-            <div className='h-[13rem] w-full lg:w-[13rem] bg-[#312895]/10 rounded-lg overflow-hidden'>
+            <div className='h-[13rem] w-full lg:w-[13rem] bg-primary/10 rounded-lg overflow-hidden'>
               <img
                 src={activityData.Activity_picturePreview}
                 alt="Activity Preview image input"
@@ -303,9 +303,30 @@ function DocumentAction() {
             </div>
 
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Date</label>
+              <label className="block text-sm font-medium text-gray-700">Start Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
+                  label="Set the start of the activity"
+                  value={activityData.Activity_datetime}
+                  onChange={handleDateChange}
+                  className="w-full"
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      size: 'small',
+                      variant: 'outlined'
+                    }
+                  }}
+                />
+              </LocalizationProvider>
+
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-gray-700">End Date</label>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DateTimePicker
+                  label="Set the end of the activity"
                   value={activityData.Activity_datetime}
                   onChange={handleDateChange}
                   className="w-full"

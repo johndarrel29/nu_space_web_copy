@@ -291,15 +291,16 @@ function useRSO() {
 
   }
 
-  const createOfficer = async ({ id, createdOfficer }) => {
+  const createOfficer = async ({ createdOfficer }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    console.log("createdOfficer: ", createdOfficer);
 
     const headers = {
       Authorization: `Bearer ${formattedToken}`,
     };
-    console.log("create request sent: ", `${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/createRSOOfficer/${id}`)
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/createRSOOfficer/${id}`, {
+    console.log("create request sent: ", `${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/createRSOOfficer`)
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/createRSOOfficer`, {
       method: "POST",
       headers,
       body: createdOfficer,
@@ -312,17 +313,17 @@ function useRSO() {
 
   }
 
-  const updateMembershipDate = async ({ date, hours, minutes }) => {
+  const updateMembershipDate = async ({ date }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/open-membership`, {
-      method: "POST",
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/open-update-membership`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         "Authorization": token ? `Bearer ${formattedToken}` : "",
       },
-      body: JSON.stringify({ durationInDays: date, durationInHours: hours, durationInMinutes: minutes }),
+      body: JSON.stringify({ membershipEndDate: date }),
     });
 
     if (!response.ok) {
@@ -356,7 +357,7 @@ function useRSO() {
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/manual-close-membership`, {
-      method: "POST",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         "Authorization": token ? `Bearer ${formattedToken}` : "",

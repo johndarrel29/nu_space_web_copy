@@ -91,7 +91,6 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
   const handleConfirm = useCallback(async (_id, updatedData) => {
 
     if (updatedData) {
-      console.log("Updated data being sent:", updatedData);
 
       // If the role is being changed to 'student', ensure that assigned_rso is removed
       if (updatedData.role === 'student') {
@@ -121,8 +120,6 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
         updatedData.assigned_rso = null; // Remove assigned_rso if role is 'admin'
       }
 
-      // Log to check if assigned_rso is being set correctly
-      console.log("Final updated data:", updatedData);
     }
 
     try {

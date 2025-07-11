@@ -240,9 +240,9 @@ function Document() {
 
   return (
     <div className='w-full flex flex-col bg-card-bg rounded-lg p-4 border border-mid-gray'>
-      <div className='w-full flex justify-between items-center mb-4'>
-        <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-        <div>
+      <div className='w-full flex flex-col md:flex-row justify-between mb-4'>
+
+        <div className='flex justify-start md:order-2 p-2'>
           <Button onClick={handleDocumentUpload}>
             <div className='flex items-center gap-2'>
               <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 512 512">
@@ -252,6 +252,8 @@ function Document() {
             </div>
           </Button>
         </div>
+
+        <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
       <ReusableTable

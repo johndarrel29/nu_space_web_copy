@@ -9,6 +9,7 @@ import { SurveyCreatorComponent } from "survey-creator-react"
 import { useEffect } from "react";
 import SurveyCreatorTheme from "survey-creator-core/themes";
 import { registerCreatorTheme } from "survey-creator-core";
+import PreLoader from "../components/Preloader";
 
 // get the id survey from the URL
 // get props from the parent component
@@ -24,7 +25,7 @@ const defaultCreatorOptions = {
 export default function SurveyCreatorWidget(props) {
     const [creator, setCreator] = useState(null);
     const localStorageKey = "survey-json-example";
-    const activityId = props.activityId || "default-activity-id"; // Replace with actual activity ID logic
+    const activityId = props.activityId || "default-activity-id";
 
     useEffect(() => {
 
@@ -60,7 +61,7 @@ export default function SurveyCreatorWidget(props) {
     }, [props.options]);
 
 
-    if (!creator) return <div>Loading Survey Creator...</div>;
+    if (!creator) return <PreLoader />;
 
     return (
         <div className="w-full h-screen">
