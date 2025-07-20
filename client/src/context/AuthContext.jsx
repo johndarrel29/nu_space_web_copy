@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
             user,
             isAuthenticated,
             loading,
-            token: user?.token || localStorage.getItem("token"), token: localStorage.getItem("token"),
+            token: user?.token || localStorage.getItem("token"),
             login,
             logout
         }}>

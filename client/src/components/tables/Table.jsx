@@ -8,6 +8,8 @@ import { AnimatePresence } from "framer-motion";
 import { useModal, useUser } from "../../hooks";
 import { toast } from 'react-toastify';
 
+// fix error 403 when changing login user, then going to the table page
+
 // Table Component
 const Table = React.memo(({ searchQuery, selectedRole }) => {
   const [mode, setMode] = useState('delete');

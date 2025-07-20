@@ -80,6 +80,9 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         setLoading(true);
         setError(null);
 
+        console.log("Updating activity with ID:", activityId);
+        console.log("Updated data:", updatedData);
+
         try {
             const token = localStorage.getItem("token");
             const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -135,7 +138,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
             "Authorization": token ? `Bearer ${formattedToken}` : "",
         };
         try {
-            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/deleteActivity/${activityId}`, {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/deleteActivity/${activityId}`, {
                 method: "DELETE",
                 headers,
             });
@@ -417,6 +420,66 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         }
     }
 
+    const acceptActivity = async ({ activityId, remarks }) => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/approveActivity/${activityId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": token ? `Bearer ${formattedToken}` : "",
+                },
+                body: JSON.stringify({ "remarks": remarks }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            }
+
+            const json = await response.json();
+            console.log("Activity accepted:", json);
+            return json.activity || null;
+        } catch (err) {
+            console.error("Error accepting activity:", err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const declineActivity = async ({ activityId, remarks }) => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+        console.log("declineActivity has been called with activityId:", activityId);
+        try {
+            console.log("url sending: " + `${process.env.REACT_APP_BASE_URL}/api/admin/activities/rejectActivity/${activityId}`);
+            const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/rejectActivity/${activityId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": token ? `Bearer ${formattedToken}` : "",
+                },
+                body: JSON.stringify({ "remarks": remarks }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            }
+
+            const json = await response.json();
+            console.log("Activity declined:", json);
+            return json.activity || null;
+        } catch (err) {
+            console.error("Error declining activity:", err);
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+
 
     const {
         data: viewActivityData,
@@ -487,6 +550,41 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         },
     })
 
+    const {
+        mutateAsync: declineActivityMutation,
+        data: declinedActivity,
+        error: declineError,
+        isSuccess: isDeclineSuccess,
+        isLoading: isDeclining,
+    } = useMutation({
+        mutationFn: declineActivity,
+        onSuccess: (data) => {
+            console.log("Activity declined successfully:", data);
+            queryClient.invalidateQueries(["adminActivities"]);
+            queryClient.invalidateQueries(["activity", activityId]);
+        },
+        onError: (error) => {
+            console.error("Error declining activity:", error);
+        },
+    })
+
+    const {
+        mutateAsync: acceptActivityMutation,
+        data: acceptedActivity,
+        error: acceptError,
+        isSuccess: isAcceptSuccess,
+        isLoading: isAccepting,
+    } = useMutation({
+        mutationFn: acceptActivity,
+        onSuccess: (data) => {
+            console.log("Activity accepted successfully:", data);
+            queryClient.invalidateQueries(["adminActivities"]);
+            queryClient.invalidateQueries(["activity", activityId]);
+        },
+        onError: (error) => {
+            console.error("Error accepting activity:", error);
+        },
+    })
 
     const {
         data: activityDocument,
@@ -576,6 +674,18 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
 
         viewActivityData,
         viewActivityError,
+
+        declineActivityMutation,
+        declinedActivity,
+        declineError,
+        isDeclineSuccess,
+        isDeclining,
+
+        acceptActivityMutation,
+        acceptedActivity,
+        acceptError,
+        isAcceptSuccess,
+        isAccepting,
     };
 }
 

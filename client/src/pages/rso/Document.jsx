@@ -1,6 +1,6 @@
-import React from 'react'
+
 import {
-  ReusableTable, Button, Backdrop, CloseButton, TabSelector, CardSkeleton, TextInput, UploadDocumentsModal, UploadBatchModal
+  ReusableTable, Button, Backdrop, CloseButton, TabSelector, UploadBatchModal
 } from '../../components'
 import { useDocumentManagement, useModal } from '../../hooks';
 import { useEffect, useState } from 'react';
@@ -8,7 +8,6 @@ import useNotification from '../../utils/useNotification';
 import { AnimatePresence } from "framer-motion";
 import { DropIn } from "../../animations/DropIn";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 
@@ -175,9 +174,6 @@ function Document() {
   const handleSubmit = async () => {
     try {
       if (!files || files.length === 0) {
-        // console.error("No file to upload or title provided.");
-        // handleNotification("Please select a file and provide a title.");
-        // setMsg("Please select a file and provide a title.");
         console.log("No files to upload or titles provided.");
         return;
       }
@@ -239,7 +235,7 @@ function Document() {
   })
 
   return (
-    <div className='w-full flex flex-col bg-card-bg rounded-lg p-4 border border-mid-gray'>
+    <div className='flex flex-col'>
       <div className='w-full flex flex-col md:flex-row justify-between mb-4'>
 
         <div className='flex justify-start md:order-2 p-2'>

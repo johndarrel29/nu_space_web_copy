@@ -266,7 +266,7 @@ export default function Account() {
   }
 
   return (
-    <div className="border border-mid-gray bg-white rounded-lg p-4">
+    <>
       <div className="grid grid-cols-1 w-full">
         {/* Profile Overview */}
         <div className="flex flex-col md:flex-row items-start gap-6 mb-6">
@@ -598,6 +598,6 @@ export default function Account() {
         )}
       </AnimatePresence>
 
-    </div>
+    </>
   );
 }

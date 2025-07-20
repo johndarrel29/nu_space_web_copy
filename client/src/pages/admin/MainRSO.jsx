@@ -123,27 +123,6 @@ export default function MainRSO() {
     navigate("rso-action", { state: { mode: "create" } });
   };
 
-  const handleSubmit = async (data) => {
-    try {
-      await createRSO(data);
-      handleNotification("RSO created successfully!");
-      setActiveTab(0);
-    } catch (error) {
-      console.error("Error creating RSO:", error);
-      handleNotification("Error creating RSO. Please try again.");
-    }
-  };
-
-  const handleUpdate = async (id, data) => {
-    try {
-      await updateRSO(id, data);
-      handleNotification("RSO updated successfully!");
-    } catch (error) {
-      console.error("Error updating RSO:", error);
-      handleNotification("Error updating RSO. Please try again.");
-    }
-  };
-
   const openSettingsModal = () => {
     setIsSettingsModalOpen(true);
   };
@@ -182,8 +161,13 @@ export default function MainRSO() {
     updateMembershipDateMutate({ date: date },
       {
         onSuccess: (data) => {
+          toast.success("Membership updated successfully!");
           // turn off the modal
           setIsSettingsModalOpen(false);
+        },
+        onError: (error) => {
+          toast.error("Failed to update date. Please try again.");
+          console.error("Error updating membership date:", error);
         }
       }
     );

@@ -11,7 +11,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
 import { Document } from './pages/rso';
-import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOManagement, UserManagement, RSOAction } from './pages/admin';
+import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOManagement, UserManagement, RSOAction, AdminDocuments } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
@@ -96,7 +96,7 @@ function App() {
                       path="/user-management"
                       element={
                         <MainLayout
-                          tabName="User Management"
+                          tabName="Users"
                           headingTitle="Monitor RSO Representative and Student accounts"
                         >
                           <UserManagement />
@@ -145,6 +145,14 @@ function App() {
                       }
                     />
 
+                    <Route path="/admin-documents" element={
+                      <MainLayout
+                        tabName="Admin Documents"
+                      >
+                        <AdminDocuments />
+                      </MainLayout>
+                    }></Route>
+
                     <Route path="/forms-builder" element={<FormsBuilder />} />
                     <Route path="/form-viewer" element={<FormViewerPage />} />
 
@@ -153,7 +161,7 @@ function App() {
                       path="/rso-management"
                       element={
                         <MainLayout
-                          tabName="RSO Management"
+                          tabName="RSOs"
                           headingTitle="Manage RSO Account"
                         >
                           <RSOManagement />

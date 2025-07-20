@@ -111,7 +111,7 @@ export default function UserManagement() {
 
   return (
     <>
-      <div className="w-full flex flex-col gap-4 bg-card-bg rounded-lg  border border-mid-gray p-4 pt-0">
+      <div className="flex flex-col">
 
         {/* table for admin & super admin */}
         {(user && (user.role === "admin" || user.role === "super_admin")) && (
@@ -124,7 +124,7 @@ export default function UserManagement() {
         )}
         {user && user.role === "rso_representative" && (
           <>
-            <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
+            <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md">
               <div className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${userProfile?.rso?.RSO_membershipStatus ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 <h1 className="text-gray-700 font-medium">Membership Status: <span className={`font-semibold ${userProfile?.rso?.RSO_membershipStatus ? 'text-green-600' : 'text-red-600'}`}>{userProfile?.rso?.RSO_membershipStatus ? "Active" : "Inactive"}</span></h1>

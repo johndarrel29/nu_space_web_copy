@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { TextInput, Button, Backdrop, CloseButton } from '../../components';
+import { TextInput, Button, Backdrop, CloseButton, ReusableDropdown } from '../../components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useActivities } from '../../hooks';
 import Datetime from 'react-datetime';
@@ -13,6 +13,11 @@ import dayjs from 'dayjs';
 import DefaultPicture from '../../assets/images/default-picture.png';
 import { toast } from 'react-toastify';
 
+
+// TODO: double-check fields if working for both edit and create
+
+// when it errored for the first time, the error message doesnt get removed and doesnt pass data to API.
+// you have to go back then forward to update again.
 
 // file manipulation
 import Cropper from "react-easy-crop";
@@ -36,36 +41,61 @@ function DocumentAction() {
   const [readyCropper, setReadyCropper] = useState(false);
   console.log("DocumentAction mode:", mode, "data:", data, "from:", from);
 
-  console.log("data image", data?.Activity_image, "activityImageUrl:", data?.activityImageUrl);
+  console.log("data image", data?.Activity_image, "activityImageUrl:", data?.file);
+
+  // Determine if we are in edit or create mode
+  const isEdit = mode === 'edit';
+  const isCreate = mode === 'create';
 
   const [activityData, setActivityData] = useState(() => {
+    // on off campus not reflecting back on edit
     if (mode === 'edit' && data) {
+      let displayCampusValue = '';
+      if (data.Activity_on_off_campus === 'on_campus') {
+        displayCampusValue = 'On Campus';
+      } else if (data.Activity_on_off_campus === 'off_campus') {
+        displayCampusValue = 'Off Campus';
+      } else {
+        displayCampusValue = data.Activity_on_off_campus || '';
+      }
       return {
         Activity_name: data.Activity_name || '',
         Activity_image: data.Activity_image || '',
         activityImageUrl: data.activityImageUrl || null,
-        Activity_datetime: data?.Activity_datetime ? dayjs(data.Activity_datetime) : null,
+        Activity_start_datetime: data?.Activity_start_datetime ? data.Activity_start_datetime : null,
+        Activity_end_datetime: data?.Activity_end_datetime ? dayjs(data.Activity_end_datetime) : null,
         Activity_picturePreview: data?.activityImageUrl || DefaultPicture,
-        // Activity_picturePreview: null,
         Activity_place: data.Activity_place || '',
         Activity_description: data.Activity_description || '',
-        Activity_GPOA: data.Activity_GPOA ?? false
+        Activity_GPOA: data.Activity_GPOA ?? false,
+        Activity_publicity: data.Activity_publicity ?? false,
+        Activity_on_off_campus: displayCampusValue,
       };
     }
     return {
       Activity_name: '',
-      Activity_image: '',
-      activityImageUrl: null,
       Activity_datetime: null,
-      Activity_place: '',
       Activity_description: '',
       Activity_GPOA: false,
+      Activity_image: '',
+      Activity_place: '',
+      Activity_on_off_campus: '',
+      Activity_publicity: false,
+      Activity_start_datetime: null,
+      Activity_end_datetime: null,
+      activityImageUrl: null,
       Activity_picturePreview: DefaultPicture,
     };
   });
 
-  const isEdit = mode === 'edit';
-  const isCreate = mode === 'create';
+  let campusValue = "";
+  if (activityData.Activity_on_off_campus === 'on_campus') {
+    campusValue = 'On Campus';
+  } else if (activityData.Activity_on_off_campus === 'off_campus') {
+    campusValue = 'Off Campus';
+  } else {
+    campusValue = activityData.Activity_on_off_campus || '';
+  }
 
   const handleChange = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -81,23 +111,27 @@ function DocumentAction() {
     }
   }, [success, navigate]);
 
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-CA');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (activityData?.Activity_description === "" || activityData?.Activity_description === null) {
       setDescriptionError("Description is required");
+      setTimeout(() => {
+        setDescriptionError("");
+      }, 1000);
+
       return;
+
     } else if (activityData?.Activity_description.length > 500) {
       setDescriptionError("Description must not exceed 500 characters.");
+      setTimeout(() => {
+        setDescriptionError("");
+      }, 1000);
+
       return;
     } else {
       setDescriptionError("");
+
     }
 
     if (error || descriptionError) {
@@ -192,10 +226,19 @@ function DocumentAction() {
     }
   };
 
-  const handleDateChange = (newValue) => {
+
+  const handleDateChangeStart = (newValue) => {
     setActivityData((prev) => ({
       ...prev,
       Activity_datetime: newValue,
+      Activity_start_datetime: newValue,
+    }));
+  };
+
+  const handleDateChangeEnd = (newValue) => {
+    setActivityData((prev) => ({
+      ...prev,
+      Activity_end_datetime: newValue,
     }));
   };
 
@@ -208,6 +251,29 @@ function DocumentAction() {
       toast.info(isEdit ? "Changes saved successfully!" : "Activity created successfully!");
     }
   }, [success, error, hasSubmitted, isEdit]);
+
+  const options = [
+    "On Campus",
+    "Off Campus",
+  ]
+
+  const handleCampusChange = (e) => {
+    const value = e.target.value;
+
+    let campusValue = value;
+    if (value === "On Campus") {
+      campusValue = "on_campus";
+    } else if (value === "Off Campus") {
+      campusValue = "off_campus";
+    } else {
+      campusValue = null; // Handle unexpected values
+    }
+
+    setActivityData((prev) => ({
+      ...prev,
+      Activity_on_off_campus: campusValue,
+    }));
+  }
 
   return (
     <>
@@ -251,10 +317,6 @@ function DocumentAction() {
             </div >
           </div>
 
-
-
-
-
           {!activityData.Activity_picturePreview && (
             <div className='h-[13rem] w-full lg:w-[13rem] bg-primary/10 rounded-lg overflow-hidden'>
               <img
@@ -264,7 +326,6 @@ function DocumentAction() {
               />
             </div>
           )}
-
 
           {console.log("Activity_picturePreview value:", activityData.Activity_picturePreview)}
           {activityData.Activity_picturePreview && (
@@ -306,9 +367,8 @@ function DocumentAction() {
               <label className="block text-sm font-medium text-gray-700">Start Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
-                  label="Set the start of the activity"
-                  value={activityData.Activity_datetime}
-                  onChange={handleDateChange}
+                  value={dayjs(activityData.Activity_start_datetime)}
+                  onChange={handleDateChangeStart}
                   className="w-full"
                   slotProps={{
                     textField: {
@@ -326,9 +386,8 @@ function DocumentAction() {
               <label className="block text-sm font-medium text-gray-700">End Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
-                  label="Set the end of the activity"
-                  value={activityData.Activity_datetime}
-                  onChange={handleDateChange}
+                  value={activityData.Activity_end_datetime}
+                  onChange={handleDateChangeEnd}
                   className="w-full"
                   slotProps={{
                     textField: {
@@ -367,22 +426,50 @@ function DocumentAction() {
                 </div>
               )}
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">On/Off Campus Activity</label>
+              <ReusableDropdown
+                options={options}
+                value={campusValue}
+                onChange={handleCampusChange}
+              ></ReusableDropdown>
+            </div>
           </section>
 
-          <section className="bg-white p-6 rounded-2xl space-y-4">
-            <h2 className="text-xl font-semibold text-gray-800">GPOA Status</h2>
-            <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                id="gpoa-checkbox"
-                checked={activityData.Activity_GPOA}
-                onChange={handleChange('Activity_GPOA')}
-                className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
-              />
-              <label htmlFor="gpoa-checkbox" className="block text-sm font-medium text-gray-700">
-                Is GPOA Activity
-              </label>
+          <section className="flex flex-row gap-4 items-center justify-between p-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700" htmlFor='gpoa-checkbox'>GPOA status</label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="gpoa-checkbox"
+                  checked={activityData.Activity_GPOA}
+                  onChange={handleChange('Activity_GPOA')}
+                  className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <label htmlFor="gpoa-checkbox" className="block text-sm font-medium text-gray-700">
+                  Is GPOA Activity
+                </label>
+              </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 text-right" htmlFor='publicity'>Activity Publicity</label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="publicity"
+                  checked={activityData.Activity_publicity}
+                  onChange={handleChange('Activity_publicity')}
+                  className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <label htmlFor="gpoa-checkbox" className="block text-sm font-medium text-gray-700">
+                  Is Public Activity
+                </label>
+              </div>
+            </div>
+
           </section>
         </div>
       </div>

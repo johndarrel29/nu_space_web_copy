@@ -1,63 +1,47 @@
 import { Button, CloseButton, TextInput, ReusableDropdown } from '../../components';
-import Switch from '@mui/material/Switch';
 import { useCallback, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useDocumentManagement } from '../../hooks';
+
+// param now works for doc template
+// if modal is deployed in document page, only show 'renewal_recognition', 'new_applicant_recognition'
+// if modal is deployed in document template page, show 'off_campus_activities', 'on_campus_activities'
+
+// learn more about forceful download of file so no redirects to the file URL necessary
 
 function UploadBatchModal({ handleCloseModal, page }) {
     const [file, setFile] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [error, setError] = useState(null);
-    const { documentTemplate } = useDocumentManagement();
+    const [selectedTemplate, setSelectedTemplate] = useState();
+    const { documentTemplate } = useDocumentManagement({
+        documentFor: selectedTemplate
+    });
     const [formData, setFormData] = useState({
         documentName: '',
         documentDescription: '',
     });
 
+
     // store document template in its designated category
-    const [activityDocument, setActivityDocument] = useState([]);
-    const [generalDocument, setGeneralDocument] = useState([]);
     const [data, setData] = useState([]);
     const [initialPage, setInitialPage] = useState("templates");
 
+    console.log("Document Template:", documentTemplate?.documents);
+
     useEffect(() => {
-        if (page === 'activity') {
-            setData(activityDocument);
-            return;
-        } else if (page === 'general') {
-            setData(generalDocument);
-            return;
+        if (documentTemplate) {
+            setData(documentTemplate?.documents);
+        } else {
+            setData([]);
         }
-        return [];
-    }, [activityDocument, generalDocument, page]);
+    })
 
     const genDocOptions = [
+        "All Templates",
         "New Applicant Recognition",
         "Renewal Recognition",
     ]
-
-    // Use this to set designated document for the appropriate category
-    useEffect(() => {
-        if (documentTemplate?.documents) {
-            documentTemplate.documents.forEach((doc) => {
-                console.log("documentFor:", doc.documentFor);
-                console.log("isnew_applicant_recognition? ", doc.documentFor === 'new_applicant_recognition' ? 'Yes' : 'No');
-
-                if (doc.documentFor === 'new_applicant_recognition' || doc.documentFor === 'renewal_recognition') {
-                    setGeneralDocument(prev => [...prev, doc]);
-                } else if (doc.documentFor === 'off_campus_activities' || doc.documentFor === 'on_campus_activities') {
-                    setActivityDocument(prev => [...prev, doc]);
-                }
-            });
-        }
-    }, [documentTemplate]);
-
-    useEffect(() => {
-        // Log the current state of activityDocument and generalDocument
-        console.log("Activity Document:", activityDocument);
-        console.log("General Document:", generalDocument);
-    }, [activityDocument, generalDocument]);
-
 
     const onDrop = useCallback(acceptedFiles => {
         // Do something with the files
@@ -65,7 +49,6 @@ function UploadBatchModal({ handleCloseModal, page }) {
         setFile(acceptedFiles[0]);
 
     }, [])
-
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -112,6 +95,32 @@ function UploadBatchModal({ handleCloseModal, page }) {
         setFileList(prevFiles => prevFiles.filter(file => file.id !== fileId));
     }
 
+    const handleTemplateFilter = (option) => {
+        console.log("Selected template option:", option);
+        // use the option as parameter to filter the templates
+        if (option === "New Applicant Recognition") {
+            setSelectedTemplate("new_applicant_recognition");
+        } else if (option === "Renewal Recognition") {
+            setSelectedTemplate("renewal_recognition");
+        } else {
+            setSelectedTemplate(null);
+        }
+    }
+
+    const donwnloadDocument = (document) => {
+        try {
+            console.log("Downloading document:", document);
+            if (document.signedUrl) {
+                window.open(document.signedUrl, '_blank');
+            } else {
+                console.error("No signed URL available for this document.");
+            }
+        } catch (error) {
+            console.error("Error downloading document:", error);
+        }
+
+    }
+
     return (
         <>
             {/* Header - fixed at top */}
@@ -128,30 +137,36 @@ function UploadBatchModal({ handleCloseModal, page }) {
                     <div className='flex items-center justify-between w-full mb-4'>
                         <h1 className='text-sm text-gray-600'>Templates</h1>
                         <ReusableDropdown
+                            defaultValue={"All Templates"}
                             showAllOption={false}
                             options={genDocOptions}
-                            onChange={(e) => {
-                                console.log("Selected option:", e.target.value);
-                            }}
+                            onChange={
+                                (e) => {
+                                    handleTemplateFilter(e.target.value);
+                                }
+                            }
                         ></ReusableDropdown>
                     </div>
                     <div className='max-h-[25rem] min-h-[10rem] overflow-y-auto overflow-x-hidden w-full'>
+                        {console.log("Data:", data.map(doc => doc.documents))}
                         {data && data.length > 0 ? (
-                            data.map((doc) => (
-                                <div
-                                    key={doc.id}
-                                    onClick={() => console.log("Download document clicked")}
-                                    title='download document'
-                                    className='w-full justify-between items-center p-6 flex h-12 border border-mid-gray rounded cursor-pointer hover:bg-gray-100 mb-2'>
+                            data.map((template, index) => (
+                                template.documents?.map((document, index) => (
                                     <div
-                                        className='flex items-center gap-2'>
-                                        <svg xmlns="http://www.w3.org/2000/svg" className='size-4' fill="gray" viewBox="0 0 384 512"><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z" /></svg>
-                                        <h1 className='truncate'>
-                                            Document Name
-                                        </h1>
+                                        key={document.id}
+                                        onClick={() => donwnloadDocument(document)}
+                                        title='download document'
+                                        className='w-full justify-between items-center p-6 flex h-12 border border-mid-gray rounded cursor-pointer hover:bg-gray-100 mb-2'>
+                                        <div
+                                            className='flex items-center gap-2'>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className='size-4' fill="gray" viewBox="0 0 384 512"><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z" /></svg>
+                                            <h1 className='truncate'>
+                                                {document?.title || "Document Name"}
+                                            </h1>
+                                        </div>
+                                        <p className='text-sm text-gray-600'>{document?.documentSize + ' MB' || ''}</p>
                                     </div>
-                                    <p className='text-sm text-gray-600'>12MB</p>
-                                </div>
+                                ))
                             ))
                         ) : (
                             <div className='p-4 text-center text-gray-600'>
@@ -178,7 +193,7 @@ function UploadBatchModal({ handleCloseModal, page }) {
                                 <path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z" />
                             </svg>
                         </div>
-                        <div className='w-full flex justify-evenly items-start h-full overflow-hidden gap-8'>
+                        <div className='w-full flex flex-col md:flex-row justify-evenly items-start h-full overflow-hidden gap-8'>
 
                             <div
                                 className='flex flex-col gap-4 w-full'>

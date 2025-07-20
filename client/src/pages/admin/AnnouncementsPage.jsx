@@ -175,14 +175,14 @@ function AnnouncementsPage() {
     ]
 
     return (
-        <div className="border border-mid-gray bg-white rounded-lg p-4 mt-4">
+        <>
             <div className="flex flex-col md:flex-row justify-between mb-4">
                 <div className='flex justify-start md:order-2 p-2'>
                     <Button onClick={openModal}>Create an Announcement</Button>
                 </div>
                 <TabSelector tabs={notificationTab} />
             </div>
-            <div className="mt-8">
+            <div >
                 <ReusableTable
                     columnNumber={4}
                     tableHeading={announcementHeading}
@@ -335,7 +335,7 @@ function AnnouncementsPage() {
                     </Backdrop>
                 )}
             </AnimatePresence>
-        </div>
+        </>
     );
 }
 

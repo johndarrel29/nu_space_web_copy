@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../context/AuthContext';
 
-function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {}) {
+function useDocumentManagement({ rsoID, documentId, reviewedById, userID, documentFor } = {}) {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -220,7 +220,7 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
         throw new Error("Unexpected response structure");
     };
 
-    const fetchDocumentTemplate = async () => {
+    const fetchDocumentTemplate = async (documentFor) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
@@ -233,7 +233,7 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
                 url = `${process.env.REACT_APP_BASE_URL}/api/admin/documents/templateDocuments`;
                 break;
             case 'rso_representative':
-                url = `${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/template`;
+                url = `${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/template?documentFor=${documentFor}`;
                 break;
             default:
                 console.warn(`No URL defined for role: ${role}`);
@@ -258,6 +258,51 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
         return json;
     }
 
+    const fetchAllDocuments = async () => {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/documents/allDocuments`, {
+            method: "GET",
+            headers: {
+                Authorization: token ? `Bearer ${formattedToken}` : "",
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Fetch failed: ${response.status} - ${response.statusText}`);
+        }
+
+        if (response.status === 204) {
+            console.warn("No documents found.");
+            return [];
+        }
+
+        const json = await response.json();
+        return json.documents || json || [];
+    }
+
+    // Query to fetch all documents
+    const {
+        data: allDocuments,
+        isLoading: allDocumentsLoading,
+        isError: allDocumentsError,
+        error: allDocumentsQueryError,
+        refetch: refetchAllDocuments,
+    } = useQuery({
+        queryKey: ["documents"],
+        queryFn: fetchAllDocuments,
+        onSuccess: (data) => {
+            setDocuments(data);
+            console.log("All documents fetched successfully:", data);
+        },
+        onError: (error) => {
+            console.error("Error fetching all documents:", error);
+            setError(error.message);
+        },
+    });
+
     const {
         data: documentTemplate,
         isLoading: documentTemplateLoading,
@@ -265,8 +310,8 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
         error: documentTemplateQueryError,
         refetch: refetchDocumentTemplate,
     } = useQuery({
-        queryKey: ["documentTemplate"],
-        queryFn: fetchDocumentTemplate,
+        queryKey: ["documentTemplate", documentFor],
+        queryFn: () => fetchDocumentTemplate(documentFor || ""),
         onSuccess: (data) => {
             console.log("Document template fetched successfully:", data);
             setDocuments(data);
@@ -286,8 +331,8 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
         refetch: refetchDocuments,
 
     } = useQuery({
-        queryKey: ["documents", userID],
-        queryFn: () => fetchDocumentsStudentRso(userID),
+        queryKey: ["documents", userID, documentFor],
+        queryFn: () => fetchDocumentsStudentRso({ userID, documentFor }),
         enabled: !!userID, // Only run this query if rsoID is available
         onSuccess: (data) => {
             console.log("Documents fetched successfully:", data);
@@ -421,6 +466,12 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID } = {})
         documentTemplateError,
         documentTemplateQueryError,
         refetchDocumentTemplate,
+
+        allDocuments,
+        allDocumentsLoading,
+        allDocumentsError,
+        allDocumentsQueryError,
+        refetchAllDocuments,
     };
 }
 

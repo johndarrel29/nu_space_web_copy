@@ -3,8 +3,8 @@
     /* padding: 10px 30px; */
     color: white;
     transition: all 0.3s ease-in-out;
-    flex-direction: column;  
-    align-items: center;     
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     padding: 10px;
 }
@@ -12,10 +12,10 @@
 .hoverDiv:hover {
     background-color: #1f2e5d;
     cursor: pointer;
-    border-radius: 5px;   
-    
-    flex-direction: column;  
-    align-items: center;     
+    border-radius: 5px;
+
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     padding: 10px;
 }
@@ -26,8 +26,8 @@
     transition: all 0.3s ease-in-out;
     border: none;
     border-radius: 5px;
-    flex-direction: column;  
-    align-items: center;     
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     padding: 10px;
 }
@@ -45,8 +45,8 @@
 .hoverDivExpanded:hover {
     background-color: #1f2e5d;
     cursor: pointer;
-    border-radius: 5px;   
-    
+    border-radius: 5px;
+
 }
 
 .hoverDivRSOExpanded {
@@ -61,18 +61,18 @@
 .hoverDivRSOExpanded:hover {
     background-color: var(--background-color);
     cursor: pointer;
-    border-radius: 5px;    
+    border-radius: 5px;
 }
 
 .hoverDivRSO:hover {
     background-color: var(--background-color);
     cursor: pointer;
-    border-radius: 5px;    
+    border-radius: 5px;
 
 }
 
 .sidebarText {
-    margin-left: 0; 
+    margin-left: 0;
     text-align: center;
     font-size: 12px;
     transition: all 0.3s ease-in-out;
@@ -81,13 +81,13 @@
 .sidebarTextExpanded {
     color: white;
     margin-left: 10px;
-    font-size: 16px;
+    font-size: 14px;
     transition: all 0.3s ease-in-out;
 }
 
 .sidebarTextExpandedRSO {
     margin-left: 10px;
-    font-size: 16px;
+    font-size: 14px;
     text-align: left;
     transition: all 0.3s ease-in-out;
 }
@@ -101,7 +101,8 @@
 
 /* Active (clicked) state */
 .active {
-    background-color: #1f2e5d; /* Keep the hover background color */
+    background-color: #1f2e5d;
+    /* Keep the hover background color */
     border-radius: 5px;
 }
 
@@ -111,20 +112,23 @@
 }
 
 @media (max-width: 1000px) {
-    .hoverDiv, .hoverDivRSO {
-        flex-direction: column;  
-        align-items: center;     
+
+    .hoverDiv,
+    .hoverDivRSO {
+        flex-direction: column;
+        align-items: center;
         justify-content: center;
         padding: 10px;
     }
+
     .iconPath {
         height: 20px;
         width: 20px;
     }
 
     .sidebarText {
-        margin-left: 0; 
+        margin-left: 0;
         text-align: center;
         font-size: 12px;
     }
-} 
+}

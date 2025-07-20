@@ -364,7 +364,9 @@ function MainLayout({ children, tabName, headingTitle }) {
             </div>
 
             {/* Page Content */}
-            {children}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              {children}
+            </div>
           </main>
           {(location.pathname === '/form-viewer' && isAdmin) && (
             <div className="w-full py-6 bg-white fixed bottom-0 z-40 mt-auto flex items-center justify-center gap-4 border-t border-mid-gray">

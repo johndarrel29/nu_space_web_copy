@@ -1,4 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "../context/AuthContext";
+
+// match url with the role on updateuserrole
 
 const loginUserRequest = async ({ email, password, platform }) => {
   console.log("Login request initiated with email:", email, "and platform:", platform, "password:", password);
@@ -64,25 +67,55 @@ const fetchUsersRequest = async () => {
   return Array.isArray(json.users) ? json.users : [];
 };
 
-const updateUserRequest = async ({ userId, userData }) => {
+const updateUserRequest = async ({ userId, userData, userRole }) => {
   const token = localStorage.getItem("token");
-
   const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : "";
 
-  const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/updateUserRole/${userId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${formattedToken}`,
-    },
+  console.log('Updating user with ID:', userId, 'and data:', userData);
 
-    body: JSON.stringify(userData),
-  });
-  if (!response.ok) {
-    throw new Error(`Error: ${response.status} - ${response.statusText}`);
+  if (!userRole) {
+    throw new Error('user role is missing. Cannot fetch profile.');
   }
-  const json = await response.json();
-  return json;
+
+  try {
+    let url = '';
+
+    const role = userRole || '';
+
+    switch (role) {
+      case 'admin':
+        url = `${process.env.REACT_APP_BASE_URL}/api/admin/user/updateUserRole/${userId}`;
+        break;
+      case 'super_admin':
+        url = `${process.env.REACT_APP_BASE_URL}/api/admin/user/super-admin/updateUserRole/${userId}`;
+        break;
+      default:
+        console.warn(`No URL defined for role: ${role}`);
+
+    }
+
+    console.log('Updating user role for URL:', url);
+    console.log('User data being sent:', userData);
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${formattedToken}`,
+      },
+
+      body: JSON.stringify(userData),
+    });
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+    const json = await response.json();
+    return json;
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    throw error;
+  }
+
+
 };
 
 const deleteUserRequest = async (userId) => {
@@ -107,6 +140,8 @@ const deleteUserRequest = async (userId) => {
 }
 
 function useUser() {
+  const { user } = useAuth();
+
   const loginUserMutate = useMutation({
     mutationFn: loginUserRequest,
     onSuccess: (data) => {
@@ -152,7 +187,7 @@ function useUser() {
   });
 
   const updateUserMutate = useMutation({
-    mutationFn: updateUserRequest,
+    mutationFn: ({ userId, userData }) => updateUserRequest({ userId, userData, userRole: user?.role }),
     onSuccess: () => {
       refetch();
     },

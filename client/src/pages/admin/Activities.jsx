@@ -3,16 +3,22 @@ import DefaultPicture from "../../assets/images/default-profile.jpg";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal } from '../../components';
+import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal, TextInput, CloseButton } from '../../components';
 import { DropIn } from "../../animations/DropIn";
 import { useModal, useActivities, useDocumentManagement, useUserProfile } from "../../hooks";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from 'react-toastify';
 
+// ====================Activity Decline and Accept Functionality
+// accept works, and reject has to have remarks to work
+// reflect data to UI to show reject/accept status
+
+// ====================Forms Manaegment
 // from rso rep if review forms, show the stored data (edit, delete, & view)
 // from admin also have review forms, only review forms (view & flag/ review)
 // if create forms, show the form builder
 
-
+// ====================Activity Documents viewing template
 //if pre document, show Activity_pre_activity_documents
 // if post document, show Activity_post_activity_documents
 //make that condition on filter for table
@@ -41,12 +47,12 @@ export default function Activities() {
   const [showStatusMessage, setShowStatusMessage] = useState(false);
   const { webProfile } = useUserProfile();
   const [filter, setFilter] = useState("All");
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
 
 
   const isAdmin = user?.role === "admin";
   const isRSORepresentative = user?.role === "rso_representative";
-
-
 
   // Activity data hooks
   const {
@@ -55,15 +61,30 @@ export default function Activities() {
     activityDocumentError,
     isActivityDocumentLoading,
     isActivityDocumentError,
+
     createActivityDoc,
     createError,
     isCreatingSuccess,
     loading: isCreatingLoading,
-    viewActivityData
+
+    viewActivityData,
+
+    declineActivityMutation,
+    declinedActivity,
+    declineError,
+    isDeclineSuccess,
+    isDeclining,
+
+    acceptActivityMutation,
+    acceptedActivity,
+    acceptError,
+    isAcceptSuccess,
+    isAccepting,
   } = useActivities(activityId);
 
   const activity = viewActivityData || {};
   console.log("Activity data:", activity);
+
 
   // Effect to handle upload status messages
   useEffect(() => {
@@ -109,8 +130,6 @@ export default function Activities() {
       filteredDocuments = activity?.Activity_pre_activity_documents || [];
       break;
   }
-  console.log("Filter applied:", filter);
-  console.log("Filtered documents:", filteredDocuments);
 
   // Process activity documents for table display
   const filterActivityDocuments = (filteredDocuments).map((doc) => ({
@@ -125,9 +144,6 @@ export default function Activities() {
     url: doc.url,
     status: doc.status,
   }));
-
-
-
 
   // Table configuration
   const tableHeading = [
@@ -273,12 +289,61 @@ export default function Activities() {
     console.log("Edit button clicked", activity);
   };
 
+  const handleActivityReview = () => {
+    setReviewModalOpen(true);
+    console.log("Activity review modal opened", activityId);
+  }
+
+  const handleAccept = async () => {
+    try {
+      console.log("Accepting activity review with remarks:", remarks);
+      console.log("Activity ID:", activityId);
+      acceptActivityMutation({ activityId, remarks },
+        {
+          onSuccess: () => {
+            toast.success("Activity review accepted successfully");
+          },
+          onError: (error) => {
+            toast.error("Error accepting activity review:", error);
+          }
+        }
+      );
+    } catch (error) {
+      console.error("Error accepting activity review:", error);
+    } finally {
+      setReviewModalOpen(false);
+      setRemarks("");
+    }
+  };
+
+  const handleDecline = async () => {
+    try {
+      console.log("Declining activity review with remarks:", remarks);
+      console.log("Activity ID:", activityId);
+      declineActivityMutation({ activityId, remarks },
+        {
+          onSuccess: () => {
+            toast.success("Activity review declined successfully");
+          },
+          onError: (error) => {
+            toast.error("Error declining activity review:", error);
+          }
+        }
+      );
+    } catch (error) {
+      console.error("Error declining activity review:", error);
+    } finally {
+      setReviewModalOpen(false);
+      setRemarks("");
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col items-start">
         {/* Header Section */}
-        <div className='flex items-start justify-between w-full items-center  gap-4 '>
-          <div className='flex items-center gap-4'>
+        <div className='flex flex-col justify-start gap-4 items-start w-full md:justify-between md:items-center md:flex-row'>
+          <div className='flex flex-col md:flex-row items-center gap-4'>
             <div
               onClick={() => navigate(-1)}
               className='flex items-center justify-center rounded-full h-8 w-8 cursor-pointer border border-gray-300 group'
@@ -288,19 +353,22 @@ export default function Activities() {
               </svg>
             </div>
 
-            <div className='h-12 w-12 bg-[#312895] rounded-full flex items-center justify-center text-white font-bold'>
-              <img
-                className='h-full w-full object-cover rounded-full'
-                src={activity?.RSO_id?.RSO_imageUrl || DefaultPicture}
-                alt="Activity Picture"
-              />
-            </div>
+            {/* Profile header section */}
+            <div className='flex items-center gap-2'>
+              <div className='aspect-square h-12 w-12 bg-white rounded-full flex items-center justify-center text-white font-bold'>
+                <img
+                  className='h-full w-full object-cover rounded-full'
+                  src={activity?.RSO_id?.RSO_imageUrl || DefaultPicture}
+                  alt="Activity Picture"
+                />
+              </div>
 
-            <div className='flex flex-col justify-start'>
-              <h2 className='text-sm text-gray-600'>Hosted By</h2>
-              <h1 className='text-md font-bold text-off-black'>
-                {activity?.RSO_id?.RSO_name || 'RSO Name'}
-              </h1>
+              <div className='flex flex-col justify-start'>
+                <h2 className='text-sm text-gray-600'>Hosted By</h2>
+                <h1 className='text-md font-bold text-off-black'>
+                  {activity?.RSO_id?.RSO_name || 'RSO Name'}
+                </h1>
+              </div>
             </div>
           </div>
 
@@ -309,20 +377,30 @@ export default function Activities() {
           then show the second content. else, show nothing.
           */}
           <div>
-
-          </div>
-
-          <div>
             {(isRSORepresentative && (!viewActivityData?.activitySurvey || viewActivityData.activitySurvey.length === 0)) ? (
-              <Button style={"secondary"} onClick={() => navigate("/forms-builder")}>
+              <Button style={"secondary"} onClick={() => navigate("/forms-builder",
+                {
+                  state: {
+                    activityId: activityId,
+                    activityName: activity?.Activity_name,
+                    rsoId: activity?.RSO_id?._id
+                  }
+                }
+              )}>
                 <div className="flex items-center gap-2 text-sm font-light ">
                   <svg xmlns="http://www.w3.org/2000/svg" className='fill-off-black size-4' viewBox="0 0 384 512"><path d="M192 0c-41.8 0-77.4 26.7-90.5 64L64 64C28.7 64 0 92.7 0 128L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64l-37.5 0C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM72 272a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm104-16l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zM72 368a24 24 0 1 1 48 0 24 24 0 1 1 -48 0zm88 0c0-8.8 7.2-16 16-16l128 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16z" /></svg>
                   Create Forms
                 </div>
               </Button>
-            ) : (viewActivityData?.activitySurvey) ? (
+            ) : (viewActivityData?.activitySurvey.length > 0) ? (
               <Button
-                onClick={() => navigate("/form-viewer")}
+                onClick={() => navigate("/form-viewer", {
+                  state: {
+                    activityId: activityId,
+                    activityName: activity?.Activity_name,
+                    rsoId: activity?.RSO_id?._id
+                  }
+                })}
               >
                 Review Forms
               </Button>
@@ -361,15 +439,69 @@ export default function Activities() {
                 )}
               </div>
             </div>
-            <div className='w-full flex flex-col sm:flex-row justify-start gap-4 mt-4'>
-              <div className='bg-white p-4 rounded-lg border border-mid-gray w-full sm:w-[48%] lg:w-[20%]'>
-                <h3 className="font-semibold text-off-black text-sm mb-2">Date & Time</h3>
-                <p className="text-gray-700 text-sm">{formatDate(activity?.Activity_datetime)}</p>
+            <div className='w-full flex flex-col gap-4 mt-4'>
+              <div className='w-full flex gap-4'>
+                <div className='bg-white p-4 rounded-lg border border-mid-gray w-full sm:w-[48%] lg:w-[20%]'>
+                  <h3 className="font-semibold text-off-black text-sm mb-2">Date & Time</h3>
+                  <table className='border-separate border-spacing-1 w-full'>
+                    <tr>
+                      <td><h1 className='text-gray-600 text-sm'>Start</h1></td>
+                      <td><p className=" text-sm">{formatDate(activity?.Activity_start_datetime)}</p></td>
+                    </tr>
+                    <tr>
+                      <td><h1 className='text-gray-600 text-sm'>End</h1></td>
+                      <td><p className=" text-sm">{formatDate(activity?.Activity_end_datetime)}</p></td>
+                    </tr>
+                  </table>
+
+                </div>
+                <div className='bg-white p-4 rounded-lg border border-mid-gray w-full sm:w-[48%] lg:w-[20%] h-24'>
+                  <h3 className="font-semibold text-off-black text-sm mb-2">Location</h3>
+                  <div className='flex gap-1 items-center'>
+                    <svg xmlns="http://www.w3.org/2000/svg" className='size-3 fill-gray-700' viewBox="0 0 384 512"><path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z" /></svg>
+                    <p className="text-sm">{activity?.Activity_place}</p>
+                  </div>
+                </div>
               </div>
-              <div className='bg-white p-4 rounded-lg border border-mid-gray w-full sm:w-[48%] lg:w-[20%]'>
-                <h3 className="font-semibold text-off-black text-sm mb-2">Location</h3>
-                <p className="text-gray-700 text-sm">{activity?.Activity_place}</p>
-              </div>
+              {isAdmin && (
+                activity?.Activity_approval_status && activity?.Activity_approval_status === "approved" ? (
+                  <div className='bg-green-50 p-4 rounded-lg border border-green-200 w-full sm:w-[48%] lg:w-[20%] h-24 flex items-center justify-center'>
+                    <div className='flex flex-col items-center gap-2'>
+                      <div className='bg-green-500 p-1 rounded-full'>
+                        <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 448 512">
+                          <path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 333.7 393.4 100.3c12.5-12.5 32.8-12.5 45.3 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-semibold text-green-700 text-sm text-center">Document Approved</h3>
+                    </div>
+                  </div>
+                )
+                  : activity?.Activity_approval_status === "rejected" ? (
+                    <div className='bg-red-50 p-4 rounded-lg border border-red-200 w-full sm:w-[48%] lg:w-[20%] h-24 flex items-center justify-center'>
+                      <div className='flex flex-col items-center gap-2'>
+                        <div className='bg-red-500 p-1 rounded-full'>
+                          <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 384 512">
+                            <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
+                          </svg>
+                        </div>
+                        <h3 className="font-semibold text-red-700 text-sm text-center">Document Rejected</h3>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={handleActivityReview}
+                      className='cursor-pointer bg-yellow-50 p-4 rounded-lg border border-yellow-200 w-full sm:w-[48%] lg:w-[20%] h-24 flex items-center justify-center hover:bg-yellow-100 transition-colors'>
+                      <div className='flex flex-col items-center gap-2'>
+                        <div className='bg-yellow-500 p-1 rounded-full'>
+                          <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 512 512">
+                            <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24V264c0 13.3-10.7 24-24 24s-24-10.7-24-24V152c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z" />
+                          </svg>
+                        </div>
+                        <h3 className="font-semibold text-yellow-700 text-sm text-center">Review Pending</h3>
+                      </div>
+                    </div>
+                  )
+              )}
             </div>
 
             <div className="space-y-4 mt-4 w-full">
@@ -511,6 +643,45 @@ export default function Activities() {
             </motion.div>
           </Backdrop>
         )}
+
+        {/* Review Modal */}
+        {reviewModalOpen && (
+          <Backdrop className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-50 pt-8">
+            <motion.div
+              className="bg-white rounded-lg shadow-lg w-[120vh] h-[90vh] border border-[#312895]/20 flex flex-col p-6"
+              variants={DropIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <div className='flex flex-col gap-4'>
+                <div className='flex justify-between items-center mb-4'>
+                  <h1>Review Activity</h1>
+                  <CloseButton
+                    onClick={() => setReviewModalOpen(false)}
+                  ></CloseButton>
+                </div>
+                <label htmlFor="remarks"></label>
+                <TextInput
+                  id={"remarks"}
+                  value={remarks}
+                  placeholder={"Remarks"}
+                  onChange={(e) => setRemarks(e.target.value)}
+                ></TextInput>
+
+                <div className='flex justify-end mt-4 gap-2'>
+                  <Button
+                    onClick={handleDecline}
+                    style={"secondary"}>Decline</Button>
+                  <Button
+                    onClick={handleAccept}
+                  >Approve</Button>
+                </div>
+              </div>
+            </motion.div>
+          </Backdrop>
+        )}
+
       </AnimatePresence>
     </>
   );
