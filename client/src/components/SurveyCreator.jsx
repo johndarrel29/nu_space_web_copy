@@ -46,21 +46,27 @@ export default function SurveyCreatorWidget(props) {
         createActSurveyMutate,
         isCreatingSurvey,
         isCreateSurveyError,
-        createSurveyError
-    } = useSurvey();
+        createSurveyError,
+
+        activitySurveys,
+        isLoadingSurveys,
+        isErrorSurveys,
+        surveysError,
+    } = useSurvey(activityId);
 
     console.log("Activity ID:", activityId);
-    console.log("Activity Name:", activityName);
-    console.log("RSO ID:", rsoId);
-
-
+    console.log("Activity Surveys:", activitySurveys);
     console.log("User Profile rso:", userProfile?.rso?._id);
 
 
 
     useEffect(() => {
+        if (isLoadingSurveys) {
+            console.log("Loading surveys from API...");
+            return;
+        }
 
-        if (!creator) {
+        if (!creator && !isLoadingSurveys) {
             const newCreator = new SurveyCreator(props.options || defaultCreatorOptions);
 
             newCreator.saveSurveyFunc = (saveNo, callback) => {
@@ -68,9 +74,28 @@ export default function SurveyCreatorWidget(props) {
                 callback(saveNo, true);
             }
 
+            if (activitySurveys?.surveys?.length > 0 && activitySurveys.surveys[0]?.surveyJSON) {
+                try {
+                    newCreator.JSON = activitySurveys.surveys[0].surveyJSON;
+
+                    newCreator.text = JSON.stringify(newCreator.JSON, null, 2);
+                    window.localStorage.setItem(localStorageKey, newCreator.text);
+                } catch (error) {
+                    console.error("Error parsing survey JSON:", error);
+
+                }
+
+            } else if (window.localStorage.getItem(localStorageKey)) {
+                newCreator.text = window.localStorage.getItem(localStorageKey);
+                newCreator.JSON = JSON.parse(newCreator.text);
+
+            }
+
             setCreator(newCreator);
         }
-    }, [props.options]);
+
+
+    }, [activitySurveys, isLoadingSurveys, props.options]);
 
     const handleSubmitForm = () => {
 
@@ -111,8 +136,22 @@ export default function SurveyCreatorWidget(props) {
         );
     }
 
+    const handleExit = () => {
+        // Remove survey data from localStorage
+        localStorage.removeItem(localStorageKey);
+        // Navigate back
+        navigate(-1);
+    }
 
-
+    // clean up function when component unmounts
+    // useEffect(() => {
+    //     return () => {
+    //         // Only clear localStorage if the user hasn't submitted the form
+    //         if (!isCreatingSurvey) {
+    //             localStorage.removeItem(localStorageKey);
+    //         }
+    //     };
+    // }, [isCreatingSurvey]);
 
     if (!creator) return <PreLoader />;
 
@@ -122,10 +161,10 @@ export default function SurveyCreatorWidget(props) {
                 <SurveyCreatorComponent creator={creator} />
                 <div className="flex justify-center items-center gap-4 bg-white h-16 absolute bottom-0 w-full">
                     {/* check if there is data from local storage */}
-                    {window.localStorage.getItem(localStorageKey) && (
+                    {(!window.localStorage.getItem(localStorageKey) || !activitySurveys?.surveys?.length > 0) && (
                         <div className="w-full absolute bg-white/50 h-16"></div>
                     )}
-                    <Button style={"secondary"}>Cancel Form</Button>
+                    <Button style={"secondary"} onClick={handleExit}>Cancel Form</Button>
                     <Button onClick={() => openModal()}>Submit Form</Button>
                 </div>
             </div>

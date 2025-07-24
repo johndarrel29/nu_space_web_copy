@@ -8,6 +8,7 @@ import { DropIn } from "../../animations/DropIn";
 import { useModal, useActivities, useDocumentManagement, useUserProfile } from "../../hooks";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from 'react-toastify';
+import { useUserStoreWithAuth } from '../../store'
 
 // ====================Activity Decline and Accept Functionality
 // accept works, and reject has to have remarks to work
@@ -45,14 +46,12 @@ export default function Activities() {
   const [activeTab, setActiveTab] = useState(0);
   const [titles, setTitles] = useState("");
   const [showStatusMessage, setShowStatusMessage] = useState(false);
-  const { webProfile } = useUserProfile();
   const [filter, setFilter] = useState("All");
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
+  const { isUserRSORepresentative, isUserAdmin } = useUserStoreWithAuth();
 
 
-  const isAdmin = user?.role === "admin";
-  const isRSORepresentative = user?.role === "rso_representative";
 
   // Activity data hooks
   const {
@@ -85,6 +84,7 @@ export default function Activities() {
   const activity = viewActivityData || {};
   console.log("Activity data:", activity);
 
+  console.log("activityId:", activityId);
 
   // Effect to handle upload status messages
   useEffect(() => {
@@ -338,6 +338,8 @@ export default function Activities() {
     }
   };
 
+  const navigateTo = isUserRSORepresentative ? "/forms-builder" : "/form-viewer";
+
   return (
     <>
       <div className="flex flex-col items-start">
@@ -377,7 +379,7 @@ export default function Activities() {
           then show the second content. else, show nothing.
           */}
           <div>
-            {(isRSORepresentative && (!viewActivityData?.activitySurvey || viewActivityData.activitySurvey.length === 0)) ? (
+            {(isUserRSORepresentative && (!viewActivityData?.activitySurvey || viewActivityData.activitySurvey.length === 0)) ? (
               <Button style={"secondary"} onClick={() => navigate("/forms-builder",
                 {
                   state: {
@@ -394,7 +396,7 @@ export default function Activities() {
               </Button>
             ) : (viewActivityData?.activitySurvey.length > 0) ? (
               <Button
-                onClick={() => navigate("/form-viewer", {
+                onClick={() => navigate(navigateTo, {
                   state: {
                     activityId: activityId,
                     activityName: activity?.Activity_name,
@@ -430,7 +432,7 @@ export default function Activities() {
             <div className='flex w-full justify-start mt-4 gap-4'>
               <h1 className='text-2xl font-bold text-off-black'>{activity?.Activity_name}</h1>
               <div className='flex items-center gap-2'>
-                {isRSORepresentative && (
+                {isUserRSORepresentative && (
                   <Button onClick={handleEditClick} >
                     <div className="flex items-center gap-2 text-sm font-light ">
                       Edit
@@ -463,7 +465,7 @@ export default function Activities() {
                   </div>
                 </div>
               </div>
-              {isAdmin && (
+              {isUserAdmin && (
                 activity?.Activity_approval_status && activity?.Activity_approval_status === "approved" ? (
                   <div className='bg-green-50 p-4 rounded-lg border border-green-200 w-full sm:w-[48%] lg:w-[20%] h-24 flex items-center justify-center'>
                     <div className='flex flex-col items-center gap-2'>
@@ -549,7 +551,7 @@ export default function Activities() {
 
             {activeTab === 0 && (
               <>
-                {isRSORepresentative && (
+                {isUserRSORepresentative && (
                   <div className="flex justify-end w-full mt-4">
                     <Button
                       onClick={handleDocumentUpload}

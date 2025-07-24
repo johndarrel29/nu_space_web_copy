@@ -22,7 +22,7 @@ function Sidebar() {
         <>
           <div className={classNames(isCollapsed ? sidebar.containerExpanded : sidebar.container, "hidden xl:block")}>
             <div className="pt-6">
-              <SidebarLogo />
+              <SidebarLogo logoStyle={isCollapsed ? "expanded" : "collapsed"} />
 
             </div>
             <div
@@ -93,9 +93,7 @@ function Sidebar() {
             {/* <div className={classNames(sidebar.RSOcontainer, 'relative', isCollapsed && 'hidden')}> */}
             <div className={classNames(isCollapsed ? sidebar.RSOcontainerExpanded : sidebar.RSOcontainer, "hidden xl:block")}>
               <div className="pt-6">
-                <SidebarLogo
-                  logoStyle="dark"
-                />
+                <SidebarLogo logoStyle={isCollapsed ? "expanded" : "collapsed"} />
 
               </div>
 

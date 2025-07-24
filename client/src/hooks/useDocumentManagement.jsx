@@ -1,8 +1,22 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../context/AuthContext';
+import useTokenStore from "../store/tokenStore";
 
-function useDocumentManagement({ rsoID, documentId, reviewedById, userID, documentFor } = {}) {
+function useDocumentManagement({
+    rsoID,
+    userID,
+    page = 1,
+    limit = 10,
+    documentFor,
+    purpose = "",
+    status = "",
+    rsoId = "",
+    startDate = "",
+    endDate = "",
+    search = "",
+    documentType = "",
+} = {}) {
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -38,14 +52,9 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID, docume
     }
 
     const submitDocument = async ({ formData }) => {
-        const token = localStorage.getItem("token");
-        console.log("Stored token:", token);
+        const token = useTokenStore.getState().token;
 
-        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-
-        const headers = {
-            Authorization: token ? `Bearer ${formattedToken}` : "",
-        };
+        const headers = { Authorization: token || '' }
 
         setLoading(true);
         setError(null);
@@ -258,11 +267,24 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID, docume
         return json;
     }
 
-    const fetchAllDocuments = async () => {
+    // add a parameter to fetch all documents based on documentFor, documentType, or userID
+    const fetchAllDocuments = async ({ queryKey }) => {
+        const [_key, params] = queryKey;
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/documents/allDocuments`, {
+        // Filter out undefined, null, or empty string values from params
+        const filteredParams = {};
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== "") {
+                filteredParams[key] = value;
+            }
+        });
+
+        // Construct the query string from params
+        const queryString = new URLSearchParams(filteredParams).toString();
+        console.log("url request: ", `${process.env.REACT_APP_BASE_URL}/api/admin/documents/allDocuments?${queryString}`);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/documents/allDocuments?${queryString}`, {
             method: "GET",
             headers: {
                 Authorization: token ? `Bearer ${formattedToken}` : "",
@@ -284,6 +306,19 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID, docume
     }
 
     // Query to fetch all documents
+    const filters = {
+        page,
+        limit,
+        purpose,
+        status,
+        rsoId,
+        startDate,
+        endDate,
+        search,
+        documentType
+    };
+
+
     const {
         data: allDocuments,
         isLoading: allDocumentsLoading,
@@ -291,7 +326,7 @@ function useDocumentManagement({ rsoID, documentId, reviewedById, userID, docume
         error: allDocumentsQueryError,
         refetch: refetchAllDocuments,
     } = useQuery({
-        queryKey: ["documents"],
+        queryKey: ["documents", filters],
         queryFn: fetchAllDocuments,
         onSuccess: (data) => {
             setDocuments(data);

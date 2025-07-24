@@ -1,8 +1,8 @@
 .imageStyle {
-    height: 1rem;  
-    margin-left: 3rem; 
-    object-fit: contain; 
-    opacity: 0; 
+    height: 1rem;
+    margin-left: 3rem;
+    object-fit: contain;
+    opacity: 1;
     transition: opacity 0.1s ease-out;
 }
 
@@ -14,21 +14,21 @@
 }
 
 .icon {
-    height: 2rem;  
-    object-fit: contain;  
-    opacity: 1; 
+    height: 2rem;
+    object-fit: contain;
+    opacity: 1;
     margin-left: 0;
     transition: opacity 0.3s ease-in;
-    
+
 }
 
 @media (max-width: 1000px) {
     .imageStyle {
-        opacity: 0; 
+        opacity: 0;
     }
 
     .icon {
-        opacity: 1; 
+        opacity: 1;
         margin-left: 0;
         transition: opacity 0.3s ease-in;
     }

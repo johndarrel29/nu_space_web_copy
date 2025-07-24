@@ -14,7 +14,7 @@ export default function MainDocuments() {
   const { organizations } = useRSO();
   const activityId = data?.activityId
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [sorted, setSorted] = useState(null);
+  const [sorted, setSorted] = useState("All");
   const [RSO, setRSO] = useState("All");
   const [RSOType, setRSOType] = useState("All");
   const [college, setCollege] = useState("All");

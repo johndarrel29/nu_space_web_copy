@@ -17,6 +17,9 @@ import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { generateToken, messaging } from './config/firebase';
+import { onMessage } from 'firebase/messaging';
+import { toast } from 'react-toastify';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -24,6 +27,15 @@ function App() {
   useEffect(() => {
     initMaterialTailwind();
   }, []);
+
+  useEffect(() => {
+    generateToken();
+    onMessage(messaging, (payload) => {
+      console.log('Message received. ', payload);
+
+      toast.info(payload.notification.body);
+    });
+  }, [generateToken]);
 
   useEffect(() => {
     // Simulate loading time (same as GSAP animation delay in Preloader.js)

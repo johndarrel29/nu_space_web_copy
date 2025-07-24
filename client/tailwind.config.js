@@ -20,7 +20,7 @@ module.exports = withMT({
         'off-black': '#222222',
         error: '#ff4d4f',
         success: '#52c41a',
-        'primary-text': '#112A46',
+        'primary-text': 'var(--primary)',
         textfield: '#f5f5f5',
         'light-gray': '#f5f5f5',
         'mid-gray': 'var(--mid-gray)',

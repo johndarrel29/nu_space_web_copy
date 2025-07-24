@@ -1,7 +1,7 @@
 import style from '../css/Login.module.css';
 import classNames from 'classnames';
 import Background from "../assets/images/login-background.png";
-import Logo from "../assets/images/logo.png";
+import Logo from "../assets/images/NUSpace_new.png";
 import { Header } from "../components";
 import { Outlet } from 'react-router-dom';
 
@@ -20,8 +20,10 @@ export default function Login() {
             </div>
 
             <div className={classNames(style['right-container'], 'relative')}>
-                <img src={Background} alt="Background Image" className="w-full h-full object-cover" />
-                <img src={Logo} alt="Logo Image" draggable="false" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-80 motion-preset-focus  motion-duration-800 " />
+                {/* <img src={Background} alt="Background Image" className="w-full h-full object-cover" /> */}
+                <div className='w-full h-full bg-primary'></div>
+                <img src={Logo} alt="" className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-20 lg:h-40 motion-preset-focus  motion-duration-800 ' />
+                {/* <img src={Logo} alt="Logo Image" draggable="false" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-80 motion-preset-focus  motion-duration-800 " /> */}
             </div>
         </div>
 

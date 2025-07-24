@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useTokenStore from "../store/tokenStore";
 
 function useRSO() {
   const [organizations, setOrganizations] = useState([]);
@@ -24,18 +25,13 @@ function useRSO() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-      console.log("Submitting new RSO:", newOrg);
-      console.log("Request URL:", `${process.env.REACT_APP_BASE_URL}/api/rso/createRSO`);
-
-      // Create FormData if RSO_picture exists (file upload)
+      const token = useTokenStore.getState().token;
       const isFileUpload = newOrg.RSO_image instanceof File;
 
 
       let body;
       let headers = {
-        "Authorization": `Bearer ${formattedToken}`,
+        "Authorization": token || "",
       };
 
 
@@ -103,8 +99,7 @@ function useRSO() {
     setSuccess(false);
 
     try {
-      const token = localStorage.getItem("token");
-      const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+      const token = useTokenStore.getState().token;
 
       // Create FormData if RSO_picture exists (file upload)
       const isFileUpload = updatedOrg.RSO_picture instanceof File;
@@ -122,7 +117,7 @@ function useRSO() {
       }
 
       const headers = {
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
+        "Authorization": token || "",
         // Let the browser set Content-Type automatically for FormData (includes boundary)
         ...(!isFileUpload && { "Content-Type": "application/json" }),
       };
@@ -154,12 +149,11 @@ function useRSO() {
   };
 
   const updateRSOStatus = async ({ id, status }) => {
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    const token = useTokenStore.getState().token;
 
     const headers = {
       "Content-Type": "application/json",
-      "Authorization": token ? `Bearer ${formattedToken}` : "",
+      "Authorization": token || "",
     };
 
     console.log("Updating RSO status:", { id, status });
@@ -185,12 +179,11 @@ function useRSO() {
 
 
     try {
-      const token = localStorage.getItem("token");
-      const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+      const token = useTokenStore.getState().token;
 
       const headers = {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
+        "Authorization": token || "",
       };
 
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/deleteRSO/${id}`, {
@@ -217,30 +210,38 @@ function useRSO() {
   };
 
   const fetchWebRSO = async () => {
-    const token = localStorage.getItem("token");
-    console.log("Stored token:", token);
+    try {
+      const token = useTokenStore.getState().token;
+      console.log("Stored token:", token);
 
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-    console.log("Fetching web RSO data from:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`);
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
-      },
-    });
-    return response.json();
+      console.log("Fetching web RSO data from:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`);
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, {
+        method: "GET",
+        headers: {
+          "Authorization": token || "",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const rsoData = await response.json();
+      console.log("Fetched web RSO rsoData:", rsoData);
+      return rsoData;
+    } catch (error) {
+      console.error("Error fetching RSO data:", error);
+      throw error;
+    }
   }
 
   const fetchMembers = async () => {
-    const token = localStorage.getItem("token");
+    const token = useTokenStore.getState().token;
     console.log("Stored token:", token);
-
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
     const headers = {
       "Content-Type": "application/json",
-      "Authorization": token ? `Bearer ${formattedToken}` : "",
+      "Authorization": token || "",
     };
 
     setLoading(true);
@@ -271,11 +272,10 @@ function useRSO() {
   }
 
   const updateOfficer = async ({ id, updatedOfficer }) => {
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    const token = useTokenStore.getState().token;
 
     const headers = {
-      Authorization: `Bearer ${formattedToken}`,
+      Authorization: token || "",
     };
     console.log("request sent: ", `${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/updateRSOOfficer/${id}`)
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/updateRSOOfficer/${id}`, {
@@ -292,12 +292,11 @@ function useRSO() {
   }
 
   const createOfficer = async ({ createdOfficer }) => {
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    const token = useTokenStore.getState().token;
     console.log("createdOfficer: ", createdOfficer);
 
     const headers = {
-      Authorization: `Bearer ${formattedToken}`,
+      Authorization: token || "",
     };
     console.log("create request sent: ", `${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/createRSOOfficer`)
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/rso/createRSOOfficer`, {
@@ -314,14 +313,13 @@ function useRSO() {
   }
 
   const updateMembershipDate = async ({ date }) => {
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    const token = useTokenStore.getState().token;
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/open-update-membership`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
+        "Authorization": token || "",
       },
       body: JSON.stringify({ membershipEndDate: date }),
     });
@@ -334,14 +332,13 @@ function useRSO() {
   }
 
   const getMembershipDate = async () => {
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    const token = useTokenStore.getState().token;
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/membership-status`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
+        "Authorization": token || "",
       },
     });
 
@@ -353,14 +350,13 @@ function useRSO() {
   }
 
   const closeMembershipDate = async () => {
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    const token = useTokenStore.getState().token;
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/manual-close-membership`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
+        "Authorization": token || "",
       },
     });
 
@@ -372,14 +368,13 @@ function useRSO() {
   }
 
   const extendMembershipDate = async ({ date, hours, minutes }) => {
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    const token = useTokenStore.getState().token;
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/update-membership-endDate`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
+        "Authorization": token || "",
       },
       body: JSON.stringify({ durationInDays: date, durationInHours: hours, durationInMinutes: minutes }),
     });
@@ -564,7 +559,7 @@ function useRSO() {
     updateRSO,
     deleteRSO,
     fetchData,
-    queryData: data,
+    RSOData: data,
     fetchWebRSOError,
     updateRSOStatusMutate,
 

@@ -4,15 +4,30 @@ import FormViewer from '../../components/FormViewer';
 import { MainLayout } from '../../components';
 import PreLoader from '../../components/Preloader';
 import { toast } from 'react-toastify';
-import { useSurvey } from '../../hooks';
+import { useSurvey, useAdminSurvey } from '../../hooks';
 import { useLocation } from 'react-router-dom';
+import { useUserStoreWithAuth } from '../../store'
+import { useNavigate } from 'react-router-dom';
+
+// still thinking of removing view for RSO Representatives since this route is primarily for Admins
+// but for now, we will keep it as is
+
 
 function FormViewerPage() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { activityId, activityName, rsoId } = location.state || {};
     const [formJson, setFormJson] = useState(null);
     const [loading, setLoading] = useState(true);
     const { formId } = useParams();
-    const location = useLocation();
-    const { activityId, activityName, rsoId } = location.state || {};
+    const [userDisplay, setUserDisplay] = useState(null);
+    const { isUserRSORepresentative, isUserAdmin } = useUserStoreWithAuth();
+    const {
+        adminActivitySurvey,
+        adminActivitySurveyError,
+        isadminActivitySurveyLoading,
+        isadminActivitySurveyError,
+    } = useAdminSurvey({ activityId });
     const {
         activitySurveys,
         isLoadingSurveys,
@@ -23,8 +38,33 @@ function FormViewerPage() {
     console.log("Activity Surveys:", activitySurveys);
     console.log("Actual survey data: ", activitySurveys?.surveys[0]?.surveyJSON);
 
+    useEffect(() => {
+        if (isUserRSORepresentative) {
+            setUserDisplay(activitySurveys?.surveys[0]?.surveyJSON);
+        } else if (isUserAdmin) {
+            setUserDisplay(adminActivitySurvey?.surveys[0]?.surveyJSON);
+        } else {
+            console.error("User is neither RSO Representative nor Admin, redirecting to error page");
+            toast.error("You do not have permission to view this form.");
+            return navigate("/error", { replace: true });
+        }
+    }, [isUserRSORepresentative, isUserAdmin, activitySurveys, adminActivitySurvey]);
 
-    const storedSurvey = activitySurveys?.surveys[0]?.surveyJSON;
+    useEffect(() => {
+        if (adminActivitySurvey) {
+            console.log("Admin activity survey data:", adminActivitySurvey);
+        } else if (!isadminActivitySurveyLoading) {
+            console.log("No admin activity survey data available.");
+        }
+
+        if (isadminActivitySurveyError && adminActivitySurveyError) {
+            console.error("Error fetching admin activity survey:", adminActivitySurveyError);
+            toast.error("Failed to fetch activity survey data.");
+        }
+    }, [adminActivitySurvey, adminActivitySurveyError, isadminActivitySurveyLoading, isadminActivitySurveyError]);
+
+    const storedSurvey = userDisplay;
+
     useEffect(() => {
         if (isLoadingSurveys) {
             return;
@@ -62,8 +102,7 @@ function FormViewerPage() {
     return (
         <MainLayout>
             {formJson ? (
-                <div>
-                    <h1>Reviewing RSO Activity Form:</h1>
+                <div className="container mx-auto border rounded-md">
                     <FormViewer formJson={formJson} onComplete={handleFormSubmit}></FormViewer>
                 </div>
             ) : (

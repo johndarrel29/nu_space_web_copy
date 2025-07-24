@@ -16,6 +16,11 @@ import timezone from 'dayjs/plugin/timezone';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { toast } from "react-toastify";
 
+// TODO: find out the where the UI error from table is coming from
+// Update the mapping of data to the new fields from the backend
+// Update the RSO data structure to match the new backend response
+
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -39,7 +44,7 @@ export default function MainRSO() {
     fetchData,
     createRSO,
     updateRSO,
-    queryData,
+    RSOData,
     fetchWebRSOError,
     updateMembershipDateMutate,
     membershipDateData,
@@ -55,8 +60,10 @@ export default function MainRSO() {
   const [date, setDate] = useState(new Date());
   const [membershipEndDate, setMembershipEndDate] = useState(null);
 
+  console.log("RSO Data:", RSOData);
+
   // Process RSO data for table
-  const rsoList = queryData?.rsos ?? [];
+  const rsoList = RSOData?.rsos ?? [];
   const tableRow = rsoList.map((org) => ({
     id: org._id,
     RSO_name: org.RSO_name?.replace(/\s+/g, ' ').trim() || '',
