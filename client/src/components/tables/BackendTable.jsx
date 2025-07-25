@@ -1,10 +1,9 @@
-import React from "react";
-import DefaultPicture from "../../assets/images/default-profile.jpg";
 import Badge from "../ui/Badge";
 import { useDocumentManagement } from "../../hooks";
 import { FormatDate } from "../../utils";
 import { Searchbar, ReusableDropdown, DropdownSearch } from "../../components";
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 // goal:
@@ -16,9 +15,12 @@ import { useMemo, useState, useEffect } from "react";
 // fix the loading to show a skeleton loader
 // debounce the search input to avoid too many API calls
 
-// follow copilot to create a reusable table component
+
+// dropdownsearch currently doesnt filter because submittedBy model returns null 
+// therefore, this component couldnt search the RSO
 
 export default function BackendTable({ activeTab }) {
+    const navigate = useNavigate();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [filters, setFilters] = useState({
@@ -170,7 +172,7 @@ export default function BackendTable({ activeTab }) {
                         <DropdownSearch
                             isSorting={true}
                             setSelectedSorting={handleRSO}
-                            setSelectedCategory={() => { }}
+                            setSelectedCategory={() => console.log("Category selected")}
                         />
                     </div>
                 </div>
@@ -246,7 +248,8 @@ export default function BackendTable({ activeTab }) {
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[800px]">
                         <thead className="border-b border-mid-gray bg-textfield ">
-                            <tr className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider ">
+                            <tr
+                                className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider ">
                                 {tableHeading.map((heading, index) => (
                                     <th
                                         key={`header-${index}-${heading.key || heading.name}`}
@@ -265,6 +268,7 @@ export default function BackendTable({ activeTab }) {
 
                                 <tr
                                     key={row.id}
+                                    onClick={() => navigate(`:documentId`, { state: { documentId: row.id } })}
                                     className="border-b border-mid-gray hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                                 >
                                     {/* Organization Name with Image */}

@@ -12,6 +12,9 @@ function useRSO() {
   const [createError, setCreateError] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [updateError, setUpdateError] = useState(null);
+  const { getToken } = useTokenStore();
+
+  console.log("useRSO initialized with token:", getToken());
 
   const createRSO = async (newOrg) => {
     setLoading(true);
@@ -212,7 +215,8 @@ function useRSO() {
   const fetchWebRSO = async () => {
     try {
       const token = useTokenStore.getState().token;
-      console.log("Stored token:", token);
+      // console.log("Stored token:", token);
+      // const token = localStorage.getItem("token");
 
       console.log("Fetching web RSO data from:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`);
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, {
@@ -393,7 +397,7 @@ function useRSO() {
   } = useQuery({
     queryKey: ["rsoData"],
     queryFn: fetchWebRSO,
-    enabled: false, // Disable automatic fetching
+    // enabled: false, // Disable automatic fetching
     onSuccess: (data) => {
       console.log("Web RSO data fetched successfully:", data);
       queryClient.setQueryData(["rsoData"], data);

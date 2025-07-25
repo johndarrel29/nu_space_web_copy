@@ -1,16 +1,12 @@
-import React, { useEffect } from 'react'
-import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import DefaultPicture from "../../assets/images/default-profile.jpg";
-import { ReusableTable, TabSelector, ActivityCard, Button, CloseButton, TextInput } from '../../components';
-import TagSelector from '../../components/TagSelector'
-import { useTagSelector, useModal, useUserProfile } from '../../hooks';
-import { useNavigate, Link } from 'react-router-dom';
-import { useDocumentManagement, useRSO } from '../../hooks';
-import Switch from '@mui/material/Switch';
+import React, { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import DefaultPicture from "../../../assets/images/default-profile.jpg";
+import { ReusableTable, TabSelector, ActivityCard, Button, CloseButton } from '../../../components';
+import TagSelector from '../../../components/TagSelector'
+import { useTagSelector, useModal, useUserProfile, useDocumentManagement, useRSO } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
-import { DropIn } from "../../animations/DropIn";
-import { useAuth } from "../../context/AuthContext";
+import { DropIn } from "../../../animations/DropIn";
+import { useAuth } from "../../../context/AuthContext";
 
 function RSODetails() {
   const location = useLocation()
@@ -21,7 +17,6 @@ function RSODetails() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const navigate = useNavigate();
   const [selected, setSelected] = useState("");
-  const [showLink, setShowLink] = useState(true);
   const [modalMode, setModalMode] = useState("officers");
   const [selectedDocument, setSelectedDocument] = useState(null);
   const { user: userProfile } = useUserProfile();
@@ -33,7 +28,7 @@ function RSODetails() {
 
   const isAdmin = authUser?.role === "admin" || authUser?.role === "super_admin";
   const isRSORepresentative = authUser?.role === "rso_representative";
-
+  const showLink = true;
 
   useEffect(() => {
     if (user?.RSO_membershipStatus === true) {

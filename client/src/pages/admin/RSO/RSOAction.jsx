@@ -1,18 +1,18 @@
 import React from 'react'
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { tabSelector, Button, TextInput, ReusableDropdown, Backdrop, CloseButton } from '../../components'
-import TagSelector from '../../components/TagSelector';
-import { useTagSelector, useRSO } from '../../hooks';
+import { tabSelector, Button, TextInput, ReusableDropdown, Backdrop, CloseButton } from '../../../components'
+import TagSelector from '../../../components/TagSelector';
+import { useTagSelector, useRSO } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
-import { DropIn } from "../../animations/DropIn";
-import DefaultPicture from '../../assets/images/default-profile.jpg';
+import { DropIn } from "../../../animations/DropIn";
+import DefaultPicture from '../../../assets/images/default-profile.jpg';
 import { toast } from 'react-toastify';
 import Switch from '@mui/material/Switch';
 
 // file manipulation
 import Cropper from "react-easy-crop";
-import getCroppedImg from '../../utils/cropImage';
+import getCroppedImg from '../../../utils/cropImage';
 
 function RSOAction() {
   const { createRSO, updateRSO, deleteRSO, loading, updateError, createError, success } = useRSO();

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from "framer-motion";
-import { TabSelector, ReusableTable, Button, CloseButton } from "../../components";
-import { DropIn } from "../../animations/DropIn";
-import useSearchQuery from "../../hooks/useSearchQuery";
-import { useRSO, useKeyBinding } from "../../hooks";
-import { FormatDate, useNotification } from "../../utils";
+import { TabSelector, ReusableTable, Button, CloseButton } from "../../../components";
+import { DropIn } from "../../../animations/DropIn";
+import useSearchQuery from "../../../hooks/useSearchQuery";
+import { useRSO, useKeyBinding } from "../../../hooks";
+import { FormatDate, useNotification } from "../../../utils";
 import Switch from '@mui/material/Switch';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -15,6 +15,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { toast } from "react-toastify";
+import { useAuth } from "../../../context/AuthContext";
 
 // TODO: find out the where the UI error from table is coming from
 // Update the mapping of data to the new fields from the backend
@@ -35,6 +36,9 @@ export default function MainRSO() {
   const navigate = useNavigate();
   const { notification, handleNotification } = useNotification();
   const { searchQuery, setSearchQuery } = useSearchQuery();
+  const { token } = useAuth();
+
+  console.log("Token after refresh:", token);
 
   // RSO data and operations
   const {
@@ -64,22 +68,37 @@ export default function MainRSO() {
 
   // Process RSO data for table
   const rsoList = RSOData?.rsos ?? [];
-  const tableRow = rsoList.map((org) => ({
-    id: org._id,
-    RSO_name: org.RSO_name?.replace(/\s+/g, ' ').trim() || '',
-    RSO_acronym: org.RSO_acronym || '',
-    RSO_description: org.RSO_description || '',
-    RSO_tags: org.RSO_tags || [],
-    RSO_category: org.RSO_category || '',
-    RSO_College: org.RSO_College || '',
-    RSO_totalMembers: org.RSO_totalMembers || 0,
-    RSO_membershipStatus: org.RSO_membershipStatus || '',
-    RSO_status: org.RSO_status || false,
-    RSO_picture: org.RSO_picture || '',
-    picture: org.picture || '',
-    RSO_memberCount: org.RSO_members ? org.RSO_members.length : org.RSO_totalMembers || 0,
-    RSO_popularityScoreCount: org.RSO_popularityScore > 0 ? org.RSO_popularityScore : 0,
-  }));
+  console.log("Processed RSO List:", rsoList);
+  const tableRow = rsoList.map((org) => {
+    const snapshot = org.RSO_snapshot || {};
+
+    return {
+      id: org._id,
+      RSO_name: snapshot.name || '',
+      RSO_acronym: snapshot.acronym || '',
+      RSO_category: snapshot.category || '',
+      RSO_college: snapshot.college || '',
+      RSO_picture: org.RSO_picture || '',
+      RSO_memberCount: org.RSO_members?.length || 0,
+
+      // old fields, can be removed later
+
+      // id: snapshot._id,
+      // RSO_name: snapshot.RSO_name?.replace(/\s+/g, ' ').trim() || '',
+      // RSO_acronym: snapshot.RSO_acronym || '',
+      // RSO_description: snapshot.RSO_description || '',
+      // RSO_tags: snapshot.RSO_tags || [],
+      // RSO_category: snapshot.RSO_category || '',
+      // RSO_College: snapshot.RSO_College || '',
+      // RSO_totalMembers: snapshot.RSO_totalMembers || 0,
+      // RSO_membershipStatus: snapshot.RSO_membershipStatus || '',
+      // RSO_status: snapshot.RSO_status || false,
+      // RSO_picture: snapshot.RSO_picture || '',
+      // picture: snapshot.picture || '',
+      // RSO_memberCount: snapshot.RSO_members ? snapshot.RSO_members.length : snapshot.RSO_totalMembers || 0,
+      // RSO_popularityScoreCount: snapshot.RSO_popularityScore > 0 ? snapshot.RSO_popularityScore : 0,
+    };
+  });
 
   // Filter and sort organizations
   const filteredOrgs = () => {
@@ -225,6 +244,7 @@ export default function MainRSO() {
           </div>
         )}
       </div>
+      {console.log("fetchWebRSOError:", fetchWebRSOError)}
 
       <ReusableTable
         options={["All", "A-Z", "Most Popular"]}

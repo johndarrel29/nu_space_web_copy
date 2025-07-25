@@ -1,14 +1,14 @@
-import defaultPic from '../../assets/images/default-picture.png';
-import DefaultPicture from "../../assets/images/default-profile.jpg";
+import defaultPic from '../../../assets/images/default-picture.png';
+import DefaultPicture from "../../../assets/images/default-profile.jpg";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal, TextInput, CloseButton } from '../../components';
-import { DropIn } from "../../animations/DropIn";
-import { useModal, useActivities, useDocumentManagement, useUserProfile } from "../../hooks";
-import { useAuth } from "../../context/AuthContext";
+import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal, TextInput, CloseButton } from '../../../components';
+import { DropIn } from "../../../animations/DropIn";
+import { useModal, useActivities, useDocumentManagement, useUserProfile } from "../../../hooks";
+import { useAuth } from "../../../context/AuthContext";
 import { toast } from 'react-toastify';
-import { useUserStoreWithAuth } from '../../store'
+import { useUserStoreWithAuth } from '../../../store'
 
 // ====================Activity Decline and Accept Functionality
 // accept works, and reject has to have remarks to work

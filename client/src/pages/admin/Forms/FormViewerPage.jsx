@@ -1,12 +1,12 @@
 import { React, useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import FormViewer from '../../components/FormViewer';
-import { MainLayout } from '../../components';
-import PreLoader from '../../components/Preloader';
+import FormViewer from '../../../components/FormViewer';
+import { MainLayout } from '../../../components';
+import PreLoader from '../../../components/Preloader';
 import { toast } from 'react-toastify';
-import { useSurvey, useAdminSurvey } from '../../hooks';
+import { useSurvey, useAdminSurvey } from '../../../hooks';
 import { useLocation } from 'react-router-dom';
-import { useUserStoreWithAuth } from '../../store'
+import { useUserStoreWithAuth } from '../../../store'
 import { useNavigate } from 'react-router-dom';
 
 // still thinking of removing view for RSO Representatives since this route is primarily for Admins

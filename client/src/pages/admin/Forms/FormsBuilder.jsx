@@ -1,5 +1,5 @@
 'use client';
-import SurveyCreatorWidget from "../../components/SurveyCreator";
+import SurveyCreatorWidget from "../../../components/SurveyCreator";
 import { useLocation } from "react-router-dom";
 
 export default function FormsBuilder() {

@@ -1,12 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
 const useTokenStore = create(
     persist(
         (set) => ({
-            token: null,
-            setToken: (token) => set({ token }),
-            clearToken: () => set({ token: null }),
+            token: localStorage.getItem("token") || null,
+            setToken: (token) => {
+                localStorage.setItem("token", token);
+                set({ token });
+            },
+            getToken: () => {
+                return localStorage.getItem("token");
+            }
         }),
         {
             name: 'auth-token',
@@ -14,5 +18,6 @@ const useTokenStore = create(
         }
     )
 );
+
 
 export default useTokenStore;

@@ -3,20 +3,25 @@ import Select from 'react-select';
 import useRSO from '../../hooks/useRSO';
 
 export default function DropdownSearch({ isDisabled, category, setSelectedCategory, selectedCategory, isSorting, setSelectedSorting, role }) {
-  const { loading, queryData, fetchData } = useRSO();
+  const { loading, RSOData, fetchData } = useRSO();
   const [selectedOption, setSelectedOption] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [defaultCategory] = useState(category); // Store initial category
+  const [defaultCategory] = useState(category);
+
+  console.log("RSOData", RSOData);
 
   // Extract only RSO_acronym values
-  const options = queryData?.rsos?.map((org) => ({
-    value: org._id,
-    label: org.RSO_acronym,
-  }));
+  const options = RSOData?.rsos?.map((org) => {
+    const snapshot = org.RSO_snapshot || {};
+    return {
+      value: org._id,
+      label: snapshot.acronym,
+    };
+  }) || [];
 
   useEffect(() => {
     fetchData();
-  }, [queryData]);
+  }, [RSOData]);
 
 
   useEffect(() => {

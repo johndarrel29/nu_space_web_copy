@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { ActivityCard, Searchbar, ReusableDropdown, Button, ActivitySkeleton, DropdownSearch } from "../../components";
-import { useActivities, useUser, useRSO } from "../../hooks";
+import { ActivityCard, Searchbar, ReusableDropdown, Button, ActivitySkeleton, DropdownSearch } from "../../../components";
+import { useActivities, useUser, useRSO } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import DefaultPicture from "../../assets/images/default-picture.png";
+import DefaultPicture from "../../../assets/images/default-picture.png";
 
 export default function MainDocuments() {
 

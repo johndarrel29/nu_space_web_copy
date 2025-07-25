@@ -1,10 +1,8 @@
-import { useState, useEffect, useMemo, memo } from "react";
-import { MainLayout, Table, Searchbar, Button } from "../../components";
-import { useModal, useUser, useRSO } from "../../hooks";
+import { useState, useMemo, memo } from "react";
+import { Table, Searchbar, CreateUserModal, ReusableTable } from "../../../components";
+import { useModal, useRSO, useUserProfile } from "../../../hooks";
 import { AnimatePresence } from "framer-motion";
-import { CreateUserModal, ReusableTable } from "../../components";
-import { useUserProfile } from "../../hooks";
-import { FormatDate } from "../../utils";
+import { FormatDate } from "../../../utils";
 
 //add error preferrably from query
 
@@ -64,7 +62,7 @@ export default function UserManagement() {
   const [selectedRole, setSelectedRole] = useState("");
   const { isOpen, openModal, closeModal } = useModal();
   const user = JSON.parse(localStorage.getItem("user"));
-  const { userProfile, isLoading } = useUserProfile();
+  const { userProfile } = useUserProfile();
   const {
     membersData,
   } = useRSO();

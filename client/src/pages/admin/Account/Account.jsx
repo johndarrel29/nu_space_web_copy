@@ -1,12 +1,12 @@
-import { MainLayout, Button, TextInput, Badge, Backdrop, CloseButton, TabSelector } from "../../components";
+import { MainLayout, Button, TextInput, Badge, Backdrop, CloseButton, TabSelector } from "../../../components";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useUserProfile, useModal, useRSO } from "../../hooks";
-import DefaultPicture from "../../assets/images/default-profile.jpg";
+import { useUserProfile, useModal, useRSO } from "../../../hooks";
+import DefaultPicture from "../../../assets/images/default-profile.jpg";
 import { motion, AnimatePresence } from "framer-motion";
-import { DropIn } from "../../animations/DropIn";
-import ErrorBoundary from '../../components/ErrorBoundary';
+import { DropIn } from "../../../animations/DropIn";
+import ErrorBoundary from '../../../components/ErrorBoundary';
 import Cropper from "react-easy-crop";
-import getCroppedImg from '../../utils/cropImage';
+import getCroppedImg from '../../../utils/cropImage';
 import { toast } from "react-toastify";
 
 const tabs = [

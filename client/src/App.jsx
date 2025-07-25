@@ -11,7 +11,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
 import { Document } from './pages/rso';
-import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOManagement, UserManagement, RSOAction, AdminDocuments } from './pages/admin';
+import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOManagement, UserManagement, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
@@ -163,7 +163,11 @@ function App() {
                       >
                         <AdminDocuments />
                       </MainLayout>
-                    }></Route>
+                    }>
+                      <Route index element={<MainAdmin />} />
+                      <Route path=":documentId" element={<DocumentDetails />} />
+                      <Route path="templates" element={<AdminTemplates />} />
+                    </Route>
 
                     <Route path="/forms-builder" element={<FormsBuilder />} />
                     <Route path="/form-viewer" element={<FormViewerPage />} />

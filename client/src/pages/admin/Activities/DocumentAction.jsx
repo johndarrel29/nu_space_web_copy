@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { TextInput, Button, Backdrop, CloseButton, ReusableDropdown } from '../../components';
+import { TextInput, Button, Backdrop, CloseButton, ReusableDropdown } from '../../../components';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useActivities } from '../../hooks';
+import { useActivities } from '../../../hooks';
 import Datetime from 'react-datetime';
 import { useRef } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { DropIn } from "../../animations/DropIn";
+import { DropIn } from "../../../animations/DropIn";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import DefaultPicture from '../../assets/images/default-picture.png';
+import DefaultPicture from '../../../assets/images/default-picture.png';
 import { toast } from 'react-toastify';
 
 
@@ -21,7 +21,7 @@ import { toast } from 'react-toastify';
 
 // file manipulation
 import Cropper from "react-easy-crop";
-import getCroppedImg from '../../utils/cropImage';
+import getCroppedImg from '../../../utils/cropImage';
 
 function DocumentAction() {
   const location = useLocation();

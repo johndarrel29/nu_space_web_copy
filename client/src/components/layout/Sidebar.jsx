@@ -41,13 +41,21 @@ function Sidebar() {
                 />
               )}
               {isUserAdmin && (
-                <> <SidebarButton
-                  isCollapsed={isCollapsed}
-                  iconPath={"M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z"}
-                  text="Documents"
-                  active={location.pathname === "/admin-documents"}
-                  onClick={() => navigate("/admin-documents")}
-                />
+                <>
+                  <SidebarButton
+                    isCollapsed={isCollapsed}
+                    iconPath={"M224 64C206.3 64 192 78.3 192 96L192 128L160 128C124.7 128 96 156.7 96 192L96 240L544 240L544 192C544 156.7 515.3 128 480 128L448 128L448 96C448 78.3 433.7 64 416 64C398.3 64 384 78.3 384 96L384 128L256 128L256 96C256 78.3 241.7 64 224 64zM96 288L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 288L96 288z"}
+                    text="Academic Year"
+                    active={location.pathname.startsWith("/admin-documents")}
+                    onClick={() => navigate("/admin-documents")}
+                  />
+                  <SidebarButton
+                    isCollapsed={isCollapsed}
+                    iconPath={"M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 288c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128z"}
+                    text="Documents"
+                    active={location.pathname.startsWith("/admin-documents")}
+                    onClick={() => navigate("/admin-documents")}
+                  />
                   <SidebarButton
                     isCollapsed={isCollapsed}
                     iconPath={"M234.5 5.7c13.9-5 29.1-5 43.1 0l192 68.6C495 83.4 512 107.5 512 134.6l0 242.9c0 27-17 51.2-42.5 60.3l-192 68.6c-13.9 5-29.1 5-43.1 0l-192-68.6C17 428.6 0 404.5 0 377.4L0 134.6c0-27 17-51.2 42.5-60.3l192-68.6zM256 66L82.3 128 256 190l173.7-62L256 66zm32 368.6l160-57.1 0-188L288 246.6l0 188z"}
