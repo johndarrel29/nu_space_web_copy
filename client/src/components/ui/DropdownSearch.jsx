@@ -3,19 +3,31 @@ import Select from 'react-select';
 import useRSO from '../../hooks/useRSO';
 
 export default function DropdownSearch({ isDisabled, category, setSelectedCategory, selectedCategory, isSorting, setSelectedSorting, role }) {
-  const { organizations, loading } = useRSO();
+  const { loading, RSOData, fetchData } = useRSO();
   const [selectedOption, setSelectedOption] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); 
-  const [defaultCategory] = useState(category); // Store initial category
+  const [isLoading, setIsLoading] = useState(true);
+  const [defaultCategory] = useState(category);
+
+  console.log("RSOData", RSOData);
 
   // Extract only RSO_acronym values
-  const options = organizations.map((org) => ({
-    value: org._id, 
-    label: org.RSO_acronym, 
-  }));
+  const options = RSOData?.rsos?.map((org) => {
+    const snapshot = org.RSO_snapshot || {};
+    return {
+      value: org.rsoId,
+      label: snapshot.acronym,
+    };
+  }) || [];
+
+  console.log("DropdownSearch options:", options);
 
   useEffect(() => {
-    setIsLoading(loading); 
+    fetchData();
+  }, [RSOData]);
+
+
+  useEffect(() => {
+    setIsLoading(loading);
   }, [loading]);
 
   useEffect(() => {
@@ -34,11 +46,11 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
       isClearable={true}
       isSearchable={true}
       menuPortalTarget={document.body}
-      value={category ? options.find((opt) => opt.value === category) : selectedOption}
+      value={category ? options?.find((opt) => opt.value === category) : selectedOption}
       onChange={(option) => {
         console.log("Dropdown change detected:");
         console.log("Selected option:", option);
-        
+
         if (option === null) {
           // When clearing, set to empty string
           setSelectedOption(null);

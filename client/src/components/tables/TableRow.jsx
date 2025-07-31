@@ -1,20 +1,24 @@
-import  editIcon  from '../../assets/icons/pen-to-square-solid.svg';
-import  deleteIcon  from '../../assets/icons/trash-solid.svg';
-import  { FormatDate }  from '../../utils';
-import  { Badge }  from '../ui';
+import editIcon from '../../assets/icons/pen-to-square-solid.svg';
+import deleteIcon from '../../assets/icons/trash-solid.svg';
+import { FormatDate } from '../../utils';
+import { Badge } from '../ui';
 import { useUserProfile } from "../../hooks";
 import { Tooltip } from 'react-tooltip';
 
 const TableRow = ({ userRow, onOpenModal, index }) => {
-  const { user, isLoading, isError, error } = useUserProfile();
+  const { user, userProfile } = useUserProfile();
 
   const handleActionClick = (action) => () => {
     onOpenModal(action, userRow);
   };
 
+  const isAdmin = userProfile?.user?.role === 'admin';
+  const isSuperAdmin = userProfile?.user?.role === 'super_admin';
+
   // tooltip style dependency
   const tooltipId = `edit-tooltip-${userRow._id}`;
-  const isRestricted = user?.role === "admin" && (userRow?.role === "admin" || userRow?.role === "superadmin");
+  const isRestricted = isAdmin && (userRow?.role === "admin" || userRow?.role === "super_admin");
+  const restrictOwnAccount = userRow?._id === user?._id;
 
 
 
@@ -22,24 +26,43 @@ const TableRow = ({ userRow, onOpenModal, index }) => {
 
   const formattedDate = FormatDate(userRow.createdAt);
 
-  function handleStyle  (userRole) {
+  function handleStyle(userRole) {
     console.log("userRow role: " + userRole)
 
     switch (userRole) {
-      case 'superadmin':
+      case 'super_admin':
         return 'primary';
       case 'admin':
         return 'secondary';
-      case 'student/rso':
-        return 'tertiary'; 
+      case 'coordinator':
+        return 'secondary';
+      case 'rso_representative':
+        return 'tertiary';
       case 'student':
         return 'quarternary';
       default:
         return '';
-        
+
     }
   }
-    
+
+  function handleRoleName(userRole) {
+    switch (userRole) {
+      case 'super_admin':
+        return 'Super Admin';
+      case 'admin':
+        return 'Admin';
+      case 'coordinator':
+        return 'Coordinator';
+      case 'rso_representative':
+        return 'RSO Representative';
+      case 'student':
+        return 'Student';
+      default:
+        return userRole;
+    }
+  }
+
 
   return (
     <tr className='hover:bg-gray-200 transition duration-300 ease-in-out' >
@@ -57,53 +80,53 @@ const TableRow = ({ userRow, onOpenModal, index }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center justify-center">
-          <Badge style={handleStyle(userRow.role)} text={userRow.role}/>
+          <Badge style={handleStyle(userRow.role)} text={handleRoleName(userRow.role)} />
         </div>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
 
-        {!(userRow.role === 'superadmin' || userRow.role === 'admin') && (
+        {!(userRow.role === 'super_admin' || userRow.role === 'admin' || userRow.role === 'student') && (
           <div className="flex items-center justify-center">
-            {console.log("results: " + handleStyle(userRow.role))}
-            <Badge style={handleStyle(userRow.role)} text={userRow.role === 'student' ? 'student' : userRow.assigned_rso?.RSO_acronym || 'N/A'}/>
+            {console.log("results: " + userRow)}
+            {console.log("role: " + userRow.role)}
+            <Badge style={handleStyle(userRow.role)} text={userRow?.assigned_rso?.RSO_acronym} />
           </div>
         )}
 
       </td>
       <td className="px-6 py-4 whitespace-nowrap ">
-      <div className='space-x-2 flex flex-row justify-center items-center'>
+        <div className='space-x-2 flex flex-row justify-center items-center'>
 
-        {/* prevents user from editing or deleting their own profile */}
-        { userRow?._id === user?._id ? ( "") :
-        (
-          <>
-          <div
-            data-tooltip-id="global-tooltip"
-            data-tooltip-content={isRestricted ? "You are not allowed to edit" : "edit"}
-            className={
-              `mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer`
-              + (isRestricted ? " bg-gray-400" : "")}
-    
-            onClick={isRestricted ? null :  handleActionClick('edit')}
-          >          
-            <img src={editIcon} alt="edit" className={`size-4` + (isRestricted ? " opacity-40" : "")}/>
+          {/* prevents user from editing or deleting their own profile */}
+          {userRow?._id === userProfile?.user?._id ? ("") :
+            (
+              <>
+                <div
+                  data-tooltip-id="global-tooltip"
+                  data-tooltip-content={isRestricted ? "You are not allowed to edit" : "edit"}
+                  className={
+                    `mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer`
+                    + (isRestricted ? " bg-gray-400" : "")}
+                  onClick={isRestricted ? null : handleActionClick('edit')}
+                >
+                  <img src={editIcon} alt="edit" className={`size-4` + (isRestricted ? " opacity-40" : "")} />
 
-          </div>
-          {/* Tooltip component */}
-          <Tooltip id="global-tooltip" className="bg-gray-800 text-white text-xs p-2 rounded shadow-sm opacity-50" />
+                </div>
+                {/* Tooltip component */}
+                <Tooltip id="global-tooltip" className="bg-gray-800 text-white text-xs p-2 rounded shadow-sm opacity-50" />
 
-          <div 
-            data-tooltip-id="global-tooltip"
-            data-tooltip-content={isRestricted ? "You are not allowed to delete" : "delete"}
-            className={
-              `mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer`
-              + (isRestricted ? " bg-gray-400" : "")}
-            onClick={ isRestricted ? null : handleActionClick('delete')}
-          >          
-            <img src={deleteIcon} alt="delete" className={`size-4` + (isRestricted ? " opacity-40" : "")}/>
-          </div>
-          </>
-        )}
+                <div
+                  data-tooltip-id="global-tooltip"
+                  data-tooltip-content={isRestricted ? "You are not allowed to delete" : "delete"}
+                  className={
+                    `mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10 bg-white transition duration-300 cursor-pointer`
+                    + (isRestricted ? " bg-gray-400" : "")}
+                  onClick={isRestricted ? null : handleActionClick('delete')}
+                >
+                  <img src={deleteIcon} alt="delete" className={`size-4` + (isRestricted ? " opacity-40" : "")} />
+                </div>
+              </>
+            )}
         </div>
       </td>
     </tr>

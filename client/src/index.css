@@ -7,7 +7,7 @@
 body {
   background-color: var(--background-color);
   margin: 0;
-  @apply font-sans; 
+  @apply font-sans;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #222222;
@@ -15,13 +15,11 @@ body {
 
 :root {
   --background-color: #F0F6FF;
-  --primary: #312895;
-  --primary-rso: #FFCC33;
+  --primary: #32418C;
+  --primary-active: #263277;
+  --primary-rso: #FBD117;
   --primary-rso-hover: #ffd041;
   --primary-rso-border: #E68E0A;
   --mid-gray: #e0e0e0;
   --dark-gray: #333333;
 }
-
-
-

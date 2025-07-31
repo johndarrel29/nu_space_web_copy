@@ -23,7 +23,6 @@
 
 .heading {
     width: 100%;
-    margin-bottom: 30vh;
 }
 
 .heading h1 {
@@ -52,7 +51,7 @@
 }
 
 
-@media (max-width: 1000px) { 
+@media (max-width: 1000px) {
 
 
     .left-container {
@@ -66,9 +65,9 @@
     }
 
 
- }
+}
 
- /* Small (sm) */
+/* Small (sm) */
 @media (max-width: 640px) {
     .left-container {
         width: 100%;
@@ -77,4 +76,4 @@
     .right-container {
         display: none;
     }
- }
+}

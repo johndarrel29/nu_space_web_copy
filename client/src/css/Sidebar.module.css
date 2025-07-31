@@ -1,20 +1,33 @@
-
 .container {
-    @apply fixed z-50 top-0 left-0 h-screen w-[18%] bg-[#314095];
+    @apply fixed z-50 top-0 left-0 h-screen w-[80px] bg-primary;
+    transition: all 0.3s ease-in-out;
+}
+
+.containerExpanded {
+    @apply fixed z-50 top-0 left-0 h-screen w-[250px] bg-primary pl-4 pr-4;
+    transition: all 0.3s ease-in-out;
 }
 
 .RSOcontainer {
-    @apply fixed z-50 top-0 left-0 h-screen w-[18%] bg-white;
+    @apply fixed z-50 top-0 left-0 h-screen w-[80px] bg-white;
     border-right: 1px solid var(--mid-gray);
+    transition: all 0.3s ease-in-out;
+}
+
+.RSOcontainerExpanded {
+    @apply fixed z-50 top-0 left-0 h-screen w-[250px] bg-white pl-4 pr-4;
+    border-right: 1px solid var(--mid-gray);
+    transition: all 0.3s ease-in-out;
 }
 
 .sidebarContainer {
-    width: 90%;
-    margin-left: 12px;
+    width: 100%;
+    margin-left: 0;
     margin-top: 20%;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    transition: all 0.3s ease-in-out;
 }
 
 .hoverDiv {
@@ -22,14 +35,14 @@
     width: 100%;
     padding: 10px 30px;
     color: white;
-    transition: 0.1s ease;   
+    transition: 0.1s ease;
 }
 
 .hoverDiv:hover {
-    background-color: #1f2e5d;
+    background-color: var(--primary-active);
     cursor: pointer;
     color: #ffffff;
-    border-radius: 5px;    
+    border-radius: 5px;
 }
 
 .sidebarText {
@@ -41,14 +54,14 @@
     border-radius: 100%;
     width: 100%;
     height: 1px;
-    background-color: var(--mid-gray); 
+    background-color: var(--mid-gray);
     margin: 10px 0 10px 0;
 }
 
 .rsoseparator {
     width: 100%;
     height: 0.5px;
-    background-color: var(--primary); 
+    background-color: var(--primary);
     margin: 10px 0 10px 0;
 }
 
@@ -62,29 +75,29 @@
     font-size: 1.5rem;
 }
 
-.headingTitle{
+.headingTitle {
     font-weight: 700;
     font-size: 30px;
 }
 
 .activeButton {
-    background-color: #1f2e5d; 
+    background-color: var(--primary-active);
     color: #ffffff;
-    border-radius: 5px;  
-  }
-
-  div.activeButtonRSO {
-    border: none;
-    background-color: var(--background-color); 
-    color: var(--primary);
-    border-radius: 5px;  
-  }
-
-.activeIcon {
-fill: var(--primary);
+    border-radius: 5px;
 }
 
-  @media (max-width: 1000px) { 
+div.activeButtonRSO {
+    border: 1px solid var(--primary);
+    background-color: var(--background-color);
+    color: var(--primary);
+    border-radius: 5px;
+}
+
+.activeIcon {
+    fill: var(--primary);
+}
+
+@media (max-width: 1000px) {
     .container {
         width: 80px;
     }
@@ -92,9 +105,10 @@ fill: var(--primary);
     .RSOcontainer {
         width: 80px;
     }
+
     .sidebarContainer {
         width: 100%;
         margin-left: 0;
     }
 
-  }
+}

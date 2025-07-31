@@ -10,7 +10,7 @@ function useTags() {
             "Authorization": token ? `Bearer ${formattedToken}` : "",
         };
 
-        const response = await fetch(`${process.env.REACT_APP_FETCH_TAGS_URL}`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/tags/getTags`, {
             method: "GET",
             headers,
         });
