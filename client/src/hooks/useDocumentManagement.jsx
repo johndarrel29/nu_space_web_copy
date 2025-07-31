@@ -238,6 +238,7 @@ function useDocumentManagement({
         const role = user?.role || '';
         switch (role) {
             case 'admin':
+            case 'coordinator':
             case 'super_admin':
                 url = `${process.env.REACT_APP_BASE_URL}/api/admin/documents/templateDocuments`;
                 break;

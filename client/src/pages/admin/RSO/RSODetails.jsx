@@ -26,7 +26,7 @@ function RSODetails() {
   const { updateRSOStatusMutate } = useRSO();
   const { user: authUser } = useAuth();
 
-  const isAdmin = authUser?.role === "admin" || authUser?.role === "super_admin";
+  const isAdmin = authUser?.role === "admin" || authUser?.role === "coordinator" || authUser?.role === "super_admin";
   const isRSORepresentative = authUser?.role === "rso_representative";
   const showLink = true;
 

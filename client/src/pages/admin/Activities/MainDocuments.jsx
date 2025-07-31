@@ -4,6 +4,9 @@ import { useActivities, useUser, useRSO } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import DefaultPicture from "../../../assets/images/default-picture.png";
+import { useUserStoreWithAuth } from '../../../store';
+
+// system enhancement: use isLoading to make loading animation when fetching or filtering activities  
 
 export default function MainDocuments() {
 
@@ -19,7 +22,7 @@ export default function MainDocuments() {
   const [RSOType, setRSOType] = useState("All");
   const [college, setCollege] = useState("All");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [selectedSorting, setSelectedSorting] = useState("");
+  const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
   const [documentError, setDocumentError] = useState(null);
 
 
@@ -50,7 +53,7 @@ export default function MainDocuments() {
 
   // set document error based on user role
   useEffect(() => {
-    if (user?.role === "admin" || user?.role === "super_admin") {
+    if (user?.role === "admin" || user?.role === "coordinator" || user?.role === "super_admin") {
       setDocumentError(adminError);
     } else if (user?.role === "rso_representative") {
       setDocumentError(error);
@@ -73,10 +76,10 @@ export default function MainDocuments() {
   }, [fetchActivity]);
 
   useEffect(() => {
-    if (user?.role === "rso_representative") {
+    if (isUserRSORepresentative) {
       refetchLocalActivities();
     }
-  }, [user?.role]);
+  }, [isUserRSORepresentative, refetchLocalActivities]);
 
   const handleCreate = () => {
     navigate("document-action", {
@@ -161,7 +164,7 @@ export default function MainDocuments() {
   }
 
   const activitiesToShow =
-    user.role === "rso_representative" ?
+    isUserRSORepresentative ?
       (localActivities || [])
         // Apply search filter first
         .filter(activity => {
@@ -188,11 +191,11 @@ export default function MainDocuments() {
               return 0;
           }
         }) :
-      (user.role === "admin" || user.role === "super_admin") ? allActivities :
+      (isUserAdmin || isCoordinator) ? allActivities :
         [];
 
   console.log("user role:", user.role);
-  console.log("activitiesToShow:", activitiesToShow?.length === 0);
+  console.log("activitiesToShow:", activitiesToShow?.length > 0);
 
   return (
     <div className="w-full">
@@ -224,7 +227,7 @@ export default function MainDocuments() {
               setSearchQuery={setSearchQuery}
             />
           </div>
-          {user.role === "rso_representative" ? (
+          {isUserRSORepresentative ? (
             <div>
               <ReusableDropdown
                 icon={true}
@@ -248,7 +251,7 @@ export default function MainDocuments() {
         </div>
 
         {/* More Filter Section for Admin and Super Admin */}
-        {(user.role === "admin" || user.role === "super_admin") && (
+        {(isUserAdmin || isCoordinator) && (
           <div
             aria-disabled="false"
             data-accordion-container
@@ -330,7 +333,7 @@ export default function MainDocuments() {
         </div>
       )
         :
-        (user?.role === 'admin' && documentError) ? (
+        (isUserAdmin && documentError) ? (
           <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -353,7 +356,7 @@ export default function MainDocuments() {
         )
           :
 
-          !loading && !adminError ? (
+          activitiesToShow.length > 0 ? (
             <>
               <div className="flex items-center justify-center mb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 ">
@@ -367,8 +370,8 @@ export default function MainDocuments() {
                       RSO_acronym={activity.RSO_id?.RSO_acronym || "N/A"}
                       //user imageUrl if rso_representative role
                       Activity_image={
-                        user?.role === "rso_representative" ? activity?.imageUrl || DefaultPicture :
-                          user?.role === "admin" || user?.role === "super_admin" ?
+                        isUserRSORepresentative ? activity?.imageUrl || DefaultPicture :
+                          (isUserAdmin || isCoordinator) ?
                             activity?.activityImageUrl || DefaultPicture : DefaultPicture}
                       Activity_registration_total={activity?.Activity_registration_total}
                       onClick={handleActivityClick}
@@ -379,7 +382,9 @@ export default function MainDocuments() {
                   ))}
                 </div>
               </div>
-              {(user.role === "admin" || user.role === "super_admin") && (
+
+              {/* Load More Button */}
+              {(isUserAdmin || isCoordinator) && allActivities.length > 12 && (
                 <div className="flex justify-center mt-6">
                   {hasNextPage && (
                     <Button
@@ -395,8 +400,7 @@ export default function MainDocuments() {
 
             </>
           )
-            :
-            (
+            : (
               <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary /50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

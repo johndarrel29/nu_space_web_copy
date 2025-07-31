@@ -47,7 +47,7 @@ function SidebarButton({ icon, text, onClick, active, iconPath, isCollapsed }) {
       {user?.role === 'rso_representative' &&
         (<h1 className={isCollapsed ? style.sidebarTextExpandedRSO : (style.sidebarTextRSO && 'hidden')}>{text}</h1>)
       }
-      {(user?.role === 'admin' || user?.role === 'super_admin') &&
+      {(user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'coordinator') &&
         (
           (<h1 className={isCollapsed ? style.sidebarTextExpanded : (style.sidebarText && 'hidden')}>
             {text}

@@ -11,3 +11,4 @@ export { default as useTags } from './useTags';
 export { default as useAnnouncements } from './useAnnouncements';
 export { default as useSurvey } from './useSurvey';
 export { default as useAdminSurvey } from './useAdminSurvey';
+export { default as useAcademicYears } from './useAcademicYears';

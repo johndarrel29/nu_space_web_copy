@@ -14,10 +14,7 @@ import DefaultPicture from '../../../assets/images/default-picture.png';
 import { toast } from 'react-toastify';
 
 
-// TODO: double-check fields if working for both edit and create
-
-// when it errored for the first time, the error message doesnt get removed and doesnt pass data to API.
-// you have to go back then forward to update again.
+// TODO: check on edit mode error
 
 // file manipulation
 import Cropper from "react-easy-crop";
@@ -39,6 +36,7 @@ function DocumentAction() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [readyCropper, setReadyCropper] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
   console.log("DocumentAction mode:", mode, "data:", data, "from:", from);
 
   console.log("data image", data?.Activity_image, "activityImageUrl:", data?.file);
@@ -105,6 +103,14 @@ function DocumentAction() {
     }));
   };
 
+  // console.log to check data from edit mode
+  useEffect(() => {
+    if (isEdit && data) {
+      console.log("Editing activity data:", data);
+      setOriginalData(data);
+    }
+  }, [isEdit, data]);
+
   useEffect(() => {
     if (success) {
       navigate('..', { relative: 'path' });
@@ -113,6 +119,100 @@ function DocumentAction() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const changedFields = {};
+    // Use originalData to refer if the data has changed
+    // double check
+    if (isEdit && originalData) {
+      console.log("Original data:", originalData);
+      console.log("Current activity data:", activityData);
+
+
+      // Check Activity_name
+      if (originalData.Activity_name === activityData.Activity_name) {
+        console.log("Activity name unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_name = activityData.Activity_name;
+      }
+
+      // Check Activity_description
+      if (originalData.Activity_description === activityData.Activity_description) {
+        console.log("Activity description unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_description = activityData.Activity_description;
+      }
+
+      // Check Activity_place
+      if (originalData.Activity_place === activityData.Activity_place) {
+        console.log("Activity place unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_place = activityData.Activity_place;
+        console.log("Activity place changed, will update this field.");
+      }
+
+      // Check Activity_GPOA
+      if (originalData.Activity_GPOA === activityData.Activity_GPOA) {
+        console.log("Activity GPOA unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_GPOA = activityData.Activity_GPOA;
+      }
+
+      // Check Activity_publicity
+      if (originalData.Activity_publicity === activityData.Activity_publicity) {
+        console.log("Activity publicity unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_publicity = activityData.Activity_publicity;
+        console.log("Activity publicity changed, will update this field.");
+      }
+
+      // Check Activity_on_off_campus
+      const normalizedCurrentCampus = activityData.Activity_on_off_campus === 'On Campus' ? 'on_campus' :
+        activityData.Activity_on_off_campus === 'Off Campus' ? 'off_campus' :
+          activityData.Activity_on_off_campus;
+      { console.log("Normalized current campus value:", normalizedCurrentCampus); }
+      { console.log("Original campus value:", originalData.Activity_on_off_campus); }
+      if (originalData.Activity_on_off_campus === normalizedCurrentCampus) {
+        console.log("Activity campus status unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_on_off_campus = normalizedCurrentCampus;
+        console.log("Activity campus status changed, will update this field.");
+      }
+
+      // Check Activity_start_datetime
+      if (dayjs(originalData.Activity_start_datetime).isSame(dayjs(activityData.Activity_start_datetime))) {
+        console.log("Activity start datetime unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_start_datetime = activityData.Activity_start_datetime;
+        console.log("Activity start datetime changed, will update this field.");
+      }
+
+      // Check Activity_end_datetime
+      if (dayjs(originalData.Activity_end_datetime).isSame(dayjs(activityData.Activity_end_datetime))) {
+        console.log("Activity end datetime unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_end_datetime = activityData.Activity_end_datetime;
+        console.log("Activity end datetime changed, will update this field.");
+      }
+
+      if (Object.keys(changedFields).length === 0) {
+        console.log("No changes detected, not submitting.");
+        return;
+      }
+
+      // If all fields are unchanged, return early
+      // if (originalData.Activity_name === activityData.Activity_name &&
+      //   originalData.Activity_description === activityData.Activity_description &&
+      //   originalData.Activity_place === activityData.Activity_place &&
+      //   originalData.Activity_GPOA === activityData.Activity_GPOA &&
+      //   originalData.Activity_publicity === activityData.Activity_publicity &&
+      //   originalData.Activity_on_off_campus === normalizedCurrentCampus &&
+      //   dayjs(originalData.Activity_start_datetime).isSame(dayjs(activityData.Activity_start_datetime)) &&
+      //   dayjs(originalData.Activity_end_datetime).isSame(dayjs(activityData.Activity_end_datetime))) {
+      //   console.log("No changes detected, not submitting.");
+      //   return;
+      // }
+    }
+
 
     if (activityData?.Activity_description === "" || activityData?.Activity_description === null) {
       setDescriptionError("Description is required");
@@ -138,6 +238,8 @@ function DocumentAction() {
       return;
     }
 
+
+
     // Prepare the data to match the API requirement
     const apiData = {
       ...activityData,
@@ -152,7 +254,7 @@ function DocumentAction() {
       if (isEdit && data?._id) {
         // Update existing activity
 
-        result = await updateActivity(data._id, apiData);
+        result = await updateActivity(data._id, changedFields);
       } else if (isCreate) {
 
         const created = await createActivity(apiData);
@@ -174,8 +276,6 @@ function DocumentAction() {
 
   const handleDelete = async (e) => {
     e.preventDefault();
-
-    console.log("Deleting activity with ID:", data?._id);
 
     if (window.confirm("Are you sure you want to delete this activity?")) {
       try {

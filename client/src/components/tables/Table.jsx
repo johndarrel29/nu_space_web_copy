@@ -8,7 +8,10 @@ import { AnimatePresence } from "framer-motion";
 import { useModal, useUser } from "../../hooks";
 import { toast } from 'react-toastify';
 
-// fix error 403 when changing login user, then going to the table page
+// fix error 403 when changing login user, then going to the table page, partially fixed
+// error 403 when role is coordinator
+// ${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchUsers:
+// error "You have no authorized access to this resource"
 
 // Table Component
 const Table = React.memo(({ searchQuery, selectedRole }) => {
@@ -57,8 +60,9 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
           (selectedRole === "student" ? user.role?.toLowerCase() === "student" :
             selectedRole === "rso_representative" ? user.role?.toLowerCase() === "rso_representative" :
               selectedRole === "admin" ? user.role?.toLowerCase() === "admin" :
-                selectedRole === "super_admin" ? user.role?.toLowerCase() === "super_admin" :
-                  false
+                selectedRole === "coordinator" ? user.role?.toLowerCase() === "coordinator" :
+                  selectedRole === "super_admin" ? user.role?.toLowerCase() === "super_admin" :
+                    false
           );
         return matchesSearch && matchesRole;
       });
@@ -106,6 +110,13 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
       if (updatedData.role === 'rso_representative' && updatedData.category) {
         updatedData.category = null;
         // updatedData.assigned_rso = updatedData.category;
+      }
+
+      if (updatedData.role === 'coordinator') {
+        // Don't send category data in the update request when role is coordinator
+        updatedData.category = null;
+        updatedData.assignedRSO = null;
+        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'coordinator'
       }
 
       if (updatedData.role === 'super_admin') {

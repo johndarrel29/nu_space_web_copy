@@ -14,10 +14,12 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
   const options = RSOData?.rsos?.map((org) => {
     const snapshot = org.RSO_snapshot || {};
     return {
-      value: org._id,
+      value: org.rsoId,
       label: snapshot.acronym,
     };
   }) || [];
+
+  console.log("DropdownSearch options:", options);
 
   useEffect(() => {
     fetchData();

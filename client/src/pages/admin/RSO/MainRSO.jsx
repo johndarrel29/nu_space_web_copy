@@ -17,6 +17,9 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
 
+// getRSO succesfully connects to backend but not fetching the data correctly
+// fixed: nagend na ang yearly data kaya nawala na
+
 // TODO: find out the where the UI error from table is coming from
 // Update the mapping of data to the new fields from the backend
 // Update the RSO data structure to match the new backend response
@@ -127,6 +130,8 @@ export default function MainRSO() {
 
   // Effects
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  console.log("Membership Date Data:", membershipDateData);
 
   useEffect(() => {
     if (membershipDateData) {

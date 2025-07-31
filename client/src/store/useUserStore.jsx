@@ -17,7 +17,10 @@ export default function useUserStoreWithAuth() {
     const roleStates = useMemo(() => ({
         isUserRSORepresentative: user?.role === "rso_representative",
         isUserAdmin: user?.role === "admin",
-        isSuperAdmin: user?.role === "super_admin"
+        isSuperAdmin: user?.role === "super_admin",
+        isCoordinator: user?.role === "coordinator",
+        isDirector: user?.role === "director",
+        isAVP: user?.role === "avp",
     }), [user?.role]);
 
     console.log("User role:", user?.role);

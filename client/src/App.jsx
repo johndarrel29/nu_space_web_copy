@@ -11,7 +11,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
 import { Document } from './pages/rso';
-import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOManagement, UserManagement, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin } from './pages/admin';
+import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOManagement, UserManagement, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
@@ -168,6 +168,15 @@ function App() {
                       <Route path=":documentId" element={<DocumentDetails />} />
                       <Route path="templates" element={<AdminTemplates />} />
                     </Route>
+
+                    <Route path="/academic-year" element={
+                      <MainLayout
+                        tabName="Academic Year"
+                        headingTitle="Manage Academic Years"
+                      >
+                        <AcademicYear />
+                      </MainLayout>
+                    } />
 
                     <Route path="/forms-builder" element={<FormsBuilder />} />
                     <Route path="/form-viewer" element={<FormViewerPage />} />

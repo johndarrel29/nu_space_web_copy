@@ -28,7 +28,7 @@ function useRSO() {
     }
 
     try {
-      const token = useTokenStore.getState().token;
+      const token = useTokenStore.getState().getToken();
       const isFileUpload = newOrg.RSO_image instanceof File;
 
 
@@ -102,7 +102,7 @@ function useRSO() {
     setSuccess(false);
 
     try {
-      const token = useTokenStore.getState().token;
+      const token = useTokenStore.getState().getToken();
 
       // Create FormData if RSO_picture exists (file upload)
       const isFileUpload = updatedOrg.RSO_picture instanceof File;
@@ -152,7 +152,7 @@ function useRSO() {
   };
 
   const updateRSOStatus = async ({ id, status }) => {
-    const token = useTokenStore.getState().token;
+    const token = useTokenStore.getState().getToken();
 
     const headers = {
       "Content-Type": "application/json",
@@ -182,7 +182,7 @@ function useRSO() {
 
 
     try {
-      const token = useTokenStore.getState().token;
+      const token = useTokenStore.getState().getToken();
 
       const headers = {
         "Content-Type": "application/json",
@@ -213,12 +213,14 @@ function useRSO() {
   };
 
   const fetchWebRSO = async () => {
+    console.log("Fetching web RSO data...");
+
     try {
-      const token = useTokenStore.getState().token;
-      // console.log("Stored token:", token);
+      const token = useTokenStore.getState().getToken();
+      console.log("Stored token:", token);
       // const token = localStorage.getItem("token");
 
-      console.log("Fetching web RSO data from:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`);
+      console.log("Fetching web RSO data from:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, "with token:", token);
       const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, {
         method: "GET",
         headers: {
@@ -226,12 +228,14 @@ function useRSO() {
         },
       });
 
+      console.log("Response status:", response.status);
+
       if (!response.ok) {
         throw new Error(`Error: ${response.status} - ${response.statusText}`);
       }
 
       const rsoData = await response.json();
-      console.log("Fetched web RSO rsoData:", rsoData);
+      console.log("Fetched web RSO rsoData from controller:", rsoData);
       return rsoData;
     } catch (error) {
       console.error("Error fetching RSO data:", error);
@@ -240,7 +244,7 @@ function useRSO() {
   }
 
   const fetchMembers = async () => {
-    const token = useTokenStore.getState().token;
+    const token = useTokenStore.getState().getToken();
     console.log("Stored token:", token);
 
     const headers = {
@@ -276,7 +280,7 @@ function useRSO() {
   }
 
   const updateOfficer = async ({ id, updatedOfficer }) => {
-    const token = useTokenStore.getState().token;
+    const token = useTokenStore.getState().getToken();
 
     const headers = {
       Authorization: token || "",
@@ -296,7 +300,7 @@ function useRSO() {
   }
 
   const createOfficer = async ({ createdOfficer }) => {
-    const token = useTokenStore.getState().token;
+    const token = useTokenStore.getState().getToken();
     console.log("createdOfficer: ", createdOfficer);
 
     const headers = {
@@ -317,7 +321,7 @@ function useRSO() {
   }
 
   const updateMembershipDate = async ({ date }) => {
-    const token = useTokenStore.getState().token;
+    const token = useTokenStore.getState().getToken();
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/open-update-membership`, {
       method: "PATCH",
@@ -336,25 +340,36 @@ function useRSO() {
   }
 
   const getMembershipDate = async () => {
-    const token = useTokenStore.getState().token;
+    try {
+      const token = useTokenStore.getState().getToken();
 
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/membership-status`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": token || "",
-      },
-    });
+      console.log("Fetching membership date with token:", token);
 
-    if (!response.ok) {
-      throw new Error(`Failed to get membership date: ${response.status}`);
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/membership-status`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token || "",
+        },
+      });
+
+      const responseData = await response.json();
+      console.log("Membership date response data:", responseData);
+      console.log("Membership date fetched successfully:", responseData);
+
+      if (!response.ok) {
+        throw new Error(`Failed to get membership date: ${response.status}`);
+      }
+      return response.json();
+    } catch (error) {
+      console.error("Error fetching membership date:", error);
+      throw error;
     }
-    return response.json();
 
   }
 
   const closeMembershipDate = async () => {
-    const token = useTokenStore.getState().token;
+    const token = useTokenStore.getState().getToken();
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/manual-close-membership`, {
       method: "PATCH",
@@ -372,7 +387,7 @@ function useRSO() {
   }
 
   const extendMembershipDate = async ({ date, hours, minutes }) => {
-    const token = useTokenStore.getState().token;
+    const token = useTokenStore.getState().getToken();
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/update-membership-endDate`, {
       method: "PATCH",
@@ -391,7 +406,7 @@ function useRSO() {
   }
 
   const {
-    data,
+    data: RSOData,
     isError: fetchWebRSOError,
     refetch: fetchData,
   } = useQuery({
@@ -563,7 +578,7 @@ function useRSO() {
     updateRSO,
     deleteRSO,
     fetchData,
-    RSOData: data,
+    RSOData,
     fetchWebRSOError,
     updateRSOStatusMutate,
 

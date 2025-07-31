@@ -34,6 +34,8 @@ const TableRow = ({ userRow, onOpenModal, index }) => {
         return 'primary';
       case 'admin':
         return 'secondary';
+      case 'coordinator':
+        return 'secondary';
       case 'rso_representative':
         return 'tertiary';
       case 'student':
@@ -50,6 +52,8 @@ const TableRow = ({ userRow, onOpenModal, index }) => {
         return 'Super Admin';
       case 'admin':
         return 'Admin';
+      case 'coordinator':
+        return 'Coordinator';
       case 'rso_representative':
         return 'RSO Representative';
       case 'student':

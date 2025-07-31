@@ -25,3 +25,4 @@ export * from './Documents';
 export * from './Forms';
 export * from './RSO';
 export * from './Users';
+export * from './AcademicYear';

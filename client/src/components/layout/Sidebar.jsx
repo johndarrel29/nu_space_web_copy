@@ -10,7 +10,7 @@ function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isCollapsed, setIsCollapsed } = useSidebar();
-  const { isUserRSORepresentative, isUserAdmin, isSuperAdmin } = useUserStoreWithAuth();
+  const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
   const collapseSidebar = () => {
     setIsCollapsed(!isCollapsed);
   }
@@ -18,7 +18,7 @@ function Sidebar() {
   return (
     <>
 
-      {isUserAdmin || isSuperAdmin ? (
+      {(isUserAdmin || isCoordinator) ? (
         <>
           <div className={classNames(isCollapsed ? sidebar.containerExpanded : sidebar.container, "hidden xl:block")}>
             <div className="pt-6">
@@ -31,7 +31,7 @@ function Sidebar() {
               <svg xmlns="http://www.w3.org/2000/svg" className='fill-white size-4' viewBox="0 0 448 512"><path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z" /></svg>
             </div>
             <div className={classNames(sidebar.sidebarContainer, 'relative', isCollapsed && 'hidden')}>
-              {isUserAdmin && (
+              {(isUserAdmin || isCoordinator) && (
                 <SidebarButton
                   isCollapsed={isCollapsed}
                   iconPath={"M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64L0 400c0 44.2 35.8 80 80 80l400 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 416c-8.8 0-16-7.2-16-16L64 64zm406.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L320 210.7l-57.4-57.4c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L240 221.3l57.4 57.4c12.5 12.5 32.8 12.5 45.3 0l128-128z"}
@@ -40,14 +40,14 @@ function Sidebar() {
                   onClick={() => navigate("/dashboard")}
                 />
               )}
-              {isUserAdmin && (
+              {(isUserAdmin || isCoordinator) && (
                 <>
                   <SidebarButton
                     isCollapsed={isCollapsed}
                     iconPath={"M224 64C206.3 64 192 78.3 192 96L192 128L160 128C124.7 128 96 156.7 96 192L96 240L544 240L544 192C544 156.7 515.3 128 480 128L448 128L448 96C448 78.3 433.7 64 416 64C398.3 64 384 78.3 384 96L384 128L256 128L256 96C256 78.3 241.7 64 224 64zM96 288L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 288L96 288z"}
                     text="Academic Year"
-                    active={location.pathname.startsWith("/admin-documents")}
-                    onClick={() => navigate("/admin-documents")}
+                    active={location.pathname.startsWith("/academic-year")}
+                    onClick={() => navigate("/academic-year")}
                   />
                   <SidebarButton
                     isCollapsed={isCollapsed}

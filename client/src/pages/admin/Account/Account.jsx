@@ -103,8 +103,8 @@ export default function Account() {
     if (user?.role === 'rso_representative') {
       console.log("User is RSO representative, setting profile to  ", userProfile);
       setProfileData(userProfile?.rso);
-    } else if (user?.role === 'admin' || user?.role === 'super_admin') {
-      console.log("User is admin or super admin, setting profile to ", userProfile.user);
+    } else if (user?.role === 'admin' || user?.role === 'coordinator' || user?.role === 'super_admin') {
+      console.log("User is admin, coordinator or super admin, setting profile to ", userProfile.user);
       setProfileData(userProfile.user);
     } else {
       console.log("User role is not recognized, setting profile to null");
@@ -205,7 +205,7 @@ export default function Account() {
 
 
   const isStudentRSO = user?.role === "rso_representative";
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "coordinator";
   const isSuperAdmin = user?.role === "super_admin";
 
 

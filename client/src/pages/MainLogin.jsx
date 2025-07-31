@@ -60,12 +60,14 @@ export default function MainLogin() {
                         ...decodedPayload
                     });
 
-                    if (role === "admin") {
+                    if (role === "admin" || role === "coordinator") {
                         navigate("/dashboard");
                     } else if (role === "rso_representative") {
                         navigate("/document");
                     } else if (role === "super_admin") {
                         navigate("/user-management");
+                    } else if (role === "director" || role === "avp") {
+                        navigate("/admin-documents");
                     } else {
                         setError("Invalid role or access denied.");
                     }

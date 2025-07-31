@@ -2,18 +2,20 @@ import { Button, CloseButton, TextInput, ReusableDropdown } from '../../componen
 import { useCallback, useEffect, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useDocumentManagement } from '../../hooks';
+import { useLocation } from 'react-router-dom';
 
 // param now works for doc template
 // if modal is deployed in document page, only show 'renewal_recognition', 'new_applicant_recognition'
-// if modal is deployed in document template page, show 'off_campus_activities', 'on_campus_activities'
+// if modal is deployed in activities page, show 'off_campus_activities', 'on_campus_activities'
 
 // learn more about forceful download of file so no redirects to the file URL necessary
 
 function UploadBatchModal({ handleCloseModal, page }) {
+    const location = useLocation();
     const [file, setFile] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [error, setError] = useState(null);
-    const [selectedTemplate, setSelectedTemplate] = useState();
+    const [selectedTemplate, setSelectedTemplate] = useState([]);
     const { documentTemplate } = useDocumentManagement({
         documentFor: selectedTemplate
     });
@@ -22,25 +24,46 @@ function UploadBatchModal({ handleCloseModal, page }) {
         documentDescription: '',
     });
 
+    // determine the initial page based on the page prop
+    const currentPage = location.pathname;
+    const isDocumentPage = currentPage.includes('/document') && !currentPage.includes('/documents');
+    const isActivitiesPage = currentPage.startsWith('/documents') && !isDocumentPage;
 
     // store document template in its designated category
     const [data, setData] = useState([]);
     const [initialPage, setInitialPage] = useState("templates");
 
-    console.log("Document Template:", documentTemplate?.documents);
+    // set initial filter based on the page location
+    useEffect(() => {
+        if (isDocumentPage) {
+            setSelectedTemplate(["new_applicant_recognition", "renewal_recognition"]);
+        } else if (isActivitiesPage) {
+            setSelectedTemplate(["off_campus_activities", "on_campus_activities"]);
+        } else {
+            setSelectedTemplate(null);
+        }
+    }, [])
+
 
     useEffect(() => {
-        if (documentTemplate) {
+        if (documentTemplate && documentTemplate.documents) {
             setData(documentTemplate?.documents);
+            console.log("Document Template:", documentTemplate?.documents);
         } else {
-            setData([]);
+            setData({ documents: [] });
         }
-    })
+    }, [documentTemplate, isDocumentPage]);
 
     const genDocOptions = [
         "All Templates",
         "New Applicant Recognition",
         "Renewal Recognition",
+    ]
+
+    const actDocOptions = [
+        "All Templates",
+        "Off Campus Activities",
+        "On Campus Activities",
     ]
 
     const onDrop = useCallback(acceptedFiles => {
@@ -98,16 +121,29 @@ function UploadBatchModal({ handleCloseModal, page }) {
     const handleTemplateFilter = (option) => {
         console.log("Selected template option:", option);
         // use the option as parameter to filter the templates
-        if (option === "New Applicant Recognition") {
-            setSelectedTemplate("new_applicant_recognition");
-        } else if (option === "Renewal Recognition") {
-            setSelectedTemplate("renewal_recognition");
-        } else {
-            setSelectedTemplate(null);
+        if (isDocumentPage) {
+            if (option === "New Applicant Recognition") {
+                setSelectedTemplate("new_applicant_recognition");
+            } else if (option === "Renewal Recognition") {
+                setSelectedTemplate("renewal_recognition");
+            } else {
+                setSelectedTemplate(["new_applicant_recognition", "renewal_recognition"]);
+            }
+        }
+
+        // This logic is missing for activities page:
+        if (isActivitiesPage) {
+            if (option === "Off Campus Activities") {
+                setSelectedTemplate("off_campus_activities");
+            } else if (option === "On Campus Activities") {
+                setSelectedTemplate("on_campus_activities");
+            } else {
+                setSelectedTemplate(["off_campus_activities", "on_campus_activities"]);
+            }
         }
     }
 
-    const donwnloadDocument = (document) => {
+    const downloadDocument = (document) => {
         try {
             console.log("Downloading document:", document);
             if (document.signedUrl) {
@@ -139,7 +175,7 @@ function UploadBatchModal({ handleCloseModal, page }) {
                         <ReusableDropdown
                             defaultValue={"All Templates"}
                             showAllOption={false}
-                            options={genDocOptions}
+                            options={isDocumentPage ? genDocOptions : isActivitiesPage ? actDocOptions : []}
                             onChange={
                                 (e) => {
                                     handleTemplateFilter(e.target.value);
@@ -148,13 +184,13 @@ function UploadBatchModal({ handleCloseModal, page }) {
                         ></ReusableDropdown>
                     </div>
                     <div className='max-h-[25rem] min-h-[10rem] overflow-y-auto overflow-x-hidden w-full'>
-                        {console.log("Data:", data.map(doc => doc.documents))}
+                        {/* {console.log("Data:", data.map(doc => doc.documents))} */}
                         {data && data.length > 0 ? (
                             data.map((template, index) => (
                                 template.documents?.map((document, index) => (
                                     <div
                                         key={document.id}
-                                        onClick={() => donwnloadDocument(document)}
+                                        onClick={() => downloadDocument(document)}
                                         title='download document'
                                         className='w-full justify-between items-center p-6 flex h-12 border border-mid-gray rounded cursor-pointer hover:bg-gray-100 mb-2'>
                                         <div
@@ -177,7 +213,6 @@ function UploadBatchModal({ handleCloseModal, page }) {
                     <div className='w-full flex justify-end items-center mt-4'>
                         <Button
                             onClick={() => setInitialPage("upload")}
-                            disabled={data.length === 0}
                             style={"secondary"}
                         >Next</Button>
                     </div>

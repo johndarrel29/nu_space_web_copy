@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal, TextInput, CloseButton } from '../../../components';
 import { DropIn } from "../../../animations/DropIn";
-import { useModal, useActivities, useDocumentManagement, useUserProfile } from "../../../hooks";
+import { useModal, useActivities } from "../../../hooks";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from 'react-toastify';
 import { useUserStoreWithAuth } from '../../../store'

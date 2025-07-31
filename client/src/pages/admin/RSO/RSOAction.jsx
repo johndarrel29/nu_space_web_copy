@@ -3,12 +3,16 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { tabSelector, Button, TextInput, ReusableDropdown, Backdrop, CloseButton } from '../../../components'
 import TagSelector from '../../../components/TagSelector';
-import { useTagSelector, useRSO } from '../../../hooks';
+import { useTagSelector, useRSO, useAcademicYears } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import DefaultPicture from '../../../assets/images/default-profile.jpg';
 import { toast } from 'react-toastify';
 import Switch from '@mui/material/Switch';
+
+// make the academicYears an object so that the display is label while when clicked, the selected value is an id
+
+
 
 // file manipulation
 import Cropper from "react-easy-crop";
@@ -16,6 +20,15 @@ import getCroppedImg from '../../../utils/cropImage';
 
 function RSOAction() {
   const { createRSO, updateRSO, deleteRSO, loading, updateError, createError, success } = useRSO();
+  const {
+    academicYears,
+    academicYearsLoading,
+    academicYearsError,
+    academicYearsErrorMessage,
+    refetchAcademicYears,
+    isRefetchingAcademicYears,
+    isAcademicYearsFetched
+  } = useAcademicYears();
   const location = useLocation();
   const navigate = useNavigate();
   const { mode, data, from } = location.state || {};
@@ -39,7 +52,7 @@ function RSOAction() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [readyCropper, setReadyCropper] = useState(false);
 
-  console.log("Location state:", location.state);
+  console.log("fetching years list:", academicYears?.years?.map(year => year.label));
 
 
   const isEdit = mode === 'edit';
@@ -73,6 +86,14 @@ function RSOAction() {
     }
   }, [isEdit]);
 
+  // make sure the two data are the same
+  const academicYearOptions = academicYears?.years?.map(year => ({
+    label: year.label,
+    value: year.id
+  })) || [];
+
+  const options = academicYears?.years?.map(year => year?.years) || [];
+
   useEffect(() => {
     if (isEdit && data) {
       setFormData({
@@ -88,6 +109,7 @@ function RSOAction() {
         RSO_picturePreview: data.picture || DefaultPicture,
         RSO_forms: data.RSO_forms || "",
         RSO_probationary: data.RSO_probationary || false,
+        RSO_academicYear: data.RSO_academicYear || "", // <-- add this field
       });
 
       if (data.RSO_tags?.length) {
@@ -123,6 +145,7 @@ function RSOAction() {
     RSO_description: "",
     RSO_picture: null,
     RSO_picturePreview: DefaultPicture,
+    RSO_academicYear: "", // <-- add this field
   });
 
   const fileInputRef = useRef(null);
@@ -204,17 +227,21 @@ function RSOAction() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Find the academic year object by label
+    const selectedAcademicYear = academicYears?.years?.find(
+      (year) => year.label === formData.RSO_academicYear
+    );
+
     const payload = {
       ...formData,
       RSO_tags: selectedTags,
-      createdAt: new Date().toISOString(), // Add current date in ISO format
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      // Remove RSO_academicYear and add academicYearId
+      academicYearId: selectedAcademicYear ? selectedAcademicYear.id : undefined,
     };
+    delete payload.RSO_academicYear;
 
-
-    if (formData.RSO_status === "" || formData.RSO_status === null) {
-      delete payload.RSO_status;
-    }
     // Validate form data
     if (formData.RSO_forms && !formData.RSO_forms.startsWith("https://")) {
       setError("Registration forms link must start with https://");
@@ -388,57 +415,74 @@ function RSOAction() {
         <form className='w-full'>
           {/* detailed sections */}
           <div className='flex flex-col items-start w-full'>
-            <div className='flex flex-col items-center justify-center'>
+            <div className='flex justify-start items-end gap-4 w-full mb-4'>
+              {/* Profile picture section */}
+              <div className='flex flex-col items-center justify-center'>
 
-              {/* only show if there's no image */}
-              {!formData.RSO_picturePreview && (
-                <img
-                  src={isEdit && !hasSubmitted ? formData?.picture : DefaultPicture}
-                  alt="RSO Preview"
-                  className="rounded-full h-24 w-24 object-cover"
-                />
-              )}
+                {/* only show if there's no image */}
+                {!formData.RSO_picturePreview && (
+                  <img
+                    src={isEdit && !hasSubmitted ? formData?.picture : DefaultPicture}
+                    alt="RSO Preview"
+                    className="rounded-full h-24 w-24 object-cover"
+                  />
+                )}
 
-              {/* image input */}
-              {formData.RSO_picturePreview && (
-                <img
-                  src={formData.RSO_picturePreview}
-                  alt="RSO Preview"
-                  className="rounded-full h-24 w-24 object-cover"
-                />
-              )}
-              <div className='flex gap-1 mt-2'>
+                {/* image input */}
+                {formData.RSO_picturePreview && (
+                  <img
+                    src={formData.RSO_picturePreview}
+                    alt="RSO Preview"
+                    className="rounded-full h-24 w-24 object-cover"
+                  />
+                )}
+                <div className='flex gap-1 mt-2'>
 
-                {/* input image button */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleImageChange}
-                />
+                  {/* input image button */}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                  />
 
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className='px-2 py-1 bg-transparent rounded-xl border border-gray-400 text-sm flex justify-center cursor-pointer'>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className='px-2 py-1 bg-transparent rounded-xl border border-gray-400 text-sm flex justify-center cursor-pointer'>
 
-                  {isEdit ? `Edit` : isCreate ? 'Upload' : 'Upload'}
-                </div >
-                <div
-                  onClick={() => {
-                    setImage(null);
-                    setFormData(prev => ({
-                      ...prev,
-                      RSO_picture: null,
-                      RSO_picturePreview: DefaultPicture,
-                    }));
+                    {isEdit ? `Edit` : isCreate ? 'Upload' : 'Upload'}
+                  </div >
+                  <div
+                    onClick={() => {
+                      setImage(null);
+                      setFormData(prev => ({
+                        ...prev,
+                        RSO_picture: null,
+                        RSO_picturePreview: DefaultPicture,
+                      }));
+                    }}
+                    className='cursor-pointer px-2 py-1 bg-transparent rounded-full border border-gray-400 text-sm flex items-center justify-center'>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='fill-off-black size-3'><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
+                  </div >
+                </div>
+              </div>
+
+              {/* Academic Year */}
+              <div className='w-full flex flex-col'>
+                <label htmlFor="RSO_academicYear" className='text-sm'>Academic Year</label>
+                <ReusableDropdown
+                  id="RSO_academicYear"
+                  options={options}
+                  showAllOption={false}
+                  value={formData.RSO_academicYear || ""}
+                  onChange={(e) => {
+                    setFormData({ ...formData, RSO_academicYear: e.target.value });
+                    console.log("Selected academic year:", e.target.value);
                   }}
-                  className='cursor-pointer px-2 py-1 bg-transparent rounded-full border border-gray-400 text-sm flex items-center justify-center'>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className='fill-off-black size-3'><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
-                </div >
+                ></ReusableDropdown>
               </div>
             </div>
-
             <div className='w-full'>
               <label htmlFor="RSO_name" className='text-sm'>RSO Name</label>
               <TextInput

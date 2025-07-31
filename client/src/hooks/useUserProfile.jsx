@@ -26,11 +26,14 @@ function useUserProfile() {
 
       const role = user?.role || '';
 
-      console.log('Exact user role:', role); // log this early
+      console.log('Exact user role:', role);
 
       switch (role) {
         case 'admin':
         case 'super_admin':
+        case 'coordinator':
+        case 'director':
+        case 'avp':
           url = `${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchAdminProfile`;
           break;
         case 'rso_representative':
