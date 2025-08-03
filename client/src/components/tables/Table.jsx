@@ -16,7 +16,8 @@ import { toast } from 'react-toastify';
 // Table Component
 const Table = React.memo(({ searchQuery, selectedRole }) => {
   const [mode, setMode] = useState('delete');
-  const { data, updateUserMutate, deleteUserMutate, error, refetch, isLoading } = useUser();
+  console.log("Table component is mounting");
+  const { usersData, updateUserMutate, deleteUserMutate, error, refetch, isLoading } = useUser();
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage, setPostsPerPage] = useState(10);
@@ -29,7 +30,9 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
     refetch();
   }, []);
 
-  console.log("Users data:", data);
+  console.log("isLoading:", isLoading);
+  console.log("isError:", error);
+  console.log("usersData:", usersData);
 
   // Makes the search query debounced so that it doesn't render on every key stroke
   useEffect(() => {
@@ -43,15 +46,16 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
 
   const filteredRecords = useMemo(() => {
     try {
+      console.log("users data:", usersData);
       setFilterError(null);
 
-      if (!Array.isArray(data)) {
-        console.error("Users is not an array:", data);
+      if (!Array.isArray(usersData)) {
+        console.error("Users is not an array:", usersData);
 
         return [];
       }
 
-      return data.filter(user => {
+      return usersData.filter(user => {
         const matchesSearch = ['firstName', 'lastName', 'email'].some(field =>
           typeof user[field] === 'string' && user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
         );
@@ -72,7 +76,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
       return [];
     }
 
-  }, [data, safeSearchQuery, selectedRole]);
+  }, [usersData, safeSearchQuery, selectedRole]);
 
   const records = useMemo(() => {
     const indexOfLastPost = currentPage * postsPerPage;
@@ -198,7 +202,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
 
         )}
       </AnimatePresence>
-
+      {console.log("Filtered Records:", filteredRecords)}
 
       <div className="flex justify-between items-center mb-4">
         <span className="text-gray-700 font-semibold">
@@ -246,7 +250,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             </p>
           </div>
         ) :
-          data?.length > 0 ? (
+          usersData?.length > 0 ? (
             <div className="w-full">
               <div className=' overflow-x-auto w-full border border-mid-gray rounded-md'>
                 <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">

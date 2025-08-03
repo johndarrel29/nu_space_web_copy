@@ -65,7 +65,7 @@ export default function MainLogin() {
                     } else if (role === "rso_representative") {
                         navigate("/document");
                     } else if (role === "super_admin") {
-                        navigate("/user-management");
+                        navigate("/users");
                     } else if (role === "director" || role === "avp") {
                         navigate("/admin-documents");
                     } else {

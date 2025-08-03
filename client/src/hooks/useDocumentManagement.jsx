@@ -24,6 +24,7 @@ function useDocumentManagement({
     const queryClient = useQueryClient();
     const { user, token } = useAuth();
 
+    // for rso representative
     const fetchDocuments = async () => {
         const token = localStorage.getItem("token");
         // console.log("Stored token:", token);
@@ -51,6 +52,7 @@ function useDocumentManagement({
 
     }
 
+    // for rso
     const submitDocument = async ({ formData }) => {
         const token = useTokenStore.getState().token;
 
@@ -86,6 +88,7 @@ function useDocumentManagement({
 
     };
 
+    //no role -- probably remove
     const fetchRSODocuments = async (rsoID) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
@@ -122,6 +125,7 @@ function useDocumentManagement({
         throw new Error("Unexpected response structure");
     }
 
+    // for admin
     const approveRSODocument = async (documentId, reviewedById) => {
         console.log("approveRSODocument called with:");
         console.log("documentId:", documentId);
@@ -153,6 +157,7 @@ function useDocumentManagement({
         return res.json();
     };
 
+    // for admin
     const rejectRSODocument = async (documentId, reviewedById) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
@@ -174,6 +179,7 @@ function useDocumentManagement({
         return res.json();
     }
 
+    // no role -- probably remove
     const fetchDocumentsStudentRso = async (userID) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
@@ -199,6 +205,7 @@ function useDocumentManagement({
 
     }
 
+    // for admin
     // Add new function to fetch general documents with direct ID
     const fetchGeneralDocuments = async (id) => {
         const token = localStorage.getItem("token");
@@ -229,6 +236,7 @@ function useDocumentManagement({
         throw new Error("Unexpected response structure");
     };
 
+    // checks if the user has a role and fetches the document template accordingly
     const fetchDocumentTemplate = async (documentFor) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
@@ -268,6 +276,7 @@ function useDocumentManagement({
         return json;
     }
 
+    // for admin
     // add a parameter to fetch all documents based on documentFor, documentType, or userID
     const fetchAllDocuments = async ({ queryKey }) => {
         const [_key, params] = queryKey;

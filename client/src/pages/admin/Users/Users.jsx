@@ -58,7 +58,7 @@ const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selecte
   );
 });
 
-export default function UserManagement() {
+export default function Users() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState("");
   const { isOpen, openModal, closeModal } = useModal();

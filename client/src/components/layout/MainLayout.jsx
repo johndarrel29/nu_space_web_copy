@@ -205,6 +205,7 @@ function MainLayout({ children }) {
 
 
       {/* Main Content Area */}
+      {console.log(isDirector ? "role is director. Removing sidebar" : "role is not director. Showing sidebar")}
       <div
         className={`relative h-screen z-0 transition-all duration-300 
       ${isCollapsed ? 'xl:left-[250px] xl:w-[calc(100%-250px)] w-full' : (isDirector || isAVP || isSuperAdmin) ? 'w-full' : 'xl:left-[80px] xl:w-[calc(100%-80px)] w-full'}`}

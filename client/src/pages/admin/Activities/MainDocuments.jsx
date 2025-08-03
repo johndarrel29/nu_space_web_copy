@@ -196,6 +196,7 @@ export default function MainDocuments() {
 
   console.log("user role:", user.role);
   console.log("activitiesToShow:", activitiesToShow?.length > 0);
+  console.log("allActivities:", allActivities);
 
   return (
     <div className="w-full">

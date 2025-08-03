@@ -87,12 +87,14 @@ function RSOAction() {
   }, [isEdit]);
 
   // make sure the two data are the same
-  const academicYearOptions = academicYears?.years?.map(year => ({
-    label: year.label,
-    value: year.id
-  })) || [];
+  // const academicYearOptions = academicYears?.years?.map(year => ({
+  //   label: year.label,
+  //   value: year.id
+  // })) || [];
 
-  const options = academicYears?.years?.map(year => year?.years) || [];
+  const academicYearOptions = academicYears?.years?.map(year => year.label) || [];
+
+  const options = academicYears?.years || [];
 
   useEffect(() => {
     if (isEdit && data) {
@@ -471,14 +473,27 @@ function RSOAction() {
               {/* Academic Year */}
               <div className='w-full flex flex-col'>
                 <label htmlFor="RSO_academicYear" className='text-sm'>Academic Year</label>
+                {/* <select name="RSO_academicYear" id="RSO_academicYear">
+                  <option value="" disabled>
+                    Select Academic Year
+                  </option>
+                  {options.map((year, index) => {
+                    return (
+                      <option
+                        onClick={(e) => console.log("Selected year:", e.target.value, "Index:", index, "Year object:", year, "Year ID:", year._id, "Year label:", year.label)}
+                        key={index} value={year._id}>
+                        {year.label}
+                      </option>
+                    );
+                  })}
+                </select> */}
                 <ReusableDropdown
-                  id="RSO_academicYear"
-                  options={options}
-                  showAllOption={false}
-                  value={formData.RSO_academicYear || ""}
+                  name="RSO_academicYear"
+                  value={formData.RSO_academicYear}
+                  options={academicYearOptions}
                   onChange={(e) => {
+                    console.log("Selected Academic Year:", e.target.value);
                     setFormData({ ...formData, RSO_academicYear: e.target.value });
-                    console.log("Selected academic year:", e.target.value);
                   }}
                 ></ReusableDropdown>
               </div>

@@ -11,7 +11,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
 import { Document } from './pages/rso';
-import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOManagement, UserManagement, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
+import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOParent, Users, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
@@ -105,13 +105,13 @@ function App() {
                     />
 
                     <Route
-                      path="/user-management"
+                      path="/users"
                       element={
                         <MainLayout
                           tabName="Users"
                           headingTitle="Monitor RSO Representative and Student accounts"
                         >
-                          <UserManagement />
+                          <Users />
                         </MainLayout>
                       }
                     />
@@ -183,13 +183,13 @@ function App() {
 
                     {/* RSO Management routes */}
                     <Route
-                      path="/rso-management"
+                      path="/rsos"
                       element={
                         <MainLayout
                           tabName="RSOs"
                           headingTitle="Manage RSO Account"
                         >
-                          <RSOManagement />
+                          <RSOParent />
                         </MainLayout>
                       }
                     >
@@ -214,7 +214,7 @@ export default App;
 Removed routes:
 - /activity-page
 - /rso-account
-- /rso-user-management
+- /rso-users
 - requirements subroute under documents/:activityId
 - review subroute under documents/:activityId
 */

@@ -10,5 +10,11 @@ export { default as useUserProfile } from './useUserProfile';
 export { default as useTags } from './useTags';
 export { default as useAnnouncements } from './useAnnouncements';
 export { default as useSurvey } from './useSurvey';
-export { default as useAdminSurvey } from './useAdminSurvey';
-export { default as useAcademicYears } from './useAcademicYears';
+export { default as useAcademicYears } from './admin/useAdminAcademicYears';
+
+export * from './admin';
+export * from './avp';
+export * from './coordinator';
+export * from './director';
+export * from './rso';
+export * from './superadmin';

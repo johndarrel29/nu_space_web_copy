@@ -16,6 +16,7 @@ function useRSO() {
 
   console.log("useRSO initialized with token:", getToken());
 
+  // admin create an rso
   const createRSO = async (newOrg) => {
     setLoading(true);
     setSuccess(false);
@@ -96,6 +97,8 @@ function useRSO() {
     }
   };
 
+  // admin update an rso
+  // This function handles both file uploads and regular JSON updates
   const updateRSO = async (id, updatedOrg) => {
     setLoading(true);
     setUpdateError(null);
@@ -151,6 +154,8 @@ function useRSO() {
     }
   };
 
+  // admin update RSO status
+  // fix the updateRSOStatus function to use the correct endpoint and handle the request properly
   const updateRSOStatus = async ({ id, status }) => {
     const token = useTokenStore.getState().getToken();
 
@@ -163,7 +168,7 @@ function useRSO() {
 
     const body = JSON.stringify({ RSO_membershipStatus: status });
 
-    const response = await fetch(`${process.env.REACT_APP_UPDATE_RSO_URL}/${id}`, {
+    const response = await fetch(`${process.env.REACT_APP_UPDATE_RSO_URL}/api/admin/rso/recognize-rso/${id}`, {
       method: "PATCH",
       headers,
       body,
@@ -177,6 +182,7 @@ function useRSO() {
     return response.json();
   }
 
+  // admin delete an rso
   const deleteRSO = async (id) => {
     setLoading(true);
 
@@ -212,6 +218,7 @@ function useRSO() {
     }
   };
 
+  // Fetch all RSOs
   const fetchWebRSO = async () => {
     console.log("Fetching web RSO data...");
 
@@ -243,6 +250,7 @@ function useRSO() {
     }
   }
 
+  // for rso fetch members
   const fetchMembers = async () => {
     const token = useTokenStore.getState().getToken();
     console.log("Stored token:", token);
@@ -279,6 +287,7 @@ function useRSO() {
     }
   }
 
+  // for rso update officer
   const updateOfficer = async ({ id, updatedOfficer }) => {
     const token = useTokenStore.getState().getToken();
 
@@ -299,6 +308,7 @@ function useRSO() {
 
   }
 
+  // for rso create officer
   const createOfficer = async ({ createdOfficer }) => {
     const token = useTokenStore.getState().getToken();
     console.log("createdOfficer: ", createdOfficer);
@@ -320,6 +330,7 @@ function useRSO() {
 
   }
 
+  // for admin update membership date
   const updateMembershipDate = async ({ date }) => {
     const token = useTokenStore.getState().getToken();
 
@@ -339,6 +350,7 @@ function useRSO() {
 
   }
 
+  // for admin get membership date
   const getMembershipDate = async () => {
     try {
       const token = useTokenStore.getState().getToken();
@@ -368,6 +380,7 @@ function useRSO() {
 
   }
 
+  // for admin close membership date
   const closeMembershipDate = async () => {
     const token = useTokenStore.getState().getToken();
 
@@ -386,6 +399,7 @@ function useRSO() {
 
   }
 
+  // for admin extend membership date
   const extendMembershipDate = async ({ date, hours, minutes }) => {
     const token = useTokenStore.getState().getToken();
 
@@ -563,6 +577,7 @@ function useRSO() {
       console.error("Error updating RSO status:", error);
     },
   })
+
 
 
 

@@ -24,7 +24,6 @@ import { useAuth } from "../../../context/AuthContext";
 // Update the mapping of data to the new fields from the backend
 // Update the RSO data structure to match the new backend response
 
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
