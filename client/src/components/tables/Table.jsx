@@ -5,19 +5,28 @@ import { ActionModal, TableRow } from '../../components';
 import 'react-loading-skeleton/dist/skeleton.css'
 import { CardSkeleton } from '../../components';
 import { AnimatePresence } from "framer-motion";
-import { useModal, useUser } from "../../hooks";
+import { useModal, useAdminUser, useSuperAdminUsers } from "../../hooks";
 import { toast } from 'react-toastify';
+import { useUserStoreWithAuth } from "../../store";
+import { useAuth } from "../../context/AuthContext";
 
-// fix error 403 when changing login user, then going to the table page, partially fixed
-// error 403 when role is coordinator
-// ${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchUsers:
-// error "You have no authorized access to this resource"
+// set the useAdminUser off if super admin is logged in and vice versa
+// make a state that will the sources data from super admin or admin as source of truth
+// remove assigned rso if super admin
+
+
+// TODO: apply API that is for admin and super admin
+// 1: create state to display data from either admin or super admin
+// 2: create effect to fetch data from the appropriate source
 
 // Table Component
 const Table = React.memo(({ searchQuery, selectedRole }) => {
+
   const [mode, setMode] = useState('delete');
-  console.log("Table component is mounting");
-  const { usersData, updateUserMutate, deleteUserMutate, error, refetch, isLoading } = useUser();
+  const { usersData, updateUserMutate, deleteStudentAccount, error, refetch, isLoading, refetchAdminProfile } = useAdminUser();
+  const { sdaoAccounts, createAccount, deleteAdminAccount, updateAdminRole, refetchAccounts } = useSuperAdminUsers();
+
+  const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage, setPostsPerPage] = useState(10);
@@ -25,14 +34,44 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
   const { isOpen, openModal, closeModal } = useModal();
   const [success, setSuccess] = useState(false);
   const [filterError, setFilterError] = useState(null);
+  const { user } = useAuth();
+  const [tableData, setTableData] = useState([]);
 
+  console.log("admin user data", usersData);
+
+  // Effect to fetch accounts on first load
   useEffect(() => {
-    refetch();
+    const initialLoad = async () => {
+      // Wait a bit to ensure auth state is fully loaded
+      await new Promise(r => setTimeout(r, 100));
+
+      if (isUserAdmin || isCoordinator) {
+        await refetchAccounts();
+      } else if (isSuperAdmin) {
+        await refetchAdminProfile();
+      }
+    };
+
+    initialLoad();
   }, []);
 
-  console.log("isLoading:", isLoading);
-  console.log("isError:", error);
-  console.log("usersData:", usersData);
+  // Effect to set table data based on user role
+  useEffect(() => {
+    if (isSuperAdmin) {
+      setTableData(sdaoAccounts?.SDAOAccounts || []);
+      return;
+    }
+    if (isUserAdmin || isCoordinator) {
+      console.log("Admin user detected, using admin hook");
+      setTableData(usersData || []);
+
+      // Use admin hook
+      console.log("Admin users:", usersData);
+      return;
+    }
+  }, [user, isSuperAdmin, isUserAdmin, sdaoAccounts, usersData, isCoordinator]);
+
+  console.log("Table Data:", tableData);
 
   // Makes the search query debounced so that it doesn't render on every key stroke
   useEffect(() => {
@@ -46,16 +85,16 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
 
   const filteredRecords = useMemo(() => {
     try {
-      console.log("users data:", usersData);
+      console.log("users data:", tableData);
       setFilterError(null);
 
-      if (!Array.isArray(usersData)) {
-        console.error("Users is not an array:", usersData);
+      if (!Array.isArray(tableData)) {
+        console.error("Users is not an array:", tableData);
 
         return [];
       }
 
-      return usersData.filter(user => {
+      return tableData.filter(user => {
         const matchesSearch = ['firstName', 'lastName', 'email'].some(field =>
           typeof user[field] === 'string' && user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
         );
@@ -76,7 +115,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
       return [];
     }
 
-  }, [usersData, safeSearchQuery, selectedRole]);
+  }, [tableData, safeSearchQuery, selectedRole]);
 
   const records = useMemo(() => {
     const indexOfLastPost = currentPage * postsPerPage;
@@ -98,66 +137,94 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
     setSelectedUser(null);
   }, []);
 
+  // Handle confirm action received from ActionModal
   const handleConfirm = useCallback(async (_id, updatedData) => {
+    console.log("handleConfirm called with ID:", _id, "and updatedData:", updatedData);
 
     if (updatedData) {
+      console.log("updatedData role", updatedData.role)
 
       // If the role is being changed to 'student', ensure that assigned_rso is removed
       if (updatedData.role === 'student') {
-        // Don't send category data in the update request when role is student
+        console.log("the first condition has been called")
         updatedData.category = null;
         updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'student'
+        updatedData.assigned_rso = null;
       }
 
       // If the role is 'rso_representative', ensure the category is assigned to assigned_rso
       if (updatedData.role === 'rso_representative' && updatedData.category) {
+        console.log("the second condition has been called")
         updatedData.category = null;
-        // updatedData.assigned_rso = updatedData.category;
       }
 
-      if (updatedData.role === 'coordinator') {
-        // Don't send category data in the update request when role is coordinator
-        updatedData.category = null;
-        updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'coordinator'
+      if ((updatedData.role !== 'student' || updatedData.role !== 'rso_representative')) {
+        console.log("the last condition has been called")
+        // only pass role
+        updatedData = { role: updatedData.role };
       }
 
-      if (updatedData.role === 'super_admin') {
-        // Don't send category data in the update request when role is super_admin
-        updatedData.category = null;
-        updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'super_admin'
-      }
+      // if (updatedData.role === 'coordinator') {
+      //   // Don't send category data in the update request when role is coordinator
+      //   updatedData.category = null;
+      //   updatedData.assignedRSO = null;
+      //   updatedData.assigned_rso = null;
+      // }
 
-      if (updatedData.role === 'admin') {
-        // Don't send category data in the update request when role is admin
-        updatedData.category = null;
-        updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'admin'
-      }
+      // if (updatedData.role === 'super_admin') {
+      //   // Don't send category data in the update request when role is super_admin
+      //   updatedData.category = null;
+      //   updatedData.assignedRSO = null;
+      //   updatedData.assigned_rso = null;
+      // }
 
+      // if (updatedData.role === 'admin') {
+      //   // Don't send category data in the update request when role is admin
+      //   updatedData.category = null;
+      //   updatedData.assignedRSO = null;
+      //   updatedData.assigned_rso = null;
+      // }
     }
 
     try {
       if (updatedData) {
-        console.log("Data being sent:", updatedData);
+        // Update logic remains the same
+        const updateUserOnRole = isUserAdmin ? updateUserMutate : isSuperAdmin ? updateAdminRole : null;
+        const refetchBasedOnRole = isUserAdmin ? refetchAccounts : isSuperAdmin ? refetchAdminProfile : null;
 
-        await updateUserMutate.mutateAsync({ userId: _id, userData: updatedData });
+        console.log("passing data: ", { userId: _id, role: updatedData.role });
 
-        toast.success("User updated successfully");
+        updateUserOnRole({ userId: _id, userData: updatedData }, {
+          onSuccess: () => {
+            console.log("User updated successfully");
+            toast.success("User updated successfully");
+            refetchBasedOnRole();
 
+
+          },
+          onError: (error) => {
+            console.error("Error updating user:", error);
+            toast.error("Error updating user");
+          },
+        });
       } else {
-        // Delete user
-        console.log("Deleting user with ID:", _id);
-        await deleteUserMutate.mutateAsync(_id);
-        console.log("User deleted successfully with ID:", _id);
-
-        toast.success("User deleted successfully");
+        // Fixed delete logic - call the function directly
+        if (isUserAdmin) {
+          // Call deleteStudentAccount directly
+          await deleteStudentAccount(_id);
+          console.log("User deleted successfully");
+          toast.success("User deleted successfully");
+        } else if (isSuperAdmin) {
+          // Call deleteAdminAccount directly
+          await deleteAdminAccount(_id);
+          console.log("User deleted successfully");
+          toast.success("User deleted successfully");
+        } else {
+          throw new Error("No valid delete function available");
+        }
       }
       // Refetch data after the operation
       setSuccess(true);
-      await refetch();
     } catch (error) {
       console.error("Error updating/deleting user:", error);
       toast.error("Error updating/deleting user");
@@ -165,7 +232,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
       closeModal();
       setSuccess(false);
     }
-  }, [refetch]);
+  }, [updateUserMutate, deleteStudentAccount, deleteAdminAccount, isUserAdmin, isSuperAdmin, updateAdminRole, closeModal]);
 
 
   const changePageNum = useCallback((page) => setPostsPerPage(Number(page)), []);
@@ -196,10 +263,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             onConfirm={handleConfirm}
             loading={isLoading}
             success={success}
-
           />
-
-
         )}
       </AnimatePresence>
       {console.log("Filtered Records:", filteredRecords)}
@@ -221,7 +285,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
           </select>
         </li>
       </div>
-
+      {console.log("Table Data:", tableData)}
       {error ? (
         <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center">
           <svg
@@ -250,7 +314,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             </p>
           </div>
         ) :
-          usersData?.length > 0 ? (
+          tableData?.length > 0 ? (
             <div className="w-full">
               <div className=' overflow-x-auto w-full border border-mid-gray rounded-md'>
                 <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
@@ -272,9 +336,11 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
                         </div>
                       </th>
                       <th scope="col" className='px-6 py-3'>
-                        <div className="flex items-center justify-center">
-                          Assigned RSO
-                        </div>
+                        {!isSuperAdmin && (
+                          <div className="flex items-center justify-center">
+                            Assigned RSO
+                          </div>
+                        )}
                       </th>
                       <th scope="col" className='px-6 py-3'>
                         <div className="flex items-center justify-center">

@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
+import useTokenStore from "../../store/tokenStore";
+import { useUserStoreWithAuth } from '../../store';
 
 // admin fetch activity with parameters
 const fetchAdminActivity = async ({
@@ -10,9 +12,7 @@ const fetchAdminActivity = async ({
     RSOType = "",
     college = ""
 }) => {
-    const token = localStorage.getItem("token");
-    console.log("Stored token:", token);
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    const token = useTokenStore.getState().getToken();
 
     const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/fetch-activities`);
     url.searchParams.set("page", pageParam);
@@ -26,7 +26,7 @@ const fetchAdminActivity = async ({
     const response = await fetch(url, {
         headers: {
             "Content-Type": "application/json",
-            "Authorization": token ? `Bearer ${formattedToken}` : "",
+            "Authorization": token,
         }
     }
     )
@@ -53,6 +53,7 @@ function useAdminActivity({
     college = ""
 }) {
     const { user } = useAuth();
+    const { isUserAdmin, isUserCoordinator } = useUserStoreWithAuth();
 
     const {
         data: adminPaginatedActivities,

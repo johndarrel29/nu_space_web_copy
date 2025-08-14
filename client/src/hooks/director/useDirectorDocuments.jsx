@@ -1,7 +1,7 @@
 import useTokenStore from "../../store/tokenStore";
-import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
-
-const queryClient = new QueryClient();
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUserStoreWithAuth } from '../../store';
+import { useEffect } from "react";
 
 const fetchDirectorDocuments = async () => {
     try {
@@ -49,6 +49,15 @@ const approveDirectorDocument = async (documentId) => {
 }
 
 function useDirectorDocuments() {
+    const { isDirector } = useUserStoreWithAuth();
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!isDirector) {
+            queryClient.removeQueries(['directorDocuments']);
+        }
+    }, [isDirector, queryClient]);
+
     const {
         data: directorDocuments,
         isLoading: documentsLoading,
@@ -60,6 +69,7 @@ function useDirectorDocuments() {
     } = useQuery({
         queryKey: ["directorDocuments"],
         queryFn: fetchDirectorDocuments,
+        enabled: isDirector,
     });
 
     const {
@@ -77,6 +87,7 @@ function useDirectorDocuments() {
         onError: (error) => {
             console.error("Error approving document:", error);
         },
+        enabled: isDirector,
     });
 
     return {

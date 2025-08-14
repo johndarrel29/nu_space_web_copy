@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { TabSelector, ReusableTable, Button, CloseButton } from "../../../components";
 import { DropIn } from "../../../animations/DropIn";
 import useSearchQuery from "../../../hooks/useSearchQuery";
-import { useRSO, useKeyBinding } from "../../../hooks";
+import { useRSO, useKeyBinding, useAdminRSO } from "../../../hooks";
 import { FormatDate, useNotification } from "../../../utils";
 import Switch from '@mui/material/Switch';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -36,11 +36,18 @@ const tabs = [
 
 export default function MainRSO() {
   const navigate = useNavigate();
-  const { notification, handleNotification } = useNotification();
   const { searchQuery, setSearchQuery } = useSearchQuery();
   const { token } = useAuth();
 
-  console.log("Token after refresh:", token);
+  // Admin RSO Hooks
+  const {
+    rsoData,
+    isRSOLoading,
+    isRSOError,
+    rsoError,
+    refetchRSOData,
+  } = useAdminRSO();
+
 
   // RSO data and operations
   const {
@@ -50,12 +57,14 @@ export default function MainRSO() {
     fetchData,
     createRSO,
     updateRSO,
-    RSOData,
+    // rsoData,
     fetchWebRSOError,
     updateMembershipDateMutate,
     membershipDateData,
     closeMembershipDateMutate,
   } = useRSO();
+
+
 
   // State management
   const [activeTab, setActiveTab] = useState(0);
@@ -66,10 +75,8 @@ export default function MainRSO() {
   const [date, setDate] = useState(new Date());
   const [membershipEndDate, setMembershipEndDate] = useState(null);
 
-  console.log("RSO Data:", RSOData);
-
   // Process RSO data for table
-  const rsoList = RSOData?.rsos ?? [];
+  const rsoList = rsoData?.rsos ?? [];
   console.log("Processed RSO List:", rsoList);
   const tableRow = rsoList.map((org) => {
     const snapshot = org.RSO_snapshot || {};
@@ -84,23 +91,10 @@ export default function MainRSO() {
       RSO_memberCount: org.RSO_members?.length || 0,
 
       // old fields, can be removed later
-
-      // id: snapshot._id,
-      // RSO_name: snapshot.RSO_name?.replace(/\s+/g, ' ').trim() || '',
-      // RSO_acronym: snapshot.RSO_acronym || '',
-      // RSO_description: snapshot.RSO_description || '',
-      // RSO_tags: snapshot.RSO_tags || [],
-      // RSO_category: snapshot.RSO_category || '',
-      // RSO_College: snapshot.RSO_College || '',
-      // RSO_totalMembers: snapshot.RSO_totalMembers || 0,
-      // RSO_membershipStatus: snapshot.RSO_membershipStatus || '',
-      // RSO_status: snapshot.RSO_status || false,
-      // RSO_picture: snapshot.RSO_picture || '',
-      // picture: snapshot.picture || '',
-      // RSO_memberCount: snapshot.RSO_members ? snapshot.RSO_members.length : snapshot.RSO_totalMembers || 0,
-      // RSO_popularityScoreCount: snapshot.RSO_popularityScore > 0 ? snapshot.RSO_popularityScore : 0,
     };
   });
+
+  console.log("Table Row Picture:", tableRow?.map(org => org.RSO_picture));
 
   // Filter and sort organizations
   const filteredOrgs = () => {
@@ -187,6 +181,8 @@ export default function MainRSO() {
       return;
     }
 
+    console.log("Updating membership date:", dateObject.toISOString());
+
     // Update membership date
     updateMembershipDateMutate({ date: date },
       {
@@ -232,8 +228,8 @@ export default function MainRSO() {
         </div>
         <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
-
-      <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
+      {/* Membership Status */}
+      {/* <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
         <div className="flex items-center gap-2">
           <div className={`w-3 h-3 rounded-full ${membershipEndDate ? 'bg-green-500' : 'bg-red-500'}`}></div>
           <h1 className="text-gray-700 font-medium">Membership Status: <span className={`font-semibold ${membershipEndDate ? 'text-green-600' : 'text-red-600'}`}>{membershipEndDate ? "Active" : "Inactive"}</span></h1>
@@ -247,8 +243,7 @@ export default function MainRSO() {
             <h1 className="text-gray-700 font-medium">End Date: <span className="font-semibold text-gray-900">{membershipEndDate}</span></h1>
           </div>
         )}
-      </div>
-      {console.log("fetchWebRSOError:", fetchWebRSOError)}
+      </div> */}
 
       <ReusableTable
         options={["All", "A-Z", "Most Popular"]}
@@ -259,6 +254,7 @@ export default function MainRSO() {
         tableHeading={[
           { id: 1, name: "RSO Name", key: "RSO_name" },
           { id: 2, name: "RSO Category", key: "RSO_category" },
+          { id: 3, name: "Membership Status", key: "membership_status" },
         ]}
         tableRow={filteredOrgs()}
         onClick={handleSelectedUser}

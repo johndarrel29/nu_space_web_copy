@@ -1,16 +1,13 @@
 import Badge from "../ui/Badge";
-import { useDocumentManagement } from "../../hooks";
+import { useAdminDocuments, useCoordinatorDocuments, useAVPDocuments, useDirectorDocuments, useAdminAcademicYears } from "../../hooks";
 import { FormatDate } from "../../utils";
 import { Searchbar, ReusableDropdown, DropdownSearch } from "../../components";
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-// data not showng on coordinator UI
-
+import { useUserStoreWithAuth } from '../../store';
+import { CardSkeleton } from '../../components';
 
 // goal:
-// make table design reusable
-// make parameter and metadata logic for the table
 // add loading and error states for the table
 
 // Next steps:
@@ -23,8 +20,51 @@ import { useNavigate } from "react-router-dom";
 
 export default function BackendTable({ activeTab }) {
     const navigate = useNavigate();
-
+    const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
+    const {
+        academicYears,
+        academicYearsLoading,
+        academicYearsError,
+        academicYearsErrorMessage,
+        refetchAcademicYears,
+        isRefetchingAcademicYears,
+        isAcademicYearsFetched,
+    } = useAdminAcademicYears();
     const [searchQuery, setSearchQuery] = useState("");
+    const [tableData, setTableData] = useState([]);
+
+    const {
+        avpDocuments,
+
+        // rename this to avoid confusion
+        // documentsLoading,
+        // documentsError,
+        // documentsErrorMessage,
+        // refetchDocuments,
+        // isRefetchingDocuments,
+        // isDocumentsFetched,
+    } = useAVPDocuments();
+
+    const {
+        directorDocuments,
+        // documentsLoading,
+        // documentsError,
+        // documentsErrorMessage,
+        // refetchDocuments,
+        // isRefetchingDocuments,
+        // isDocumentsFetched,
+    } = useDirectorDocuments();
+
+
+    const {
+        coordinatorDocuments,
+        documentsLoading,
+        documentsError,
+        documentsErrorMessage,
+        refetchDocuments,
+        isRefetchingDocuments,
+        isDocumentsFetched,
+    } = useCoordinatorDocuments();
     const [filters, setFilters] = useState({
         page: 1,
         limit: 10,
@@ -33,7 +73,8 @@ export default function BackendTable({ activeTab }) {
         rso: "",
         startDate: "",
         endDate: "",
-        search: ""
+        search: "",
+        academicYear: "" // Add academic year filter
     });
     const {
         allDocuments,
@@ -41,7 +82,27 @@ export default function BackendTable({ activeTab }) {
         allDocumentsError,
         allDocumentsQueryError,
         refetchAllDocuments,
-    } = useDocumentManagement(filters);
+    } = useAdminDocuments(filters);
+
+    useEffect(() => {
+        console.log("coordinator path ", coordinatorDocuments);
+
+        if (coordinatorDocuments && isCoordinator) {
+            console.log("coordinator works!", coordinatorDocuments);
+            setTableData(coordinatorDocuments?.documents);
+        } else if (allDocuments && isUserAdmin) {
+            console.log("admin works!", allDocuments);
+            setTableData(allDocuments);
+        } else if (avpDocuments && isAVP) {
+            console.log("AVP works!", avpDocuments);
+            setTableData(avpDocuments);
+        } else if (directorDocuments && isDirector) {
+            console.log("Director works!", directorDocuments);
+            setTableData(directorDocuments);
+        }
+    }, [coordinatorDocuments, allDocuments, avpDocuments, directorDocuments]);
+
+    console.log("academic years ", academicYears)
 
     // refetch all documents when filters change
     useEffect(() => {
@@ -50,7 +111,7 @@ export default function BackendTable({ activeTab }) {
         }
     }, [filters, refetchAllDocuments]);
 
-    console.log("allDocuments", allDocuments);
+    console.log("table data ", tableData);
 
     // Remove the state setting from useMemo
     const documentType = useMemo(() => {
@@ -130,7 +191,7 @@ export default function BackendTable({ activeTab }) {
     };
 
     const handleNextPage = (newPage) => {
-        if (filters.page < allDocuments.pagination.totalPages) {
+        if (filters.page < tableData.pagination.totalPages) {
             setFilters((prev) => ({ ...prev, page: prev.page + 1 }));
         }
     };
@@ -151,6 +212,12 @@ export default function BackendTable({ activeTab }) {
         console.log("Selected RSO:", value);
     };
 
+    const handleAcademicYear = (value) => {
+
+
+        setFilters((prev) => ({ ...prev, yearId: value, page: 1 }));
+        console.log("Selected Academic Year:", value);
+    };
 
     useEffect(() => {
         handleSearch(searchQuery);
@@ -186,6 +253,14 @@ export default function BackendTable({ activeTab }) {
                         options={["All Organizations", "Approved", "Pending", "Rejected"]}
                     />
                 </div>
+                <div className="w-full">
+                    <ReusableDropdown
+                        onChange={(e) => handleAcademicYear(e.target.value)}
+                        options={academicYears?.years || []}
+                        icon={true}
+                        placeholder="Academic Year"
+                    />
+                </div>
                 <input
                     type="date"
                     className="w-full h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
@@ -204,7 +279,7 @@ export default function BackendTable({ activeTab }) {
 
             <div className="flex justify-between items-center mb-4 w-full">
                 <span className="text-gray-700 font-semibold">
-                    Showing {allDocuments?.signedDocuments.length} results
+                    Showing {tableData?.signedDocuments ? tableData.signedDocuments.length : tableData?.length || 0} results
                 </span>
                 <li className="flex justify-center ">
                     <select
@@ -221,111 +296,114 @@ export default function BackendTable({ activeTab }) {
             </div>
 
             {/* Table Section */}
-            {allDocumentsLoading && (
-                <div className="flex justify-center items-center h-64">
-                    <svg
-                        className="animate-spin h-5 w-5 text-gray-900"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                        />
-                        <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v8H4z"
-                        />
-                    </svg>
+            {allDocumentsLoading ? (
+                <CardSkeleton />
+            ) : (
+                <div className="border border-mid-gray rounded-md">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[800px]">
+                            <thead className="border-b border-mid-gray bg-textfield ">
+                                <tr
+                                    className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider ">
+                                    {tableHeading.map((heading, index) => (
+                                        <th
+                                            key={`header-${index}-${heading.key || heading.name}`}
+                                            className="text-left p-3"
+                                        >
+                                            <h1 className="text-gray-900 dark:text-white">
+                                                {heading.name}
+                                            </h1>
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {(tableData?.signedDocuments || tableData).length > 0 ? (
+                                    (tableData?.signedDocuments || tableData).map((row, index) => (
+                                        <tr
+                                            key={row.id}
+                                            // send document data
+                                            // request single document details API
+                                            onClick={() => navigate(`${row._id}`,
+                                                {
+                                                    state: {
+                                                        documentId: row._id,
+                                                        documentTitle: row.title,
+                                                        documentSize: row.documentSize,
+                                                        documentType: row.purpose,
+                                                        url: row.url
+                                                    }
+                                                })}
+                                            className="border-b border-mid-gray hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                                        >
+                                            {/* Organization Name with Image */}
+                                            <td className="p-3">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {index + 1}
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                            {row.title}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            {/* College */}
+                                            <td className="p-3">
+                                                <span className="text-sm text-gray-600 dark:text-white">
+                                                    {row.purpose || "N/A"}
+                                                </span>
+                                            </td>
+
+                                            {/* Status */}
+                                            <td className="p-3">
+                                                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                    {handleBadge(row.status)}
+                                                </span>
+                                            </td>
+
+                                            {/* Date Created */}
+                                            <td className="p-3">
+                                                <span className="text-sm font-light text-gray-600 dark:text-white flex items-center ">
+                                                    {FormatDate(row.updatedAt)}
+                                                </span>
+                                            </td>
+
+                                            {/* Actions */}
+                                            <td className="p-3">
+                                                <div className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="fill-gray-600 size-4 group-hover:fill-off-black"
+                                                        viewBox="0 0 448 512"
+                                                    >
+                                                        <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" />
+                                                    </svg>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={tableHeading.length} className="text-center py-8">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                </svg>
+                                                <p className="mt-2 text-sm font-medium text-gray-500">No documents found</p>
+                                                <p className="text-xs text-gray-400">Try adjusting your filters or search terms</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
-
-            <div className="border border-mid-gray rounded-md">
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[800px]">
-                        <thead className="border-b border-mid-gray bg-textfield ">
-                            <tr
-                                className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider ">
-                                {tableHeading.map((heading, index) => (
-                                    <th
-                                        key={`header-${index}-${heading.key || heading.name}`}
-                                        className="text-left p-3"
-                                    >
-                                        <h1 className="text-gray-900 dark:text-white">
-                                            {heading.name}
-                                        </h1>
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {allDocuments?.signedDocuments?.map((row, index) => (
-
-                                <tr
-                                    key={row.id}
-                                    onClick={() => navigate(`:documentId`, { state: { documentId: row.id } })}
-                                    className="border-b border-mid-gray hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                                >
-                                    {/* Organization Name with Image */}
-                                    <td className="p-3">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {index + 1}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                                                    {row.title}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    {/* College */}
-                                    <td className="p-3">
-                                        <span className="text-sm text-gray-600 dark:text-white">
-                                            {row.purpose || "N/A"}
-                                        </span>
-                                    </td>
-
-                                    {/* Status */}
-                                    <td className="p-3">
-                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                                            {handleBadge(row.status)}
-                                        </span>
-                                    </td>
-
-                                    {/* Date Created */}
-                                    <td className="p-3">
-                                        <span className="text-sm font-light text-gray-600 dark:text-white flex items-center ">
-                                            {FormatDate(row.updatedAt)}
-                                        </span>
-                                    </td>
-
-                                    {/* Actions */}
-                                    <td className="p-3">
-                                        <div className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="fill-gray-600 size-4 group-hover:fill-off-black"
-                                                viewBox="0 0 448 512"
-                                            >
-                                                <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" />
-                                            </svg>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
             {/* Pagination */}
             <div className="w-full bottom-20 mt-4">
@@ -336,12 +414,12 @@ export default function BackendTable({ activeTab }) {
                         >
                             <button className="page-link" onClick={handlePrevPage} disabled={filters.page === 1}>Prev</button>
                         </li>
-                        {console.log("metadata", allDocuments?.pagination)}
-                        <div className="px-4 py-2 font-semibold" >{`${filters.page} of ${allDocuments?.pagination?.totalPages}`}</div>
+                        {console.log("metadata", tableData?.pagination)}
+                        <div className="px-4 py-2 font-semibold" >{`${filters.page} of ${tableData?.pagination?.totalPages || 0}`}</div>
                         <li
                             className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded`}
                         >
-                            <button className="page-link" onClick={handleNextPage} disabled={filters.page === allDocuments?.pagination?.totalPages}>Next</button>
+                            <button className="page-link" onClick={handleNextPage} disabled={filters.page === tableData?.pagination?.totalPages}>Next</button>
                         </li>
                     </ul>
                 </nav>

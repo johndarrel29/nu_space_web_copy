@@ -1,17 +1,26 @@
 import { useState, useMemo, memo } from "react";
-import { Table, Searchbar, CreateUserModal, ReusableTable } from "../../../components";
+import { Table, Searchbar, CreateUserModal, ReusableTable, Button } from "../../../components";
 import { useModal, useRSO, useUserProfile } from "../../../hooks";
 import { AnimatePresence } from "framer-motion";
 import { FormatDate } from "../../../utils";
+import { useUserStoreWithAuth } from "../../../store";
+
 
 //add error preferrably from query
 
 // function to handle the search and filter
 const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole, openModal }) => {
 
-
+  const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
   return (
     <>
+      {/* button to open create user modal */}
+      {(isSuperAdmin) && (
+        <div>
+          <Button onClick={openModal}>Create User</Button>
+        </div>
+      )}
+
       {/* search query */}
       <div className="mt-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
         <div className="w-full lg:w-full md:w-full">
@@ -42,11 +51,19 @@ const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selecte
             className="w-full h-10 border border-mid-gray rounded-md p-1 bg-textfield focus:outline-none focus:ring-off-black  focus:ring-1"
           >
             <option value="">All</option>
-            <option value="admin">Admin</option>
-            <option value="coordinator">Coordinator</option>
-            <option value="super_admin">Super Admin</option>
-            <option value="student">Student</option>
-            <option value="rso_representative">RSO Representative</option>
+            {(isUserAdmin || isCoordinator) && (
+              <>
+                <option value="student">Student</option>
+                <option value="rso_representative">RSO Representative</option>
+              </>
+            )}
+            {(isSuperAdmin) && (
+              <>
+                <option value="admin">Admin</option>
+                <option value="coordinator">Coordinator</option>
+                <option value="super_admin">Super Admin</option>
+              </>
+            )}
           </select>
         </div>
       </div>
@@ -64,12 +81,11 @@ export default function Users() {
   const { isOpen, openModal, closeModal } = useModal();
   const user = JSON.parse(localStorage.getItem("user"));
   const { userProfile } = useUserProfile();
+  const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
+
   const {
     membersData,
   } = useRSO();
-
-
-  console.log("userProfile", userProfile);
 
   const tableRow = (membersData ?? []).map(member => ({
     id: member.id,
@@ -106,14 +122,12 @@ export default function Users() {
     }));
   }, [tableRow, searchQuery]);
 
-
-
   return (
     <>
       <div className="flex flex-col">
 
         {/* table for admin & super admin */}
-        {(user && (user.role === "admin" || user.role === "coordinator" || user.role === "super_admin")) && (
+        {(isUserAdmin || isCoordinator || isSuperAdmin) && (
           <>
             <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery} setSelectedRole={setSelectedRole} openModal={openModal} />
             <Table

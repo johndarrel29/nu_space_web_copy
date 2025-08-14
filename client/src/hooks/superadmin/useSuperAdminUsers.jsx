@@ -1,10 +1,13 @@
 import useTokenStore from "../../store/tokenStore";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
-const deleteSDAOAccount = async () => {
+// only enable this if the user is super admin
+// this is for super admin to manage SDAO accounts
+
+const deleteSDAOAccount = async (userId) => {
     try {
         const token = useTokenStore.getState().getToken();
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/superadmin/sdao/delete`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/super-admin/user/deleteSDAOAccount/${userId}`, {
             method: "DELETE",
             headers: {
                 Authorization: token || "",
@@ -23,14 +26,23 @@ const deleteSDAOAccount = async () => {
     }
 }
 
-const createSDAOAccount = async () => {
+const createSDAOAccount = async (formData) => {
     try {
         const token = useTokenStore.getState().getToken();
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/superadmin/sdao/create`, {
+        console.log("Creating SDAO account with data:", formData);
+
+        console.log("API URL:", `${process.env.REACT_APP_BASE_URL}/api/super-admin/user/createAdminAccount`);
+        console.log("Payload:", formData);
+        console.log("Token:", token);
+
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/super-admin/user/createAdminAccount`, {
             method: "POST",
             headers: {
                 Authorization: token || "",
+                "Content-Type": "application/json",
             },
+            body: JSON.stringify(formData),
         });
 
         if (!response.ok) {
@@ -48,7 +60,7 @@ const createSDAOAccount = async () => {
 const getSDAOAccounts = async () => {
     try {
         const token = useTokenStore.getState().getToken();
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/superadmin/sdao/accounts`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/super-admin/user/fetchSDAOaccounts`, {
             method: "GET",
             headers: {
                 Authorization: token || "",
@@ -66,14 +78,25 @@ const getSDAOAccounts = async () => {
     }
 }
 
-const updateSDAORole = async () => {
+const updateSDAORoleRequest = async ({ userId, role }) => {
+    console.log("Updating SDAO role for userId:", userId, "to role:", role);
+
+    // determine the type of variable is the role 
+    console.log("Role type:", typeof role);
     try {
+
+        if (!userId || !role) {
+            throw new Error("User ID and role are required for updating SDAO role.");
+        }
+
         const token = useTokenStore.getState().getToken();
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/superadmin/sdao/update-role`, {
-            method: "POST",
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/super-admin/user/updateSDAORole/${userId}`, {
+            method: "PATCH",
             headers: {
                 Authorization: token || "",
+                "Content-Type": "application/json"
             },
+            body: JSON.stringify({ role: role }),
         });
 
         if (!response.ok) {
@@ -114,7 +137,7 @@ function useSuperAdminSDAO() {
     });
 
     const {
-        mutate: deleteAccount,
+        mutate: deleteAdminAccount,
         isLoading: isDeletingAccount,
         isError: isDeleteError,
         error: deleteErrorMessage,
@@ -126,12 +149,12 @@ function useSuperAdminSDAO() {
     });
 
     const {
-        mutate: updateSDAORole,
+        mutate: updateAdminRole,
         isLoading: isUpdatingSDAORole,
         isError: isUpdateSDAORoleError,
         error: updateSDAORoleErrorMessage,
     } = useMutation({
-        mutationFn: updateSDAORole,
+        mutationFn: updateSDAORoleRequest,
         onSuccess: () => {
             refetchAccounts();
         },
@@ -154,13 +177,13 @@ function useSuperAdminSDAO() {
         createErrorMessage,
 
         // SDAO delete
-        deleteAccount,
+        deleteAdminAccount,
         isDeletingAccount,
         isDeleteError,
         deleteErrorMessage,
 
         // SDAO update role
-        updateSDAORole,
+        updateAdminRole,
         isUpdatingSDAORole,
         isUpdateSDAORoleError,
         updateSDAORoleErrorMessage

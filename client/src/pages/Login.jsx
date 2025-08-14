@@ -14,7 +14,7 @@ export default function Login() {
                 <div className={style.heading}>
                     <Header theme="dark" />
                 </div>
-                <div className='flex items-center w-full justify-center mt-[100px]'>
+                <div className='flex items-center w-full justify-center mt-[100px] px-8'>
                     <Outlet />
                 </div>
             </div>

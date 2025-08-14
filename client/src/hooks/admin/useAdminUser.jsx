@@ -1,6 +1,11 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "../../context/AuthContext";
 import useTokenStore from "../../store/tokenStore";
+import { useUserStoreWithAuth } from '../../store';
+import { useAuth } from "../../context/AuthContext";
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
+// also include coordinator to allow edits to this path
 
 // for admin fetching users
 const fetchUsersRequest = async () => {
@@ -36,8 +41,11 @@ const fetchUsersRequest = async () => {
 
 };
 
+// double check how to destructure the request properly
+// check if it is hitting the correct url based on role
+
 // for admin updating user role
-const updateUserRequest = async ({ userId, userData, userRole }) => {
+const updateUserRequest = async (userId, userData, userRole) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : "";
 
@@ -94,7 +102,7 @@ const deleteUserRequest = async (userId) => {
 
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : "";
 
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/deleteUser/${userId}`, {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/deleteStudentAccount/${userId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
@@ -136,7 +144,17 @@ const fetchAdminProfile = async () => {
 }
 
 function useAdminUser() {
+    const { isUserAdmin, isUserCoordinator } = useUserStoreWithAuth();
     const { user } = useAuth();
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!isUserAdmin && !isUserCoordinator) {
+            queryClient.removeQueries(['users']);
+        }
+    }, [isUserAdmin, queryClient]);
+
+    console.log("useAdminUser hook isUserAdmin:", isUserAdmin);
 
     const {
         data: usersData,
@@ -145,15 +163,14 @@ function useAdminUser() {
         error: usersError,
         refetch: refetchUsersData,
     } = useQuery({
-        queryKey: ["users"],
-        queryFn: () => {
-            console.log("useQuery is running");
-            return fetchUsersRequest();
-        },
+        initialData: null,
+        queryKey: ["users", user?.id],
+        queryFn: fetchUsersRequest,
         refetchOnWindowFocus: false,
         retry: 1,
         staleTime: 0,
         cacheTime: 0,
+        enabled: isUserAdmin || isUserCoordinator, // Only fetch if the user is an admin or coordinator
     });
 
     const {
@@ -163,7 +180,7 @@ function useAdminUser() {
         isSuccess: isUpdateSuccess,
         error: updateError,
     } = useMutation({
-        mutationFn: ({ userId, userData }) => updateUserRequest({ userId, userData, userRole: user?.role }),
+        mutationFn: updateUserRequest,
         onSuccess: () => {
             console.log("User updated successfully");
             // refetch();
@@ -171,10 +188,11 @@ function useAdminUser() {
         onError: (error) => {
             console.error("Error updating user role:", error);
         },
+        enabled: isUserAdmin || isUserCoordinator,
     });
 
     const {
-        mutate: deleteUserMutate,
+        mutate: deleteStudentAccount,
         isError: isDeleteError,
         isLoading: isDeleteLoading,
         isSuccess: isDeleteSuccess,
@@ -187,6 +205,7 @@ function useAdminUser() {
         onError: (error) => {
             console.error("Error deleting user:", error);
         },
+        enabled: isUserAdmin || isUserCoordinator,
     });
 
     const {
@@ -201,6 +220,7 @@ function useAdminUser() {
         queryFn: fetchAdminProfile,
         refetchOnWindowFocus: false,
         retry: false,
+        enabled: isUserAdmin || isUserCoordinator,
     });
 
     return {
@@ -219,7 +239,7 @@ function useAdminUser() {
         isUpdateSuccess,
 
         // deleting users
-        deleteUserMutate,
+        deleteStudentAccount,
         isDeleteError,
         isDeleteLoading,
         isDeleteSuccess,
@@ -232,7 +252,6 @@ function useAdminUser() {
         adminProfileError,
         refetchAdminProfile,
         isAdminProfileRefetching,
-
     };
 }
 

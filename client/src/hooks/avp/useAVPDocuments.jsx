@@ -1,5 +1,7 @@
 import useTokenStore from "../../store/tokenStore";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUserStoreWithAuth } from '../../store';
+import { useEffect } from "react";
 
 const getAVPDocuments = async () => {
     try {
@@ -49,6 +51,15 @@ const approveAVPDocument = async (documentId) => {
 }
 
 function useAVPDocuments() {
+    const { isAVP } = useUserStoreWithAuth();
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!isAVP) {
+            queryClient.removeQueries(['avpDocuments']);
+        }
+    }, [isAVP, queryClient]);
+
     const {
         data: avpDocuments,
         isLoading: documentsLoading,
@@ -60,6 +71,7 @@ function useAVPDocuments() {
     } = useQuery({
         queryKey: ["avpDocuments"],
         queryFn: getAVPDocuments,
+        enabled: isAVP,
     });
 
     const {
@@ -73,6 +85,7 @@ function useAVPDocuments() {
             // Invalidate and refetch
             refetchDocuments();
         },
+        enabled: isAVP,
     });
 
     return {

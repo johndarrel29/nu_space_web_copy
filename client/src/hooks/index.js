@@ -12,6 +12,7 @@ export { default as useAnnouncements } from './useAnnouncements';
 export { default as useSurvey } from './useSurvey';
 export { default as useAcademicYears } from './admin/useAdminAcademicYears';
 
+export * from './login';
 export * from './admin';
 export * from './avp';
 export * from './coordinator';

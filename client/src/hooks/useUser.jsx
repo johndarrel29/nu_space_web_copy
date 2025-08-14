@@ -199,10 +199,7 @@ function useUser() {
     refetch,
   } = useQuery({
     queryKey: ["users"],
-    queryFn: () => {
-      console.log("useQuery is running");
-      return fetchUsersRequest();
-    },
+    queryFn: fetchUsersRequest,
     refetchOnWindowFocus: false,
     retry: 1,
     staleTime: 0,

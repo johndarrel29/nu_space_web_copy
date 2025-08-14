@@ -1,8 +1,7 @@
 import useTokenStore from "../../store/tokenStore";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { QueryClient } from "@tanstack/react-query";
-
-const queryClient = new QueryClient();
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUserStoreWithAuth } from '../../store';
+import { useEffect } from "react";
 
 const getCoordinatorDocuments = async () => {
     try {
@@ -55,6 +54,15 @@ const approveCoordinatorDocument = async (documentId) => {
 }
 
 function useCoordinatorDocuments() {
+    const { isCoordinator } = useUserStoreWithAuth();
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!isCoordinator) {
+            queryClient.removeQueries(['coordinatorDocuments']);
+        }
+    }, [isCoordinator, queryClient]);
+
     const {
         data: coordinatorDocuments,
         isLoading: documentsLoading,
@@ -66,6 +74,7 @@ function useCoordinatorDocuments() {
     } = useQuery({
         queryKey: ["coordinatorDocuments"],
         queryFn: getCoordinatorDocuments,
+        enabled: isCoordinator
     });
 
     const {
@@ -83,6 +92,7 @@ function useCoordinatorDocuments() {
         onError: (error) => {
             console.error("Error approving document:", error);
         },
+        enabled: isCoordinator
     });
 
     return {

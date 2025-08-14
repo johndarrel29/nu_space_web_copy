@@ -20,6 +20,7 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
   }) || [];
 
   console.log("DropdownSearch options:", options);
+  console.log("clicked dropdown item:", selectedOption);
 
   useEffect(() => {
     fetchData();

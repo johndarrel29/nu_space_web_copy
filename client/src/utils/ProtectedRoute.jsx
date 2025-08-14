@@ -6,6 +6,10 @@ const ProtectedRoutes = () => {
     // Check if the user is authenticated
     // If user is authenticated, return the Outlet to render child routes
 
+    if (!user) {
+        console.log("User not authenticated, redirecting to login");
+    }
+
     return user ? <Outlet /> : <Navigate to="/" />;
 }
 

@@ -2,6 +2,8 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
 import MainLogin from './pages/MainLogin';
+import PasswordAction from './pages/PasswordAction';
+import EmailAction from './pages/EmailAction';
 import MainRegister from './pages/MainRegister';
 import ErrorPage from './pages/ErrorPage';
 import { ThemeProvider } from '@material-tailwind/react';
@@ -71,6 +73,8 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Login />}>
                     <Route index element={<MainLogin />} />
+                    <Route path="password-action" element={<PasswordAction />} />
+                    <Route path="email-action" element={<EmailAction />} />
                     <Route path="register" element={<MainRegister />} />
                   </Route>
 

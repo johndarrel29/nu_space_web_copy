@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { ActivityCard, Searchbar, ReusableDropdown, Button, ActivitySkeleton, DropdownSearch } from "../../../components";
-import { useActivities, useUser, useRSO } from "../../../hooks";
+import { useActivities, useUser, useRSO, useAdminActivity } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import DefaultPicture from "../../../assets/images/default-picture.png";
 import { useUserStoreWithAuth } from '../../../store';
 
-// system enhancement: use isLoading to make loading animation when fetching or filtering activities  
+// fix the rso path first to manipulate the activity data.
+// system enhancement: use isLoading to make loading animation when fetching or filtering activities
 
 export default function MainDocuments() {
 
@@ -25,6 +26,20 @@ export default function MainDocuments() {
   const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
   const [documentError, setDocumentError] = useState(null);
 
+  // admin activity route
+  const {
+    adminPaginatedActivities,
+    adminError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAdminActivity({
+    debouncedQuery,
+    sorted,
+    RSO,
+    RSOType,
+    college,
+  });
 
   const {
     activities,
@@ -33,11 +48,6 @@ export default function MainDocuments() {
     fetchActivity,
     fetchLocalActivities,
     adminActivity,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    adminPaginatedActivities,
-    adminError,
 
     localActivities,
     isLocalActivitiesLoading,
@@ -361,7 +371,7 @@ export default function MainDocuments() {
             <>
               <div className="flex items-center justify-center mb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 ">
-
+                  {console.log("Activities to Show:", activitiesToShow.map(activity => activity.activityImageUrl))}
                   {activitiesToShow?.map((activity) => (
                     <ActivityCard
                       key={activity._id}

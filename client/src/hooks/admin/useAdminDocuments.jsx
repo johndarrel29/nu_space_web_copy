@@ -1,5 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../../context/AuthContext';
+import { useUserStoreWithAuth } from "../../store";
+import { useEffect } from "react";
 
 // =============API Calls
 // for admin
@@ -180,8 +182,19 @@ function useAdminDocuments({
     endDate = "",
     search = "",
     documentType = "",
+    yearId = "",
 } = {}) {
     const { user } = useAuth();
+    const { isUserAdmin } = useUserStoreWithAuth();
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!isUserAdmin) {
+            console.log("not admin detected. removing documents query")
+            queryClient.removeQueries(['documents']);
+            queryClient.setQueryData(['documents', filters], null);
+        }
+    }, [isUserAdmin, queryClient]);
 
     const filters = {
         page,
@@ -192,7 +205,8 @@ function useAdminDocuments({
         startDate,
         endDate,
         search,
-        documentType
+        documentType,
+        yearId,
     };
 
     const {
@@ -211,6 +225,12 @@ function useAdminDocuments({
         onError: (error) => {
             console.error("Error fetching all documents:", error);
         },
+        // enabled: isUserAdmin,
+        enabled: (() => {
+            const isEnabled = isUserAdmin;
+            console.log("Query enabled:", isEnabled);
+            return isEnabled;
+        })(),
     });
 
     return {

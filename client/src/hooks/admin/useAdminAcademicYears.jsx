@@ -1,5 +1,5 @@
 import useTokenStore from "../../store/tokenStore";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 // API call function
 const getAcademicYears = async () => {
@@ -29,7 +29,95 @@ const getAcademicYears = async () => {
     }
 }
 
-function useAcademicYears() {
+const editAcademicYearRequest = async (params) => {
+    try {
+        const { academicYearData, yearId } = params;
+        console.log("Editing academic year with data:", academicYearData, "and yearId:", yearId);
+        // Send just the academicYearData object without wrapping it
+        console.log("stringify json body ", JSON.stringify(academicYearData));
+        const token = useTokenStore.getState().getToken();
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/academicYear/updateAcademicYear/${yearId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+            },
+            body: JSON.stringify(academicYearData),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Edit academic year failed:", errorText);
+            throw new Error("Failed to edit academic year");
+        }
+
+        return response.json();
+
+    } catch (error) {
+        console.error("Error editing academic year:", error);
+        throw error; // rethrow so react-query can handle the error state
+    }
+}
+
+const createAcademicYearRequest = async (params) => {
+    try {
+        const { academicYearData } = params;
+        console.log("Creating academic year with data:", academicYearData);
+        const token = useTokenStore.getState().getToken();
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/academicYear/createAcademicYear`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+            },
+            body: JSON.stringify(academicYearData),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Create academic year failed:", errorText);
+            throw new Error("Failed to create academic year");
+        }
+
+        return response.json();
+
+    } catch (error) {
+        console.error("Error creating academic year:", error);
+        throw error; // rethrow so react-query can handle the error state
+    }
+}
+
+const deleteAcademicYearRequest = async ({ yearId }) => {
+    console.log("ive been called")
+    try {
+        console.log("Deleting academic year with ID:", yearId);
+        const token = useTokenStore.getState().getToken();
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/academicYear/deleteAcademicYear/${yearId}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Delete academic year failed:", errorText);
+            throw new Error("Failed to delete academic year");
+        }
+
+        return response.json();
+
+    } catch (error) {
+        console.error("Error deleting academic year:", error);
+        throw error; // rethrow so react-query can handle the error state
+    }
+}
+
+function useAdminAcademicYears() {
 
     // custom hook to fetch academic years
     // admin only
@@ -46,6 +134,54 @@ function useAcademicYears() {
         queryFn: getAcademicYears,
     })
 
+    const {
+        mutate: editAcademicYear,
+        isLoading: isEditingAcademicYear,
+        isError: isEditingAcademicYearError,
+        error: isEditingAcademicYearErrorMessage,
+        isSuccess: isEditingAcademicYearSuccess,
+    } = useMutation({
+        mutationFn: editAcademicYearRequest,
+        onSuccess: () => {
+            refetchAcademicYears();
+        },
+        onError: (error) => {
+            console.error("Error editing academic year:", error);
+        }
+    });
+
+    const {
+        mutate: deleteAcademicYear,
+        isLoading: isDeletingAcademicYear,
+        isError: isDeletingAcademicYearError,
+        error: isDeletingAcademicYearErrorMessage,
+        isSuccess: isDeletingAcademicYearSuccess,
+    } = useMutation({
+        mutationFn: deleteAcademicYearRequest,
+        onSuccess: () => {
+            refetchAcademicYears();
+        },
+        onError: (error) => {
+            console.error("Error deleting academic year:", error);
+        }
+    });
+
+    const {
+        mutate: createAcademicYear,
+        isLoading: isCreatingAcademicYear,
+        isError: isCreatingAcademicYearError,
+        error: isCreatingAcademicYearErrorMessage,
+        isSuccess: isCreatingAcademicYearSuccess,
+    } = useMutation({
+        mutationFn: createAcademicYearRequest,
+        onSuccess: () => {
+            refetchAcademicYears();
+        },
+        onError: (error) => {
+            console.error("Error creating academic year:", error);
+        }
+    });
+
     return {
         academicYears,
         academicYearsLoading,
@@ -54,7 +190,25 @@ function useAcademicYears() {
         refetchAcademicYears,
         isRefetchingAcademicYears,
         isAcademicYearsFetched,
+
+        editAcademicYear,
+        isEditingAcademicYear,
+        isEditingAcademicYearError,
+        isEditingAcademicYearErrorMessage,
+        isEditingAcademicYearSuccess,
+
+        createAcademicYear,
+        isCreatingAcademicYear,
+        isCreatingAcademicYearError,
+        isCreatingAcademicYearErrorMessage,
+        isCreatingAcademicYearSuccess,
+
+        deleteAcademicYear,
+        isDeletingAcademicYear,
+        isDeletingAcademicYearError,
+        isDeletingAcademicYearErrorMessage,
+        isDeletingAcademicYearSuccess
     };
 }
 
-export default useAcademicYears;
+export default useAdminAcademicYears;

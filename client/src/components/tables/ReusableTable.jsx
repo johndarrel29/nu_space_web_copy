@@ -236,11 +236,11 @@ export default function ReusableTable({
                                                                                         {heading.key === "RSO_name" && (
                                                                                             <img
                                                                                                 src={
-                                                                                                    row.picture &&
-                                                                                                        !row.picture.includes("example.com")
+                                                                                                    row.RSO_picture &&
+                                                                                                        !row.RSO_picture.includes("example.com")
                                                                                                         // && 
                                                                                                         // row.picture.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) // Check if it's an image URL
-                                                                                                        ? row.picture
+                                                                                                        ? row.RSO_picture
                                                                                                         : DefaultPicture
                                                                                                 }
                                                                                                 alt={row.RSO_name}
@@ -260,9 +260,6 @@ export default function ReusableTable({
                                                                                         </div>
                                                                                     </div>
                                                                                 ) : (
-                                                                                    // typeof row[heading.key] === 'string' && row[heading.key].match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) ? (
-                                                                                    //     <img src={row[heading.key] || row.RSO_picture} alt="table content" className="w-12 h-12 object-cover rounded-full" />
-                                                                                    //     ) : 
                                                                                     (
                                                                                         <p className="text-gray-900 dark:text-white">{row[heading.key]}</p>
                                                                                     )
