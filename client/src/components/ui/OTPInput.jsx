@@ -160,6 +160,7 @@ OTP.propTypes = {
 
 export default function OTPInput() {
     const [otp, setOtp] = React.useState('');
+    console.log("OTP value:", otp);
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

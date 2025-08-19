@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { tabSelector, Button, TextInput, ReusableDropdown, Backdrop, CloseButton } from '../../../components'
 import TagSelector from '../../../components/TagSelector';
-import { useTagSelector, useRSO, useAcademicYears } from '../../../hooks';
+import { useTagSelector, useRSO, useAcademicYears, useAdminRSO } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import DefaultPicture from '../../../assets/images/default-profile.jpg';
@@ -19,7 +19,17 @@ import Cropper from "react-easy-crop";
 import getCroppedImg from '../../../utils/cropImage';
 
 function RSOAction() {
+
+  // decommission this after implementing useAdminRSO
   const { createRSO, updateRSO, deleteRSO, loading, updateError, createError, success } = useRSO();
+  const {
+    // for admin create RSO
+    createRSOMutate,
+    isCreating,
+    isCreateSuccess,
+    isCreateError,
+    resetCreate,
+  } = useAdminRSO();
   const {
     academicYears,
     academicYearsLoading,
@@ -147,7 +157,8 @@ function RSOAction() {
     RSO_description: "",
     RSO_picture: null,
     RSO_picturePreview: DefaultPicture,
-    RSO_academicYear: "", // <-- add this field
+    RSO_academicYear: "", // Label for display
+    academicYearId: "", // ID for submission
   });
 
   const fileInputRef = useRef(null);
@@ -229,19 +240,17 @@ function RSOAction() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Find the academic year object by label
-    const selectedAcademicYear = academicYears?.years?.find(
-      (year) => year.label === formData.RSO_academicYear
-    );
-
+    // No need to find the year object again, we already have the ID
     const payload = {
       ...formData,
       RSO_tags: selectedTags,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // Remove RSO_academicYear and add academicYearId
-      academicYearId: selectedAcademicYear ? selectedAcademicYear.id : undefined,
+      // Use the stored academicYearId directly
+      academicYearId: formData.academicYearId || undefined,
     };
+
+    // Remove display-only fields from payload
     delete payload.RSO_academicYear;
 
     // Validate form data
@@ -286,7 +295,19 @@ function RSOAction() {
         result = await updateRSO(data.id, payload);
       } else if (isCreate) {
         console.log("Sending to createRSO:", payload);
-        result = await createRSO(payload);
+        createRSOMutate(payload,
+          {
+            onSuccess: (data) => {
+              console.log("RSO created successfully:", data);
+              toast.success('RSO created successfully!');
+              navigate(-1);
+            },
+            onError: (error) => {
+              console.error("Error creating RSO:", error);
+              toast.error(error.message || "Failed to create RSO");
+            }
+          }
+        );
       }
 
 
@@ -473,29 +494,35 @@ function RSOAction() {
               {/* Academic Year */}
               <div className='w-full flex flex-col'>
                 <label htmlFor="RSO_academicYear" className='text-sm'>Academic Year</label>
-                {/* <select name="RSO_academicYear" id="RSO_academicYear">
-                  <option value="" disabled>
-                    Select Academic Year
-                  </option>
-                  {options.map((year, index) => {
-                    return (
-                      <option
-                        onClick={(e) => console.log("Selected year:", e.target.value, "Index:", index, "Year object:", year, "Year ID:", year._id, "Year label:", year.label)}
-                        key={index} value={year._id}>
-                        {year.label}
-                      </option>
-                    );
-                  })}
-                </select> */}
-                <ReusableDropdown
+                <select
                   name="RSO_academicYear"
+                  id="RSO_academicYear"
                   value={formData.RSO_academicYear}
-                  options={academicYearOptions}
                   onChange={(e) => {
-                    console.log("Selected Academic Year:", e.target.value);
-                    setFormData({ ...formData, RSO_academicYear: e.target.value });
+                    const selectedLabel = e.target.value;
+                    const selectedYear = academicYears?.years?.find(year => year.label === selectedLabel);
+                    console.log("Academic Year selected:", selectedLabel);
+                    console.log("Selected year object:", selectedYear);
+                    console.log("Selected year ID:", selectedYear?._id);
+
+                    setFormData({
+                      ...formData,
+                      RSO_academicYear: selectedLabel,
+                      academicYearId: selectedYear?._id || ""
+                    });
                   }}
-                ></ReusableDropdown>
+                  className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                >
+                  <option value="" disabled>Select Academic Year</option>
+                  {academicYears?.years?.map((year, index) => (
+                    <option key={year.id || index} value={year.label}>
+                      {year.label}
+                    </option>
+                  ))}
+                </select>
+                {!academicYears?.years?.length && (
+                  <p className="text-red-500 text-xs mt-1">No academic years available</p>
+                )}
               </div>
             </div>
             <div className='w-full'>

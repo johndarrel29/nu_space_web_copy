@@ -7,64 +7,18 @@ import { useNavigate } from "react-router-dom";
 import { useUserStoreWithAuth } from '../../store';
 import { CardSkeleton } from '../../components';
 
-// goal:
-// add loading and error states for the table
-
-// Next steps:
-// fix the loading to show a skeleton loader
-// debounce the search input to avoid too many API calls
-
-
-// dropdownsearch currently doesnt filter because submittedBy model returns null 
-// therefore, this component couldnt search the RSO
+// TODO: Add loading and error states for the table
+// TODO: Fix the loading to show a skeleton loader
+// TODO: Debounce the search input to avoid too many API calls
+// NOTE: dropdownsearch currently doesn't filter because submittedBy model returns null
 
 export default function BackendTable({ activeTab }) {
     const navigate = useNavigate();
-    const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
-    const {
-        academicYears,
-        academicYearsLoading,
-        academicYearsError,
-        academicYearsErrorMessage,
-        refetchAcademicYears,
-        isRefetchingAcademicYears,
-        isAcademicYearsFetched,
-    } = useAdminAcademicYears();
+    const { isUserAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
+
+    // State
     const [searchQuery, setSearchQuery] = useState("");
     const [tableData, setTableData] = useState([]);
-
-    const {
-        avpDocuments,
-
-        // rename this to avoid confusion
-        // documentsLoading,
-        // documentsError,
-        // documentsErrorMessage,
-        // refetchDocuments,
-        // isRefetchingDocuments,
-        // isDocumentsFetched,
-    } = useAVPDocuments();
-
-    const {
-        directorDocuments,
-        // documentsLoading,
-        // documentsError,
-        // documentsErrorMessage,
-        // refetchDocuments,
-        // isRefetchingDocuments,
-        // isDocumentsFetched,
-    } = useDirectorDocuments();
-
-
-    const {
-        coordinatorDocuments,
-        documentsLoading,
-        documentsError,
-        documentsErrorMessage,
-        refetchDocuments,
-        isRefetchingDocuments,
-        isDocumentsFetched,
-    } = useCoordinatorDocuments();
     const [filters, setFilters] = useState({
         page: 1,
         limit: 10,
@@ -74,8 +28,33 @@ export default function BackendTable({ activeTab }) {
         startDate: "",
         endDate: "",
         search: "",
-        academicYear: "" // Add academic year filter
+        academicYear: ""
     });
+
+    // Academic years data
+    const {
+        academicYears,
+        academicYearsLoading,
+        academicYearsError,
+        academicYearsErrorMessage,
+        refetchAcademicYears,
+        isRefetchingAcademicYears,
+        isAcademicYearsFetched,
+    } = useAdminAcademicYears();
+
+    // Documents data
+    const { avpDocuments } = useAVPDocuments();
+    const { directorDocuments } = useDirectorDocuments();
+    const {
+        coordinatorDocuments,
+        documentsLoading,
+        documentsError,
+        documentsErrorMessage,
+        refetchDocuments,
+        isRefetchingDocuments,
+        isDocumentsFetched,
+    } = useCoordinatorDocuments();
+
     const {
         allDocuments,
         allDocumentsLoading,
@@ -84,51 +63,38 @@ export default function BackendTable({ activeTab }) {
         refetchAllDocuments,
     } = useAdminDocuments(filters);
 
-    useEffect(() => {
-        console.log("coordinator path ", coordinatorDocuments);
+    // Table headings
+    const tableHeading = [
+        { key: "name", name: "Document Name" },
+        { key: "purpose", name: "Purpose" },
+        { key: "status", name: "Status" },
+        { key: "date", name: "Date Created" },
+        { key: "actions", name: "Actions" }
+    ];
 
+    // Effects
+    useEffect(() => {
         if (coordinatorDocuments && isCoordinator) {
-            console.log("coordinator works!", coordinatorDocuments);
             setTableData(coordinatorDocuments?.documents);
         } else if (allDocuments && isUserAdmin) {
-            console.log("admin works!", allDocuments);
             setTableData(allDocuments);
         } else if (avpDocuments && isAVP) {
-            console.log("AVP works!", avpDocuments);
-            setTableData(avpDocuments);
+            setTableData(avpDocuments?.documents);
+            console.log("avp docs ", avpDocuments);
         } else if (directorDocuments && isDirector) {
-            console.log("Director works!", directorDocuments);
             setTableData(directorDocuments);
         }
     }, [coordinatorDocuments, allDocuments, avpDocuments, directorDocuments]);
 
-    console.log("academic years ", academicYears)
-
-    // refetch all documents when filters change
     useEffect(() => {
         if (Object.values(filters).some(value => value !== "")) {
             refetchAllDocuments();
         }
     }, [filters, refetchAllDocuments]);
 
-    console.log("table data ", tableData);
-
-    // Remove the state setting from useMemo
-    const documentType = useMemo(() => {
-        if (activeTab === "All") {
-            return "";
-        } else if (activeTab === "General Documents") {
-            return "recognition";
-        } else if (activeTab === "Activity Documents") {
-            return "activities";
-        }
-        return "";
-    }, [activeTab]);
-
-    // Add a separate useEffect for setting the filters
     useEffect(() => {
         if (activeTab === 0 || activeTab === "All") {
-            setFilters((prev) => ({
+            setFilters(prev => ({
                 ...prev,
                 purpose: "",
                 status: "",
@@ -138,106 +104,109 @@ export default function BackendTable({ activeTab }) {
                 search: ""
             }));
         } else if (activeTab === 1 || activeTab === "General Documents") {
-            setFilters((prev) => ({
+            setFilters(prev => ({
                 ...prev,
                 purpose: "recognition",
                 page: 1
             }));
         } else if (activeTab === 2 || activeTab === "Activity Documents") {
-            setFilters((prev) => ({
+            setFilters(prev => ({
                 ...prev,
                 purpose: "activities",
                 page: 1
             }));
         }
     }, [activeTab]);
-    console.log("activeTab", activeTab);
-
-    // Table headings for document management
-    const tableHeading = [
-        { key: "name", name: "Document Name" },
-        { key: "purpose", name: "Purpose" },
-        { key: "status", name: "Status" },
-        { key: "date", name: "Date Created" },
-        { key: "actions", name: "Actions" }
-    ];
-
-    // Badge renderer for document status
-    const handleBadge = (badge) => {
-        if (badge === "pending") {
-            return <Badge style="primary" text={"Pending"} />;
-        }
-        if (badge === "Approved") {
-            return <Badge style="success" text={"Approved"} />;
-        }
-        if (badge === "Rejected") {
-            return <Badge style="error" text={"Rejected"} />;
-        }
-        return <Badge style="primary" text={badge || "Unknown"} />;
-    };
-
-    const handleSorted = (value) => {
-        console.log("Selected Sort Option:", value);
-        let statusValue = "";
-        if (value === "Approved") statusValue = "approved";
-        else if (value === "Pending") statusValue = "pending";
-        else if (value === "Rejected") statusValue = "rejected";
-
-        setFilters((prev) => ({
-            ...prev,
-            status: statusValue,
-            page: 1 // Reset to first page on sort change
-        }));
-    };
-
-    const handleNextPage = (newPage) => {
-        if (filters.page < tableData.pagination.totalPages) {
-            setFilters((prev) => ({ ...prev, page: prev.page + 1 }));
-        }
-    };
-
-    const handlePrevPage = (newPage) => {
-        if (filters.page > 1) {
-            setFilters((prev) => ({ ...prev, page: prev.page - 1 }));
-        }
-    };
-
-    const handleSearch = (value) => {
-        setFilters((prev) => ({ ...prev, search: value }));
-        console.log("Search value:", value);
-    };
-
-    const handleRSO = (value) => {
-        setFilters((prev) => ({ ...prev, rso: value, page: 1 }));
-        console.log("Selected RSO:", value);
-    };
-
-    const handleAcademicYear = (value) => {
-
-
-        setFilters((prev) => ({ ...prev, yearId: value, page: 1 }));
-        console.log("Selected Academic Year:", value);
-    };
 
     useEffect(() => {
         handleSearch(searchQuery);
     }, [searchQuery]);
 
+    // Memoized values
+    const documentType = useMemo(() => {
+        if (activeTab === "All") return "";
+        if (activeTab === "General Documents") return "recognition";
+        if (activeTab === "Activity Documents") return "activities";
+        return "";
+    }, [activeTab]);
+
+    // Handlers
+    const handleBadge = (badge) => {
+        switch (badge) {
+            case "pending":
+                return <Badge style="primary" text="Pending" />;
+            case "Approved":
+                return <Badge style="success" text="Approved" />;
+            case "Rejected":
+                return <Badge style="error" text="Rejected" />;
+            default:
+                return <Badge style="primary" text={badge || "Unknown"} />;
+        }
+    };
+
+    const handleSorted = (value) => {
+        let statusValue = "";
+        if (value === "Approved") statusValue = "approved";
+        else if (value === "Pending") statusValue = "pending";
+        else if (value === "Rejected") statusValue = "rejected";
+
+        setFilters(prev => ({
+            ...prev,
+            status: statusValue,
+            page: 1
+        }));
+    };
+
+    const handleNextPage = () => {
+        if (filters.page < tableData.pagination.totalPages) {
+            setFilters(prev => ({ ...prev, page: prev.page + 1 }));
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (filters.page > 1) {
+            setFilters(prev => ({ ...prev, page: prev.page - 1 }));
+        }
+    };
+
+    const handleSearch = (value) => {
+        setFilters(prev => ({ ...prev, search: value }));
+    };
+
+    const handleRSO = (value) => {
+        setFilters(prev => ({ ...prev, rso: value, page: 1 }));
+    };
+
+    const handleAcademicYear = (value) => {
+        setFilters(prev => ({ ...prev, yearId: value, page: 1 }));
+    };
+
+    const handleRowClick = (row) => {
+        navigate(`${row._id}`, {
+            state: {
+                documentId: row._id,
+                documentTitle: row.title,
+                documentSize: row.documentSize,
+                documentType: row.purpose,
+                url: row.url
+            }
+        });
+    };
+
     return (
         <div className="p-4">
             {/* Filters Section */}
             <div className="mt-4 mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
-
                 <div className="w-full justify-between flex flex-col md:flex-row items-center gap-2">
                     <div className="w-full">
                         <Searchbar
                             onChange={handleSearch}
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery}
-                            placeholder={"Search documents..."} ></Searchbar>
+                            placeholder="Search documents..."
+                        />
                     </div>
                     <div className="w-full mt-4 md:mt-0 lg:w-1/2 md:w-full">
-
                         <DropdownSearch
                             isSorting={true}
                             setSelectedSorting={handleRSO}
@@ -246,6 +215,7 @@ export default function BackendTable({ activeTab }) {
                     </div>
                 </div>
             </div>
+
             <div className="flex justify-between items-center mb-4 w-full gap-4">
                 <div className="w-full">
                     <ReusableDropdown
@@ -265,27 +235,27 @@ export default function BackendTable({ activeTab }) {
                     type="date"
                     className="w-full h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
                     value={filters.startDate}
-                    onChange={(e) => setFilters((prev) => ({ ...prev, startDate: e.target.value, page: 1 }))}
+                    onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value, page: 1 }))}
                     placeholder="Start Date"
-                ></input>
+                />
                 <input
                     type="date"
                     className="w-full h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
                     value={filters.endDate}
-                    onChange={(e) => setFilters((prev) => ({ ...prev, endDate: e.target.value, page: 1 }))}
+                    onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value, page: 1 }))}
                     placeholder="End Date"
-                ></input>
+                />
             </div>
 
             <div className="flex justify-between items-center mb-4 w-full">
                 <span className="text-gray-700 font-semibold">
                     Showing {tableData?.signedDocuments ? tableData.signedDocuments.length : tableData?.length || 0} results
                 </span>
-                <li className="flex justify-center ">
+                <li className="flex justify-center">
                     <select
                         value={filters.limit}
-                        onChange={(e) => setFilters((prev) => ({ ...prev, limit: Number(e.target.value), page: 1 }))}
-                        className={`w-24 h-10 rounded-md bg-white border border-mid-gray p-1 font-bold`}
+                        onChange={(e) => setFilters(prev => ({ ...prev, limit: Number(e.target.value), page: 1 }))}
+                        className="w-24 h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
                     >
                         <option value={5}>5 rows</option>
                         <option value={10}>10 rows</option>
@@ -302,15 +272,14 @@ export default function BackendTable({ activeTab }) {
                 <div className="border border-mid-gray rounded-md">
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[800px]">
-                            <thead className="border-b border-mid-gray bg-textfield ">
-                                <tr
-                                    className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider ">
+                            <thead className="border-b border-mid-gray bg-textfield">
+                                <tr className="rounded-md text-left text-xs font-medium font-bold uppercase tracking-wider">
                                     {tableHeading.map((heading, index) => (
                                         <th
                                             key={`header-${index}-${heading.key || heading.name}`}
                                             className="text-left p-3"
                                         >
-                                            <h1 className="text-gray-900 dark:text-white">
+                                            <h1 className="text-gray-900">
                                                 {heading.name}
                                             </h1>
                                         </th>
@@ -323,56 +292,40 @@ export default function BackendTable({ activeTab }) {
                                     (tableData?.signedDocuments || tableData).map((row, index) => (
                                         <tr
                                             key={row.id}
-                                            // send document data
-                                            // request single document details API
-                                            onClick={() => navigate(`${row._id}`,
-                                                {
-                                                    state: {
-                                                        documentId: row._id,
-                                                        documentTitle: row.title,
-                                                        documentSize: row.documentSize,
-                                                        documentType: row.purpose,
-                                                        url: row.url
-                                                    }
-                                                })}
-                                            className="border-b border-mid-gray hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                                            onClick={() => handleRowClick(row)}
+                                            className="border-b border-mid-gray hover:bg-gray-100 cursor-pointer"
                                         >
-                                            {/* Organization Name with Image */}
                                             <td className="p-3">
                                                 <div className="flex items-center space-x-3">
                                                     <div className="text-sm font-medium text-gray-900">
                                                         {index + 1}
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                        <span className="text-sm font-semibold text-gray-900">
                                                             {row.title}
                                                         </span>
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            {/* College */}
                                             <td className="p-3">
-                                                <span className="text-sm text-gray-600 dark:text-white">
+                                                <span className="text-sm text-gray-600">
                                                     {row.purpose || "N/A"}
                                                 </span>
                                             </td>
 
-                                            {/* Status */}
                                             <td className="p-3">
-                                                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                <span className="text-sm font-semibold text-gray-900">
                                                     {handleBadge(row.status)}
                                                 </span>
                                             </td>
 
-                                            {/* Date Created */}
                                             <td className="p-3">
-                                                <span className="text-sm font-light text-gray-600 dark:text-white flex items-center ">
+                                                <span className="text-sm font-light text-gray-600 flex items-center">
                                                     {FormatDate(row.updatedAt)}
                                                 </span>
                                             </td>
 
-                                            {/* Actions */}
                                             <td className="p-3">
                                                 <div className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
                                                     <svg
@@ -409,17 +362,26 @@ export default function BackendTable({ activeTab }) {
             <div className="w-full bottom-20 mt-4">
                 <nav>
                     <ul className="flex justify-center space-x-2">
-                        <li
-                            className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded`}
-                        >
-                            <button className="page-link" onClick={handlePrevPage} disabled={filters.page === 1}>Prev</button>
+                        <li className="page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded">
+                            <button
+                                className="page-link"
+                                onClick={handlePrevPage}
+                                disabled={filters.page === 1}
+                            >
+                                Prev
+                            </button>
                         </li>
-                        {console.log("metadata", tableData?.pagination)}
-                        <div className="px-4 py-2 font-semibold" >{`${filters.page} of ${tableData?.pagination?.totalPages || 0}`}</div>
-                        <li
-                            className={`page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded`}
-                        >
-                            <button className="page-link" onClick={handleNextPage} disabled={filters.page === tableData?.pagination?.totalPages}>Next</button>
+                        <div className="px-4 py-2 font-semibold">
+                            {`${filters.page} of ${tableData?.pagination?.totalPages || 0}`}
+                        </div>
+                        <li className="page-item mx-1 px-3 py-2 bg-white border border-mid-gray rounded-md font-semibold rounded">
+                            <button
+                                className="page-link"
+                                onClick={handleNextPage}
+                                disabled={filters.page === tableData?.pagination?.totalPages}
+                            >
+                                Next
+                            </button>
                         </li>
                     </ul>
                 </nav>

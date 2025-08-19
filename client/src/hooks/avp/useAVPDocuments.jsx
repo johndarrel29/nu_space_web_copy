@@ -75,10 +75,11 @@ function useAVPDocuments() {
     });
 
     const {
-        mutate: approveDocument,
-        isLoading: isApprovingDocument,
-        isError: isApproveError,
-        error: approveErrorMessage,
+        mutate: approveAVPDocumentMutate,
+        isLoading: isAVPApprovingDocument,
+        isError: isAVPApproveDocumentError,
+        isSuccess: isAVPApproveDocumentSuccess,
+        error: avpApproveErrorMessage,
     } = useMutation({
         mutationFn: approveAVPDocument,
         onSuccess: () => {
@@ -96,6 +97,11 @@ function useAVPDocuments() {
         refetchDocuments,
         isRefetchingDocuments,
         isDocumentsFetched,
+
+        approveAVPDocumentMutate,
+        isAVPApprovingDocument,
+        isAVPApproveDocumentError,
+        isAVPApproveDocumentSuccess,
     };
 }
 

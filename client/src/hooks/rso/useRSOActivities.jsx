@@ -1,150 +1,115 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from '../../context/AuthContext';
+import { useUserStoreWithAuth } from "../../store";
 
-// API Calls
-// for rso
-const createActivity = useCallback(async (activity) => {
-    setLoading(true);
-    setError(null);
+// Pure API: create activity
+const createActivityAPI = async (activity) => {
+    // no local state updates here
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-    try {
-        const isFileUpload = activity.Activity_image instanceof File;
-        let body;
-        let headers = {
-            "Authorization": token ? `Bearer ${formattedToken}` : "",
-        };
+    console.log("received activity data ", activity)
 
-        if (isFileUpload) {
-            const formData = new FormData();
-
-            Object.entries(activity).forEach(([key, value]) => {
-                if (key === "Activity_imagePreview") {
-                    return;
-                } else if (key === "Activity_image" && value instanceof File) {
-                    formData.append("file", value);
-                } else {
-                    formData.append(key, value);
-                }
-            });
-
-
-
-            body = formData;
-        } else {
-            headers["Content-Type"] = "application/json";
-            body = JSON.stringify(activity);
-        }
-
-        console.log("Submitting new activity:", activity);
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/createActivity`, {
-            method: "POST",
-            headers,
-            body,
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const json = await response.json();
-        console.log("Activity created:", json);
-        setSuccess(true);
-        return json.activity || null;
-
-    } catch (err) {
-        console.error("Error creating activity:", err);
-        setError(`Error: ${err.message}`);
-    } finally {
-        setLoading(false);
-    }
-}, []);
-
-// for rso updating activity
-const updateActivity = useCallback(async (activityId, updatedData) => {
-    setLoading(true);
-    setError(null);
-
-    console.log("Updating activity with ID:", activityId);
-    console.log("Updated data:", updatedData);
-
-    try {
-        const token = localStorage.getItem("token");
-        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-
-
-        const isFileUpload = updatedData.Activity_image instanceof File;
+    const isFileUpload = activity?.Activity_image instanceof File;
+    let body;
+    const headers = {};
+    if (isFileUpload) {
         const formData = new FormData();
-
-        if (isFileUpload) {
-
-            Object.entries(updatedData).forEach(([key, value]) => {
+        Object.entries(activity || {}).forEach(([key, value]) => {
+            if (key === "Activity_imagePreview") return;
+            if (key === "Activity_image" && value instanceof File) {
+                formData.append("file", value);
+            } else {
                 formData.append(key, value);
-            });
-        }
-
-        const headers = {
-            "Authorization": token ? `Bearer ${formattedToken}` : "",
-            ...(!isFileUpload && { "Content-Type": "application/json" }),
-        }
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/updateActivity/${activityId}`, {
-            method: "PUT",
-            headers,
-            body: isFileUpload ? formData : JSON.stringify(updatedData),
+            }
         });
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const json = await response.json();
-        setSuccess(true);
-        console.log("Activity updated:", json);
-
-        setActivities((prevActivities) =>
-            prevActivities.map((activity) =>
-                activity._id === activityId ? json.activity : activity
-            )
-        );
-
-    } catch (err) {
-        console.error("Error updating data:", err);
-        setError(err);
-    } finally {
-        setLoading(false);
+        body = formData;
+    } else {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify(activity);
     }
-}
-    , []);
+    if (token) headers["Authorization"] = token ? `Bearer ${formattedToken}` : "";
 
-// for rso deleting activity
-const deleteActivity = useCallback(async (activityId) => {
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/createActivity`, {
+        method: "POST",
+        headers,
+        body,
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
+    }
+
+    const json = await response.json();
+    return json.activity ?? json;
+};
+
+// Pure API: update activity
+const updateActivityAPI = async ({ activityId, updatedData }) => {
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    const isFileUpload = updatedData?.Activity_image instanceof File;
+    let body;
+    const headers = {};
+    if (isFileUpload) {
+        const formData = new FormData();
+        Object.entries(updatedData || {}).forEach(([key, value]) => {
+            formData.append(key, value);
+        });
+        body = formData;
+    } else {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify(updatedData);
+    }
+    if (token) headers["Authorization"] = token ? `Bearer ${formattedToken}` : "";
+
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/updateActivity/${activityId}`, {
+        method: "PUT",
+        headers,
+        body,
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
+    }
+
+    const json = await response.json();
+    return json.activity ?? json;
+};
+
+// Pure API: delete activity
+const deleteActivityAPI = async (activityId) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
     const headers = {
         "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
     };
-    try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/deleteActivity/${activityId}`, {
-            method: "DELETE",
-            headers,
-        });
+    if (token) headers["Authorization"] = token ? `Bearer ${formattedToken}` : "";
 
-        if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`Error: ${response.status} - ${response.statusText}\n${errorBody}`);
-        }
+    console.log("Deleting activity with ID:", activityId);
 
-        const json = await response.json();
-        return json.activity || null;
-    } catch (err) {
-        console.error("Error deleting data:", err);
-        setError(err);
-        throw err;
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/deleteActivity/${activityId}`, {
+        method: "DELETE",
+        headers,
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(errorBody || `Error: ${response.status} - ${response.statusText}`);
     }
-}, []);
 
-// no role - for fetching activity documents
-const fetchActivityDocument = async (activityId) => {
+    const json = await response.json();
+    return json.activity ?? json;
+};
+
+// Pure API: fetch activity documents (by activityId)
+const fetchActivityDocumentAPI = async ({ queryKey }) => {
+    const [_key, { activityId }] = queryKey;
+    if (!activityId) throw new Error("activityId is required");
+
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
@@ -156,36 +121,36 @@ const fetchActivityDocument = async (activityId) => {
         },
     });
 
-    return response.json();
-}
-
-// rso - for creating activity document
-const createActivityDocument = async ({ activityId, formData }) => {
-    const token = localStorage.getItem("token");
-    setLoading(true);
-    // const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
-    try {
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/${activityId}/documents`, {
-            method: "POST",
-            headers: {
-                "Authorization": token ? token : "",
-            },
-            body: formData,
-        });
-        return response.json();
-    } catch (err) {
-        console.error("Error creating activity document:", err);
-        setError(err);
-        throw err;
-    } finally {
-        setLoading(false);
-
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
     }
 
-}
+    return response.json();
+};
 
-// no role - for deleting activity document
-const deleteActivityDocument = async ({ activityId, documentId }) => {
+// Pure API: create activity document
+const createActivityDocumentAPI = async ({ activityId, formData }) => {
+    const token = localStorage.getItem("token");
+    const headers = {};
+    if (token) headers["Authorization"] = token;
+
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/activities/${activityId}/documents`, {
+        method: "POST",
+        headers,
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
+    }
+
+    return response.json();
+};
+
+// Pure API: delete activity document
+const deleteActivityDocumentAPI = async ({ activityId, documentId }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
@@ -198,155 +163,156 @@ const deleteActivityDocument = async ({ activityId, documentId }) => {
     });
 
     if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
     }
 
     return response.json();
-}
+};
 
-// fetch created activities for RSO representative
-const fetchLocalActivity = async () => {
+// Pure API: fetch local activities (accepts params via queryKey)
+const fetchLocalActivityAPI = async ({ queryKey }) => {
+    const [_key, params = {}] = queryKey;
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-    const headers = {
-        "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
-    };
-
-    // Create URL with query parameters for sorting
     const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/getRSOCreatedActivities`);
-    if (sorted) {
-        url.searchParams.set("sorted", sorted);
-    }
-    if (debouncedQuery) {
-        url.searchParams.set("search", debouncedQuery);
-    }
+    Object.entries(params || {}).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== "") {
+            url.searchParams.set(k, v);
+        }
+    });
 
-    console.log("url sending with params: " + url.toString());
-
-    const response = await fetch(url, {
+    const response = await fetch(url.toString(), {
         method: "GET",
-        headers,
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${formattedToken}` : "",
+        },
     });
 
     if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
     }
 
     const json = await response.json();
-    console.log("Full activity fetch response:", json);
+    return json.activities ?? [];
+};
 
-    return json.activities || []
-}
+// Pure API: view activity details (role-aware)
+const viewActivityAPI = async ({ queryKey }) => {
+    const [_key, { activityId, role }] = queryKey;
+    if (!activityId) throw new Error("activityId is required");
 
-// for viewing activity details - two roles
-const viewActivity = async ({ activityId }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-    console.log("viewActivity has been called with activityId:", activityId);
-
-    const headers = {
-        "Content-Type": "application/json",
-        "Authorization": token ? `Bearer ${formattedToken}` : "",
-    };
-
-    // display url based on the role 
-    let url = '';
-
-    const role = user?.role || '';
-
+    let url = "";
     switch (role) {
-        case 'admin':
+        case "admin":
             url = `${process.env.REACT_APP_BASE_URL}/api/admin/activities/${activityId}`;
-            console.log("Admin URL:", url);
             break;
-        case 'rso_representative':
+        case "rso_representative":
             url = `${process.env.REACT_APP_BASE_URL}/api/rsoRep/activities/viewRSOActivity/${activityId}`;
-            console.log("RSO Representative URL:", url);
             break;
         default:
-            break;
+            throw new Error("No URL defined for role: " + role);
     }
 
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${formattedToken}` : "",
+        },
+    });
 
-    try {
-        console.log("Fetching activity with URL:", url);
-        const response = await fetch(url, {
-            method: "GET",
-            headers,
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const json = await response.json();
-        return json.activity || [];
-    } catch (err) {
-        console.error("Error loading data:", err);
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
     }
-}
 
-function useRSOActivities() {
+    const json = await response.json();
+    return json.activity ?? json;
+};
 
+function useRSOActivities({ sorted, search, activityId } = {}) {
+    const { user } = useAuth();
+    const { isUserRSORepresentative } = useUserStoreWithAuth();
+    const queryClient = useQueryClient();
+
+    // Create activity
     const {
         mutate: createActivityMutate,
         isLoading: isCreatingActivity,
         isSuccess: isActivityCreated,
         isError: isActivityCreationError,
         error: activityCreationError,
-    } = useMutation(createActivity, {
+
+    } = useMutation({
+        mutationFn: createActivityAPI,
         onSuccess: (data) => {
             console.log("Activity created successfully:", data);
-        }
+            queryClient.invalidateQueries(["activities"]);
+        },
     });
 
+
+    // Update activity
     const {
         mutate: updateActivityMutate,
         isLoading: isUpdatingActivity,
         isSuccess: isActivityUpdated,
         isError: isActivityUpdateError,
         error: activityUpdateError,
-    } = useMutation(updateActivity, {
+    } = useMutation({
+        mutationFn: updateActivityAPI,
         onSuccess: (data) => {
             console.log("Activity updated successfully:", data);
-        }
+            queryClient.invalidateQueries(["activities"]);
+            if (activityId) {
+                queryClient.invalidateQueries(["activityDetails", { activityId }]);
+            }
+        },
     });
 
+    // Delete activity
     const {
         mutate: deleteActivityMutate,
         isLoading: isDeletingActivity,
         isSuccess: isActivityDeleted,
         isError: isActivityDeletionError,
         error: activityDeletionError,
-    } = useMutation(deleteActivity, {
+    } = useMutation({
+        mutationFn: deleteActivityAPI,
         onSuccess: (data) => {
             console.log("Activity deleted successfully:", data);
-        }
+            queryClient.invalidateQueries(["activities"]);
+        },
     });
 
+    // Fetch local activities list
     const {
         data: activityLocalData,
         isLoading: activityLocalLoading,
         isError: activityLocalError,
         error: activityLocalQueryError,
         refetch: refetchLocalActivityData,
+        isRefetching: isLocalActivityRefetching,
     } = useQuery({
-        queryKey: ["activities"],
-        queryFn: fetchLocalActivity,
+        queryKey: ["activities", { sorted, search }],
+        queryFn: fetchLocalActivityAPI,
+        enabled: isUserRSORepresentative,
         onSuccess: (data) => {
             console.log("Activities fetched successfully:", data);
-            setActivities(data);
-        }
-        ,
+        },
         onError: (error) => {
             console.error("Error fetching activities:", error);
-            setError(error.message);
-        }
+        },
     });
 
+    // Fetch activity documents/details (documents)
     const {
         data: activityDetails,
         isLoading: activityDetailsLoading,
@@ -354,53 +320,120 @@ function useRSOActivities() {
         error: activityDetailsQueryError,
         refetch: refetchActivityDetails,
     } = useQuery({
-        queryKey: ["documents"],
-        queryFn: fetchActivityDocument,
+        queryKey: ["activityDocuments", { activityId }],
+        queryFn: fetchActivityDocumentAPI,
+        enabled: !!activityId,
         onSuccess: (data) => {
-            console.log("Documents fetched successfully:", data);
-            setDocuments(data);
-        }
-        ,
+            console.log("Activity documents fetched:", data);
+        },
         onError: (error) => {
-            console.error("Error fetching documents:", error);
-            setError(error.message);
-        }
+            console.error("Error fetching activity documents:", error);
+        },
+    });
+
+    // Optionally fetch role-aware activity view/details
+    const {
+        data: activityView,
+        isLoading: activityViewLoading,
+        isError: activityViewError,
+        error: activityViewQueryError,
+        refetch: refetchActivityView,
+    } = useQuery({
+        queryKey: ["activityView", { activityId, role: user?.role }],
+        queryFn: viewActivityAPI,
+        enabled: !!activityId && !!user?.role,
+        onSuccess: (data) => {
+            console.log("Activity view fetched:", data);
+        },
+        onError: (error) => {
+            console.error("Error fetching activity view:", error);
+        },
+    });
+
+    // create/delete activity document mutations
+    const {
+        mutate: createActivityDocumentMutation,
+        isLoading: createActivityDocumentLoading,
+        isSuccess: createActivityDocumentSuccess,
+        isError: createActivityDocumentError,
+        error: createActivityDocumentErrorMessage,
+    } = useMutation({
+        mutationFn: createActivityDocumentAPI,
+        onSuccess: () => {
+            if (activityId) queryClient.invalidateQueries(["activityDocuments", { activityId }]);
+        },
+    });
+
+    const {
+        mutate: deleteActivityDocumentMutation,
+        isLoading: deleteActivityDocumentLoading,
+        isSuccess: deleteActivityDocumentSuccess,
+        isError: deleteActivityDocumentError,
+        error: deleteActivityDocumentErrorMessage,
+    } = useMutation({
+        mutationFn: deleteActivityDocumentAPI,
+        onSuccess: () => {
+            if (activityId) queryClient.invalidateQueries(["activityDocuments", { activityId }]);
+        },
     });
 
     return {
-        // for creating activity
+        // create
         createActivityMutate,
         isCreatingActivity,
         isActivityCreated,
         isActivityCreationError,
         activityCreationError,
 
-        // for updating activity
+        // update
         updateActivityMutate,
         isUpdatingActivity,
         isActivityUpdated,
         isActivityUpdateError,
         activityUpdateError,
 
-        // for deleting activity
+        // delete
         deleteActivityMutate,
         isDeletingActivity,
         isActivityDeleted,
         isActivityDeletionError,
         activityDeletionError,
 
-        // for fetching activities
+        // activities list
         activityLocalData,
         activityLocalLoading,
         activityLocalError,
         activityLocalQueryError,
         refetchLocalActivityData,
+        isLocalActivityRefetching,
 
-        // for fetching activity details
+        // activity documents/details
         activityDetails,
         activityDetailsLoading,
         activityDetailsError,
         activityDetailsQueryError,
-        refetchActivityDetails
-    }
+        refetchActivityDetails,
+
+        // activity view
+        activityView,
+        activityViewLoading,
+        activityViewError,
+        activityViewQueryError,
+        refetchActivityView,
+
+        // activity document mutations
+        createActivityDocumentMutation,
+        createActivityDocumentLoading,
+        createActivityDocumentSuccess,
+        createActivityDocumentError,
+        createActivityDocumentErrorMessage,
+
+        deleteActivityDocumentMutation,
+        deleteActivityDocumentLoading,
+        deleteActivityDocumentSuccess,
+        deleteActivityDocumentError,
+        deleteActivityDocumentErrorMessage,
+    };
 }
+
+export default useRSOActivities;

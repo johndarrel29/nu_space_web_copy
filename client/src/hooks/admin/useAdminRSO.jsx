@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 // Create RSO function - clean implementation for React Query
 const createRSO = async (newOrg) => {
+    console.log("Creating RSO:", newOrg);
     // Handle file upload case
     if (newOrg.RSO_picture && newOrg.RSO_picture instanceof File) {
         newOrg.RSO_image = newOrg.RSO_picture;

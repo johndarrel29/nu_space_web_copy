@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal, TextInput, CloseButton } from '../../../components';
 import { DropIn } from "../../../animations/DropIn";
-import { useModal, useActivities } from "../../../hooks";
+import { useModal, useActivities, useAdminDocuments } from "../../../hooks";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from 'react-toastify';
 import { useUserStoreWithAuth } from '../../../store'
@@ -50,6 +50,12 @@ export default function Activities() {
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
   const { isUserRSORepresentative, isUserAdmin } = useUserStoreWithAuth();
+  const {
+    refetchSetAccreditationDeadline,
+    setAccreditationDeadline,
+    setAccreditationDeadlineError,
+    setAccreditationDeadlineSuccess
+  } = useAdminDocuments();
 
 
 

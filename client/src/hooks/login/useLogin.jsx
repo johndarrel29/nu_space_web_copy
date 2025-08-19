@@ -121,6 +121,7 @@ const sendCodeVerificationRequest = async (email) => {
 
 const verifyEmailCodeRequest = async ({ email, code }) => {
     try {
+        console.log("Verifying email code:", { email, code });
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/verify-email-code`, {
             method: "POST",
             headers: {

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ActivityCard, Searchbar, ReusableDropdown, Button, ActivitySkeleton, DropdownSearch } from "../../../components";
-import { useActivities, useUser, useRSO, useAdminActivity } from "../../../hooks";
+import { useActivities, useUser, useRSO, useAdminActivity, useRSOActivities } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import DefaultPicture from "../../../assets/images/default-picture.png";
@@ -25,6 +25,23 @@ export default function MainDocuments() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
   const [documentError, setDocumentError] = useState(null);
+
+  // revised rso route
+  const {
+    activityLocalData,
+    activityLocalLoading,
+    activityLocalError,
+    activityLocalQueryError,
+    refetchLocalActivityData,
+    isLocalActivityRefetching,
+  } = useRSOActivities();
+
+  useEffect(() => {
+    if (isLocalActivityRefetching) {
+      console.log("Refetching local activities...");
+    }
+    console.log("data from the new hook ", activityLocalData)
+  }, [activityLocalData, isLocalActivityRefetching]);
 
   // admin activity route
   const {
@@ -66,30 +83,30 @@ export default function MainDocuments() {
     if (user?.role === "admin" || user?.role === "coordinator" || user?.role === "super_admin") {
       setDocumentError(adminError);
     } else if (user?.role === "rso_representative") {
-      setDocumentError(error);
+      setDocumentError(null);
     } else {
       setDocumentError(null);
     }
-  }, [adminError, error, user?.role]);
+  }, [adminError, null, user?.role]);
 
-  useEffect(() => {
-    const loadActivities = async () => {
-      try {
-        const result = await fetchActivity();
-        console.log("Fetched Activities:", result);
-      } catch (err) {
-        console.error("Error fetching activities:", err);
-      }
-    };
+  // useEffect(() => {
+  //   const loadActivities = async () => {
+  //     try {
+  //       const result = await fetchActivity();
+  //       console.log("Fetched Activities:", result);
+  //     } catch (err) {
+  //       console.error("Error fetching activities:", err);
+  //     }
+  //   };
 
-    loadActivities();
-  }, [fetchActivity]);
+  //   loadActivities();
+  // }, [fetchActivity]);
 
-  useEffect(() => {
-    if (isUserRSORepresentative) {
-      refetchLocalActivities();
-    }
-  }, [isUserRSORepresentative, refetchLocalActivities]);
+  // useEffect(() => {
+  //   if (isUserRSORepresentative) {
+  //     refetchLocalActivities();
+  //   }
+  // }, [isUserRSORepresentative, refetchLocalActivities]);
 
   const handleCreate = () => {
     navigate("document-action", {
@@ -142,7 +159,7 @@ export default function MainDocuments() {
     navigate(`/documents/${activity._id}`);
   };
 
-  console.log("activities:", fetchActivity);
+  // console.log("activities:", fetchActivity);
 
   const assignedRSOs = Array.isArray(user?.assigned_rso)
     ? user.assigned_rso
@@ -150,16 +167,6 @@ export default function MainDocuments() {
       ? [user.assigned_rso]
       : [];
 
-
-  // Filter activities for RSO members to only show their RSO's activities
-  const filteredActivities = user?.role === "rso_representative"
-    ? activities.filter(activity =>
-      assignedRSOs.some(rso => rso?._id === activity?.RSO_id?._id)
-    )
-    : activities;
-
-  // Log after the assignment (not inside the filter)
-  console.log("Filtered Activities:", filteredActivities);
 
   const handleDateTime = (dateTime) => {
     const date = new Date(dateTime);
@@ -175,7 +182,7 @@ export default function MainDocuments() {
 
   const activitiesToShow =
     isUserRSORepresentative ?
-      (localActivities || [])
+      (activityLocalData || [])
         // Apply search filter first
         .filter(activity => {
           if (!searchQuery) return true;
@@ -338,7 +345,7 @@ export default function MainDocuments() {
       </div>
 
       {/* Activity Cards Section */}
-      {loading ? (
+      {isLocalActivityRefetching ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <ActivitySkeleton count={8} />
         </div>
@@ -367,7 +374,7 @@ export default function MainDocuments() {
         )
           :
 
-          activitiesToShow.length > 0 ? (
+          (activitiesToShow.length > 0 && !isLocalActivityRefetching) ? (
             <>
               <div className="flex items-center justify-center mb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 ">
@@ -395,7 +402,7 @@ export default function MainDocuments() {
               </div>
 
               {/* Load More Button */}
-              {(isUserAdmin || isCoordinator) && allActivities.length > 12 && (
+              {(isUserAdmin || isCoordinator) && (
                 <div className="flex justify-center mt-6">
                   {hasNextPage && (
                     <Button
@@ -412,14 +419,18 @@ export default function MainDocuments() {
             </>
           )
             : (
-              <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary /50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h3 className="mt-2 text-lg font-medium text-primary ">No activities found</h3>
-                <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+              // <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
+              //   <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary /50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              //     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              //   </svg>
+              //   <h3 className="mt-2 text-lg font-medium text-primary ">No activities found</h3>
+              //   <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
+              // </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <ActivitySkeleton count={8} />
               </div>
             )
+
       }
     </div>
   );

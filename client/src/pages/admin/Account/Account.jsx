@@ -1,6 +1,6 @@
 import { MainLayout, Button, TextInput, Badge, Backdrop, CloseButton, TabSelector } from "../../../components";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useUserProfile, useModal, useRSO } from "../../../hooks";
+import { useUserProfile, useModal, useRSO, useRSODetails } from "../../../hooks";
 import DefaultPicture from "../../../assets/images/default-profile.jpg";
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
@@ -31,6 +31,13 @@ export default function Account() {
     isDeleteError,
     isDeleteSuccess
   } = useUserProfile();
+
+  const {
+    rsoDetails,
+    isRSODetailsLoading,
+    isRSODetailsError,
+    isRSODetailsSuccess
+  } = useRSODetails();
 
   const {
     updateOfficerMutate,
@@ -101,8 +108,8 @@ export default function Account() {
   // Set profile data based on user role
   useEffect(() => {
     if (user?.role === 'rso_representative') {
-      console.log("User is RSO representative, setting profile to  ", userProfile);
-      setProfileData(userProfile?.rso);
+      console.log("User is RSO representative, setting profile to  ", rsoDetails?.rso);
+      setProfileData(rsoDetails?.rso);
     } else if (user?.role === 'admin' || user?.role === 'coordinator' || user?.role === 'super_admin') {
       console.log("User is admin, coordinator or super admin, setting profile to ", userProfile.user);
       setProfileData(userProfile.user);
@@ -365,44 +372,129 @@ export default function Account() {
                 </div>
               )}
 
-              {console.log("user category", userProfile)}
               {activeTab === 1 && (
-                <div className="space-y-6 p-6 shadow-sm">
-
-                  <div className="space-y-2">
-                    <h2 className="text-lg font-medium">
-                      {profileData?.RSO_category}
+                <div className="p-6 bg-white rounded-lg shadow-sm">
+                  <header className="mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      {profileData?.RSO_category || "Category"}
                     </h2>
-                    <p className="text-sm text-gray-600">
-                      {profileData?.RSO_description}
+                    <p className="text-sm text-gray-600 mt-1">
+                      {profileData?.RSO_description || "No description available."}
                     </p>
+                  </header>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="p-4 bg-gray-50 rounded-md">
+                      <p className="text-xs text-gray-500">Logged in user</p>
+                      <p className="mt-1 text-sm font-medium text-gray-800 truncate">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gray-50 rounded-md">
+                      <p className="text-xs text-gray-500">Popularity Score</p>
+                      <p className="mt-1 text-sm font-medium text-gray-800">
+                        {Number(profileData?.RSO_popularityScore || 0).toFixed(0)}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gray-50 rounded-md">
+                      <p className="text-xs text-gray-500">RSO Forms</p>
+                      <p className="mt-1 text-sm font-medium text-gray-800">
+                        {profileData?.RSO_forms ?? 0}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-row items-start justify-center gap-6 gap-8">
-                    <div className="flex flex-col items-start ">
-                      <h2 className="text-sm text-gray-600">Logged in user:</h2>
-                      <h1 className="text-md font-semibold">{user?.firstName} {user?.lastName}
-                      </h1>
-                    </div>
-                    <div className="flex flex-col items-start ">
-                      <h2 className="text-sm text-gray-600">Popularity Score</h2>
-                      <h1 className="text-md font-semibold">{Math.floor(profileData?.RSO_popularityScore)}
-                      </h1>
-                    </div>
-                    <div className="flex flex-col items-start ">
-                      <h2 className="text-sm text-gray-600">RSO Forms</h2>
-                      <h1 className="text-md font-semibold">{profileData?.RSO_forms}
-                      </h1>
-                    </div>
+                  <div className="mt-4">
+                    <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${profileData?.RSO_visibility ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {profileData?.RSO_visibility ? 'Visible' : 'Not visible'}
+                    </span>
                   </div>
 
+                  {/* New section: additional RSO fields */}
+                  <div className="mt-6 border-t pt-6 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="col-span-1">
+                        <p className="text-xs text-gray-500">College</p>
+                        <p className="mt-1 text-sm font-medium text-gray-800">{profileData?.RSO_College || '—'}</p>
+                      </div>
 
-                  <div>
-                    <p className="text-sm italic">
-                      {profileData?.RSO_visibility === false
-                        ? "RSO is not visible"
-                        : "RSO is visible"}
-                    </p>
+                      <div className="col-span-1">
+                        <p className="text-xs text-gray-500">Probationary</p>
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${profileData?.RSO_probationary ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {profileData?.RSO_probationary ? 'On Probation' : 'Not Probationary'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="col-span-1">
+                        <p className="text-xs text-gray-500">Tags</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {(profileData?.RSO_tags && profileData.RSO_tags.length > 0) ? (
+                            profileData.RSO_tags.map((t, i) => (
+                              <span key={i} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                {t}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500">No tags</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Yearly snapshot & membership details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-gray-50 rounded-md">
+                        <p className="text-xs text-gray-500">Yearly Snapshot</p>
+                        <h3 className="mt-2 text-sm font-semibold text-gray-800">{profileData?.yearlyData?.RSO_snapshot?.name || profileData?.RSO_name || '—'}</h3>
+                        <p className="text-xs text-gray-500 mt-1">{profileData?.yearlyData?.RSO_snapshot?.acronym || profileData?.RSO_acronym}</p>
+                        <p className="mt-3 text-sm text-gray-600">
+                          {profileData?.yearlyData?.RSO_snapshot?.description || 'No yearly description.'}
+                        </p>
+
+                        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <p className="text-xs text-gray-500">Total Members</p>
+                            <p className="font-medium text-gray-800">{profileData?.yearlyData?.RSO_totalMembers ?? 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Membership Active</p>
+                            <p className="font-medium text-gray-800">{profileData?.yearlyData?.RSO_membershipStatus ? 'Yes' : 'No'}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 text-xs text-gray-500">
+                          <p>Membership End: <span className="text-gray-700 font-medium">{profileData?.yearlyData?.RSO_membershipEndDate ? new Date(profileData.yearlyData.RSO_membershipEndDate).toLocaleString() : '—'}</span></p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 rounded-md">
+                        <p className="text-xs text-gray-500">Recognition Status</p>
+
+                        <div className="mt-2">
+                          <p className="text-sm font-medium text-gray-800">{profileData?.yearlyData?.RSO_recognition_status?.status || '—'}</p>
+                          <p className="text-xs text-gray-500 mt-1">Date Status: <span className="text-gray-700 font-medium">{profileData?.yearlyData?.RSO_recognition_status?.date_status || '—'}</span></p>
+
+                          <div className="mt-3 text-xs text-gray-500">
+                            <p>Start Deadline: <span className="text-gray-700 font-medium">{profileData?.yearlyData?.RSO_recognition_status?.start_deadline ? new Date(profileData.yearlyData.RSO_recognition_status.start_deadline).toLocaleString() : '—'}</span></p>
+                            <p className="mt-1">End Deadline: <span className="text-gray-700 font-medium">{profileData?.yearlyData?.RSO_recognition_status?.end_deadline ? new Date(profileData.yearlyData.RSO_recognition_status.end_deadline).toLocaleString() : '—'}</span></p>
+                          </div>
+
+                          <div className="mt-3">
+                            <p className="text-xs text-gray-500">Documents</p>
+                            <p className="text-sm font-medium text-gray-800">{(profileData?.yearlyData?.RSO_recognition_status?.documents?.length) ?? 0}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 border-t pt-3 text-xs text-gray-500">
+                          <p>Snapshot created: <span className="text-gray-700 font-medium">{profileData?.yearlyData?.createdAt ? new Date(profileData.yearlyData.createdAt).toLocaleString() : '—'}</span></p>
+                          <p className="mt-1">Last updated: <span className="text-gray-700 font-medium">{profileData?.yearlyData?.updatedAt ? new Date(profileData.yearlyData.updatedAt).toLocaleString() : '—'}</span></p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

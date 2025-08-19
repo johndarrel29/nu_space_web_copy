@@ -283,8 +283,90 @@ function RSODetails() {
                       }
                     </td>
                   </tr>
+                  <tr>
+                    <td className="text-sm font-light text-gray-500 py-1">Probationary</td>
+                    <td className="text-sm font-medium py-1">
+                      <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${user?.RSO_probationary ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                        {user?.RSO_probationary ? 'On Probation' : 'Not Probationary'}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="text-sm font-light text-gray-500 py-1">Status</td>
+                    <td className="text-sm font-medium py-1">
+                      <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${user?.RSO_visibility ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {user?.RSO_visibility ? 'Visible' : 'Not visible'}
+                      </span>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional RSO Details Section */}
+        <div className='mt-6'>
+          <h1 className='font-semibold text-off-black mb-4'>Recognition Details</h1>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            {/* Yearly Snapshot */}
+            <div className='p-4 bg-white rounded-md border border-mid-gray'>
+              <p className='text-xs text-gray-500'>Yearly Snapshot</p>
+              <h3 className='mt-2 text-sm font-semibold text-gray-800'>{user?.yearlyData?.RSO_snapshot?.name || user.RSO_name || '—'}</h3>
+              <p className='text-xs text-gray-500 mt-1'>{user?.yearlyData?.RSO_snapshot?.acronym || user.RSO_acronym}</p>
+              <p className='mt-3 text-sm text-gray-600'>
+                {user?.yearlyData?.RSO_snapshot?.description || 'No yearly description.'}
+              </p>
+
+              <div className='mt-4 grid grid-cols-2 gap-2 text-sm'>
+                <div>
+                  <p className='text-xs text-gray-500'>Total Members</p>
+                  <p className='font-medium text-gray-800'>{user?.yearlyData?.RSO_totalMembers ?? user.RSO_memberCount ?? 0}</p>
+                </div>
+                <div>
+                  <p className='text-xs text-gray-500'>Membership Active</p>
+                  <p className='font-medium text-gray-800'>{user?.yearlyData?.RSO_membershipStatus ? 'Yes' : 'No'}</p>
+                </div>
+              </div>
+
+              <div className='mt-3 text-xs text-gray-500'>
+                <p>Membership End: <span className='text-gray-700 font-medium'>
+                  {user?.yearlyData?.RSO_membershipEndDate ? new Date(user.yearlyData.RSO_membershipEndDate).toLocaleString() : '—'}
+                </span></p>
+              </div>
+            </div>
+
+            {/* Recognition Status */}
+            <div className='p-4 bg-white rounded-md border border-mid-gray'>
+              <p className='text-xs text-gray-500'>Recognition Status</p>
+
+              <div className='mt-2'>
+                <p className='text-sm font-medium text-gray-800'>{user?.yearlyData?.RSO_recognition_status?.status || '—'}</p>
+                <p className='text-xs text-gray-500 mt-1'>Date Status: <span className='text-gray-700 font-medium'>{user?.yearlyData?.RSO_recognition_status?.date_status || '—'}</span></p>
+
+                <div className='mt-3 text-xs text-gray-500'>
+                  <p>Start Deadline: <span className='text-gray-700 font-medium'>
+                    {user?.yearlyData?.RSO_recognition_status?.start_deadline ? new Date(user.yearlyData.RSO_recognition_status.start_deadline).toLocaleString() : '—'}
+                  </span></p>
+                  <p className='mt-1'>End Deadline: <span className='text-gray-700 font-medium'>
+                    {user?.yearlyData?.RSO_recognition_status?.end_deadline ? new Date(user.yearlyData.RSO_recognition_status.end_deadline).toLocaleString() : '—'}
+                  </span></p>
+                </div>
+
+                <div className='mt-3'>
+                  <p className='text-xs text-gray-500'>Documents</p>
+                  <p className='text-sm font-medium text-gray-800'>{(user?.yearlyData?.RSO_recognition_status?.documents?.length) ?? 0}</p>
+                </div>
+              </div>
+
+              <div className='mt-4 border-t pt-3 text-xs text-gray-500'>
+                <p>Snapshot created: <span className='text-gray-700 font-medium'>
+                  {user?.yearlyData?.createdAt ? new Date(user.yearlyData.createdAt).toLocaleString() : '—'}
+                </span></p>
+                <p className='mt-1'>Last updated: <span className='text-gray-700 font-medium'>
+                  {user?.yearlyData?.updatedAt ? new Date(user.yearlyData.updatedAt).toLocaleString() : '—'}
+                </span></p>
+              </div>
             </div>
           </div>
         </div>

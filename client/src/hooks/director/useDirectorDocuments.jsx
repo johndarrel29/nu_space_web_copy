@@ -26,15 +26,16 @@ const fetchDirectorDocuments = async () => {
     }
 }
 
-const approveDirectorDocument = async (documentId) => {
+const approveDirectorDocument = async ({ formData, documentId }) => {
     try {
         const token = useTokenStore.getState().getToken();
 
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/director/documents/approve/${documentId}`, {
-            method: "POST",
+            method: "PATCH",
             headers: {
                 Authorization: token || "",
             },
+            body: JSON.stringify(formData)
         });
 
         if (!response.ok) {
@@ -73,10 +74,10 @@ function useDirectorDocuments() {
     });
 
     const {
-        mutate: approveDocumentMutate,
-        isLoading: isApprovingDocument,
-        isError: isApproveDocumentError,
-        isSuccess: isApproveDocumentSuccess,
+        mutate: approveDirectorDocumentMutate,
+        isLoading: isDirectorApprovingDocument,
+        isError: isDirectorApproveDocumentError,
+        isSuccess: isDirectorApproveDocumentSuccess,
     } = useMutation({
         mutationFn: approveDirectorDocument,
         onSuccess: (data) => {
@@ -101,10 +102,10 @@ function useDirectorDocuments() {
         isDocumentsFetched,
 
         // Approve document functionality
-        approveDocumentMutate,
-        isApprovingDocument,
-        isApproveDocumentError,
-        isApproveDocumentSuccess,
+        approveDirectorDocumentMutate,
+        isDirectorApprovingDocument,
+        isDirectorApproveDocumentError,
+        isDirectorApproveDocumentSuccess,
 
     };
 }

@@ -13,7 +13,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
 import { Document } from './pages/rso';
-import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOParent, Users, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
+import { AnnouncementsPage, Forms, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOParent, Users, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
@@ -22,6 +22,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { generateToken, messaging } from './config/firebase';
 import { onMessage } from 'firebase/messaging';
 import { toast } from 'react-toastify';
+
+
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -179,6 +181,15 @@ function App() {
                         headingTitle="Manage Academic Years"
                       >
                         <AcademicYear />
+                      </MainLayout>
+                    } />
+
+                    <Route path="/forms" element={
+                      <MainLayout
+                        tabName="Forms"
+                        headingTitle="Manage Forms"
+                      >
+                        <Forms />
                       </MainLayout>
                     } />
 

@@ -30,15 +30,18 @@ const getCoordinatorDocuments = async () => {
     }
 }
 
-const approveCoordinatorDocument = async (documentId) => {
+const approveCoordinatorDocument = async ({ formData, documentId }) => {
     try {
+        console.log("received data, ", documentId, formData);
         const token = useTokenStore.getState().getToken();
 
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/coordinator/documents/approve/${documentId}`, {
-            method: "POST",
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/coordinator/documents/approveDocument/${documentId}`, {
+            method: "PATCH",
             headers: {
+                "Content-Type": "application/json",
                 Authorization: token || "",
             },
+            body: JSON.stringify(formData)
         });
 
         if (!response.ok) {
