@@ -1,9 +1,11 @@
 import { TabSelector, Button, BackendTable, Backdrop, CloseButton, TextInput } from "../../../components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
-import { useAdminDocuments, useAVPDocuments } from "../../../hooks";
+import { useAdminDocuments, useAcademicYears } from "../../../hooks";
+
+// todo: change the data to PH standard time for start and end date.
 
 export default function MainAdmin() {
     const navigate = useNavigate();
@@ -14,15 +16,6 @@ export default function MainAdmin() {
     ]
     const [activeTab, setActiveTab] = useState(0);
     const {
-        avpDocuments,
-        documentsLoading,
-        documentsError,
-        documentsErrorMessage,
-        refetchDocuments,
-        isRefetchingDocuments,
-        isDocumentsFetched,
-    } = useAVPDocuments();
-    const {
 
         // Set Accreditation Deadline
         refetchSetAccreditationDeadline,
@@ -30,16 +23,30 @@ export default function MainAdmin() {
         setAccreditationDeadlineError,
         setAccreditationDeadlineSuccess
     } = useAdminDocuments();
+    const {
+        academicYears,
+        academicYearsLoading,
+        academicYearsError,
+        academicYearsErrorMessage,
+        refetchAcademicYears,
+        isRefetchingAcademicYears,
+        isAcademicYearsFetched,
+    } = useAcademicYears();
 
     // new state for deadline modal (replaced with static fields)
     const [deadlineOpen, setDeadlineOpen] = useState(false);
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
     const [modalData, setModalData] = useState({
-        start_deadline: "2025-08-16T14:45",
-        end_deadline: "2025-08-20T10:25",
-        category: "Professional",
-        probationary: true,
-        academicYearId: "68970b3a861582ed1b4548f7"
+        start_deadline: "",
+        end_deadline: "",
+        category: "",
+        probationary: false,
+        academicYearId: ""
     });
+
+    useEffect(() => {
+        console.log("the modal data is", modalData);
+    }, [modalData]);
 
     const onTabChange = (index) => {
         setActiveTab(index);
@@ -90,7 +97,15 @@ export default function MainAdmin() {
 
     }
 
-
+    const handleAcademicYearChange = (e) => {
+        setSelectedAcademicYear(e.target.value);
+        setModalData(
+            prev => ({
+                ...prev,
+                academicYearId: e.target.value
+            })
+        );
+    }
     return (
         <div>
             <div className="flex justify-between items-center w-full mb-4">
@@ -152,16 +167,6 @@ export default function MainAdmin() {
                                         />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm text-gray-600 mb-1">Category</label>
-                                        <TextInput
-                                            id="deadlineCategory"
-                                            value={modalData.category}
-                                            onChange={(e) => setModalData(prev => ({ ...prev, category: e.target.value }))}
-                                            placeholder="Category"
-                                        />
-                                    </div>
-
                                     <div className="flex items-center gap-2">
                                         <input
                                             id="probationary"
@@ -173,13 +178,20 @@ export default function MainAdmin() {
                                         <label htmlFor="probationary" className="text-sm text-gray-700">Probationary</label>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm text-gray-600 mb-1">Academic Year ID</label>
-                                        <TextInput
-                                            id="academicYearId"
-                                            value={modalData.academicYearId}
-                                            readOnly
-                                        />
+                                    <div className="flex flex-col">
+                                        <label htmlFor="category-filter" className="text-sm font-medium text-gray-600">Academic Year</label>
+                                        <select
+                                            id="category-filter"
+                                            value={selectedAcademicYear}
+                                            onChange={handleAcademicYearChange}
+                                            className="py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm"
+                                        >
+                                            {academicYears?.years?.map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
                                 {console.log("error ", setAccreditationDeadlineError)}

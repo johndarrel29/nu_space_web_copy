@@ -34,6 +34,7 @@ const defaultCreatorOptions = {
 
 export default function SurveyCreatorWidget(props) {
     const [creator, setCreator] = useState(null);
+    const [temporaryData, setTemporaryData] = useState(null);
     const localStorageKey = "survey-json";
     const { userProfile } = useUserProfile();
     const location = useLocation();
@@ -143,17 +144,13 @@ export default function SurveyCreatorWidget(props) {
         navigate(-1);
     }
 
-    // clean up function when component unmounts
-    // useEffect(() => {
-    //     return () => {
-    //         // Only clear localStorage if the user hasn't submitted the form
-    //         if (!isCreatingSurvey) {
-    //             localStorage.removeItem(localStorageKey);
-    //         }
-    //     };
-    // }, [isCreatingSurvey]);
-
+    // fallback to ensure the creator is initialized
     if (!creator) return <PreLoader />;
+
+    // derived flags for footer overlay
+    const hasLocalData = typeof window !== 'undefined' && !!window.localStorage.getItem(localStorageKey);
+    const hasExistingSurvey = Array.isArray(activitySurveys?.surveys) && activitySurveys.surveys.length > 0;
+    const showOverlay = !hasLocalData && !hasExistingSurvey;
 
     return (
         <>
@@ -161,7 +158,8 @@ export default function SurveyCreatorWidget(props) {
                 <SurveyCreatorComponent creator={creator} />
                 <div className="flex justify-center items-center gap-4 bg-white h-16 absolute bottom-0 w-full">
                     {/* check if there is data from local storage */}
-                    {(!window.localStorage.getItem(localStorageKey) || !activitySurveys?.surveys?.length > 0) && (
+                    {console.log("Local Storage Data:", window.localStorage.getItem(localStorageKey))}
+                    {showOverlay && (
                         <div className="w-full absolute bg-white/50 h-16"></div>
                     )}
                     <Button style={"secondary"} onClick={handleExit}>Cancel Form</Button>

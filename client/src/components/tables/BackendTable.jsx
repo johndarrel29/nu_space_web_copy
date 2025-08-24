@@ -3,7 +3,7 @@ import { useAdminDocuments, useCoordinatorDocuments, useAVPDocuments, useDirecto
 import { FormatDate } from "../../utils";
 import { Searchbar, ReusableDropdown, DropdownSearch } from "../../components";
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUserStoreWithAuth } from '../../store';
 import { CardSkeleton } from '../../components';
 
@@ -12,8 +12,15 @@ import { CardSkeleton } from '../../components';
 // TODO: Debounce the search input to avoid too many API calls
 // NOTE: dropdownsearch currently doesn't filter because submittedBy model returns null
 
-export default function BackendTable({ activeTab }) {
+export default function BackendTable({ activeTab, rsoId = "" }) {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const isOnRSODetailsPage = location.pathname.includes("/rsos/rso-details");
+
+    console.log("Is on RSO Details Page:", isOnRSODetailsPage ? "Yes" : "No");
+    console.log("current active tab ", activeTab);
+
     const { isUserAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
 
     // State
@@ -43,8 +50,8 @@ export default function BackendTable({ activeTab }) {
     } = useAdminAcademicYears();
 
     // Documents data
-    const { avpDocuments } = useAVPDocuments();
-    const { directorDocuments } = useDirectorDocuments();
+    const { avpDocuments } = useAVPDocuments(filters);
+    const { directorDocuments } = useDirectorDocuments(filters);
     const {
         coordinatorDocuments,
         documentsLoading,
@@ -53,7 +60,7 @@ export default function BackendTable({ activeTab }) {
         refetchDocuments,
         isRefetchingDocuments,
         isDocumentsFetched,
-    } = useCoordinatorDocuments();
+    } = useCoordinatorDocuments(filters);
 
     const {
         allDocuments,
@@ -69,8 +76,19 @@ export default function BackendTable({ activeTab }) {
         { key: "purpose", name: "Purpose" },
         { key: "status", name: "Status" },
         { key: "date", name: "Date Created" },
-        { key: "actions", name: "Actions" }
     ];
+
+    useEffect(() => {
+        if (isOnRSODetailsPage) {
+            setFilters(prev => ({
+                ...prev,
+                rsoId: rsoId, // Changed from rso to rsoId to match the property used in API calls
+                purpose: "recognition",
+                page: 1
+            }));
+            console.log("Setting RSO filter with ID:", rsoId); // Added logging to debug
+        }
+    }, [isOnRSODetailsPage, rsoId]);
 
     // Effects
     useEffect(() => {
@@ -93,7 +111,7 @@ export default function BackendTable({ activeTab }) {
     }, [filters, refetchAllDocuments]);
 
     useEffect(() => {
-        if (activeTab === 0 || activeTab === "All") {
+        if (activeTab === 0 || activeTab === "All" && !isOnRSODetailsPage) {
             setFilters(prev => ({
                 ...prev,
                 purpose: "",
@@ -109,7 +127,7 @@ export default function BackendTable({ activeTab }) {
                 purpose: "recognition",
                 page: 1
             }));
-        } else if (activeTab === 2 || activeTab === "Activity Documents") {
+        } else if (activeTab === 2 || activeTab === "Activity Documents" && !isOnRSODetailsPage) {
             setFilters(prev => ({
                 ...prev,
                 purpose: "activities",
@@ -135,9 +153,9 @@ export default function BackendTable({ activeTab }) {
         switch (badge) {
             case "pending":
                 return <Badge style="primary" text="Pending" />;
-            case "Approved":
+            case "approved":
                 return <Badge style="success" text="Approved" />;
-            case "Rejected":
+            case "rejected":
                 return <Badge style="error" text="Rejected" />;
             default:
                 return <Badge style="primary" text={badge || "Unknown"} />;
@@ -174,15 +192,18 @@ export default function BackendTable({ activeTab }) {
     };
 
     const handleRSO = (value) => {
-        setFilters(prev => ({ ...prev, rso: value, page: 1 }));
+        console.log("value to be stored in rsoId: ", value)
+        setFilters(prev => ({ ...prev, rsoId: value, page: 1 }));
     };
 
     const handleAcademicYear = (value) => {
+        console.log("value to be stored: ", value)
         setFilters(prev => ({ ...prev, yearId: value, page: 1 }));
     };
 
     const handleRowClick = (row) => {
-        navigate(`${row._id}`, {
+        const route = isOnRSODetailsPage ? `/admin-documents/${row._id}` : `${row._id}`;
+        navigate(route, {
             state: {
                 documentId: row._id,
                 documentTitle: row.title,
@@ -199,52 +220,93 @@ export default function BackendTable({ activeTab }) {
             <div className="mt-4 mb-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
                 <div className="w-full justify-between flex flex-col md:flex-row items-center gap-2">
                     <div className="w-full">
+                        <label htmlFor="document-search" className="block text-sm font-medium text-gray-700 mb-1">
+                            Search Documents
+                        </label>
                         <Searchbar
+                            id="document-search"
                             onChange={handleSearch}
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery}
                             placeholder="Search documents..."
                         />
                     </div>
-                    <div className="w-full mt-4 md:mt-0 lg:w-1/2 md:w-full">
-                        <DropdownSearch
-                            isSorting={true}
-                            setSelectedSorting={handleRSO}
-                            setSelectedCategory={() => console.log("Category selected")}
-                        />
-                    </div>
+                    {!isOnRSODetailsPage && (
+                        <div className="w-full mt-4 md:mt-0 lg:w-1/2 md:w-full">
+                            <label htmlFor="rso-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                                Filter by RSO
+                            </label>
+                            <DropdownSearch
+                                id="rso-filter"
+                                isSorting={true}
+                                setSelectedSorting={handleRSO}
+                                setSelectedCategory={() => console.log("Category selected")}
+                                valueType="id"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className="flex justify-between items-center mb-4 w-full gap-4">
-                <div className="w-full">
+            {/* more filters */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 w-full gap-4">
+                <div className="w-full mb-2 md:mb-0">
+                    <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                        Status Filter
+                    </label>
                     <ReusableDropdown
+                        id="status-filter"
                         onChange={(e) => handleSorted(e.target.value)}
                         options={["All Organizations", "Approved", "Pending", "Rejected"]}
                     />
                 </div>
-                <div className="w-full">
-                    <ReusableDropdown
+                {console.log("academic years:", academicYears?.years)}
+                <div className="w-full mb-2 md:mb-0">
+                    <label htmlFor="academic-year" className="block text-sm font-medium text-gray-700 mb-1">
+                        Academic Year
+                    </label>
+                    <select
+                        id="academic-year"
                         onChange={(e) => handleAcademicYear(e.target.value)}
-                        options={academicYears?.years || []}
-                        icon={true}
-                        placeholder="Academic Year"
+                        className="w-full h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
+                    >
+                        <option value="">Select Academic Year</option>
+                        {academicYears?.years?.map(year => (
+                            <option
+                                key={year._id}
+                                value={year._id}
+                            >
+                                {year.label || "no data"}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="w-full mb-2 md:mb-0">
+                    <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
+                        Start Date
+                    </label>
+                    <input
+                        id="start-date"
+                        type="date"
+                        className="w-full h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
+                        value={filters.startDate}
+                        onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value, page: 1 }))}
+                        placeholder="Start Date"
                     />
                 </div>
-                <input
-                    type="date"
-                    className="w-full h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
-                    value={filters.startDate}
-                    onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value, page: 1 }))}
-                    placeholder="Start Date"
-                />
-                <input
-                    type="date"
-                    className="w-full h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value, page: 1 }))}
-                    placeholder="End Date"
-                />
+                <div className="w-full">
+                    <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">
+                        End Date
+                    </label>
+                    <input
+                        id="end-date"
+                        type="date"
+                        className="w-full h-10 rounded-md bg-white border border-mid-gray p-1 font-bold"
+                        value={filters.endDate}
+                        onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value, page: 1 }))}
+                        placeholder="End Date"
+                    />
+                </div>
             </div>
 
             <div className="flex justify-between items-center mb-4 w-full">
@@ -316,26 +378,15 @@ export default function BackendTable({ activeTab }) {
 
                                             <td className="p-3">
                                                 <span className="text-sm font-semibold text-gray-900">
-                                                    {handleBadge(row.status)}
+                                                    {handleBadge(row.document_status)}
                                                 </span>
                                             </td>
 
                                             <td className="p-3">
+                                                {/* there's two dates: createdAt and updatedAt. clarify with darrel */}
                                                 <span className="text-sm font-light text-gray-600 flex items-center">
-                                                    {FormatDate(row.updatedAt)}
+                                                    {FormatDate(row.createdAt)}
                                                 </span>
-                                            </td>
-
-                                            <td className="p-3">
-                                                <div className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className="fill-gray-600 size-4 group-hover:fill-off-black"
-                                                        viewBox="0 0 448 512"
-                                                    >
-                                                        <path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" />
-                                                    </svg>
-                                                </div>
                                             </td>
                                         </tr>
                                     ))

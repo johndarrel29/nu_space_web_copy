@@ -10,20 +10,11 @@ import { toast } from 'react-toastify';
 import { useUserStoreWithAuth } from "../../store";
 import { useAuth } from "../../context/AuthContext";
 
-// set the useAdminUser off if super admin is logged in and vice versa
-// make a state that will the sources data from super admin or admin as source of truth
-// remove assigned rso if super admin
-
-
-// TODO: apply API that is for admin and super admin
-// 1: create state to display data from either admin or super admin
-// 2: create effect to fetch data from the appropriate source
-
 // Table Component
 const Table = React.memo(({ searchQuery, selectedRole }) => {
 
   const [mode, setMode] = useState('delete');
-  const { usersData, updateUserMutate, deleteStudentAccount, error, refetch, isLoading, refetchAdminProfile } = useAdminUser();
+  const { usersData, updateUserMutate, deleteStudentAccount, error, refetch, isLoading, refetchAdminProfile, refetchUsersData } = useAdminUser();
   const { sdaoAccounts, createAccount, deleteAdminAccount, updateAdminRole, refetchAccounts } = useSuperAdminUsers();
 
   const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
@@ -156,41 +147,21 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
       if (updatedData.role === 'rso_representative' && updatedData.category) {
         console.log("the second condition has been called")
         updatedData.category = null;
+        console.log("the updated data:", updatedData)
       }
 
-      if ((updatedData.role !== 'student' || updatedData.role !== 'rso_representative')) {
+      if (!['student', 'rso_representative'].includes(updatedData.role)) {
         console.log("the last condition has been called")
         // only pass role
         updatedData = { role: updatedData.role };
       }
-
-      // if (updatedData.role === 'coordinator') {
-      //   // Don't send category data in the update request when role is coordinator
-      //   updatedData.category = null;
-      //   updatedData.assignedRSO = null;
-      //   updatedData.assigned_rso = null;
-      // }
-
-      // if (updatedData.role === 'super_admin') {
-      //   // Don't send category data in the update request when role is super_admin
-      //   updatedData.category = null;
-      //   updatedData.assignedRSO = null;
-      //   updatedData.assigned_rso = null;
-      // }
-
-      // if (updatedData.role === 'admin') {
-      //   // Don't send category data in the update request when role is admin
-      //   updatedData.category = null;
-      //   updatedData.assignedRSO = null;
-      //   updatedData.assigned_rso = null;
-      // }
     }
 
     try {
       if (updatedData) {
         // Update logic remains the same
-        const updateUserOnRole = isUserAdmin ? updateUserMutate : isSuperAdmin ? updateAdminRole : null;
-        const refetchBasedOnRole = isUserAdmin ? refetchAccounts : isSuperAdmin ? refetchAdminProfile : null;
+        const updateUserOnRole = isUserAdmin || isCoordinator ? updateUserMutate : isSuperAdmin ? updateAdminRole : null;
+        const refetchBasedOnRole = (isUserAdmin || isCoordinator) ? refetchUsersData : isSuperAdmin ? refetchAdminProfile : null;
 
         console.log("passing data: ", { userId: _id, role: updatedData.role });
 
@@ -199,8 +170,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             console.log("User updated successfully");
             toast.success("User updated successfully");
             refetchBasedOnRole();
-
-
+            closeModal();
           },
           onError: (error) => {
             console.error("Error updating user:", error);
@@ -229,7 +199,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
       console.error("Error updating/deleting user:", error);
       toast.error("Error updating/deleting user");
     } finally {
-      closeModal();
+
       setSuccess(false);
     }
   }, [updateUserMutate, deleteStudentAccount, deleteAdminAccount, isUserAdmin, isSuperAdmin, updateAdminRole, closeModal]);

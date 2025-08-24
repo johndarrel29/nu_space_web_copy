@@ -16,6 +16,9 @@ import timezone from 'dayjs/plugin/timezone';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
+import { CardSkeleton } from '../../../components';
+
+// showing the rso loading when nothing is actually present.
 
 // getRSO succesfully connects to backend but not fetching the data correctly
 // fixed: nagend na ang yearly data kaya nawala na
@@ -78,19 +81,21 @@ export default function MainRSO() {
   // Process RSO data for table
   const rsoList = rsoData?.rsos ?? [];
   console.log("Processed RSO List:", rsoList);
+  console.log("rso membership status: ", rsoList.map(org => org.RSO_membershipStatus));
   const tableRow = rsoList.map((org) => {
     const snapshot = org.RSO_snapshot || {};
 
+    // snapshot will remain but some of the details are from the first layer
+    // on rso detail, use id to show details
     return {
-      id: org._id,
+      id: org.rsoId,
       RSO_name: snapshot.name || '',
       RSO_acronym: snapshot.acronym || '',
       RSO_category: snapshot.category || '',
       RSO_college: snapshot.college || '',
       RSO_picture: org.RSO_picture || '',
       RSO_memberCount: org.RSO_members?.length || 0,
-
-      // old fields, can be removed later
+      RSO_membershipStatus: org.RSO_membershipStatus ? "true" : "false"
     };
   });
 
@@ -140,6 +145,7 @@ export default function MainRSO() {
   // Handlers
   const handleSelectedUser = (user) => {
     setSelectedUser(user);
+    console.log(" selected user data ", user)
     navigate('rso-details', { state: { user } });
   };
 
@@ -244,23 +250,28 @@ export default function MainRSO() {
           </div>
         )}
       </div> */}
-
-      <ReusableTable
-        options={["All", "A-Z", "Most Popular"]}
-        showAllOption={false}
-        value={sort}
-        onChange={(e) => setSort(e.target.value)}
-        columnNumber={3}
-        tableHeading={[
-          { id: 1, name: "RSO Name", key: "RSO_name" },
-          { id: 2, name: "RSO Category", key: "RSO_category" },
-          { id: 3, name: "Membership Status", key: "membership_status" },
-        ]}
-        tableRow={filteredOrgs()}
-        onClick={handleSelectedUser}
-        error={fetchWebRSOError}
-        isLoading={loading}
-      />
+      {isRSOLoading ? (
+        <div className="flex items-center justify-center py-4">
+          <CardSkeleton></CardSkeleton>
+        </div>
+      ) : (
+        <ReusableTable
+          options={["All", "A-Z", "Most Popular"]}
+          showAllOption={false}
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          columnNumber={3}
+          tableHeading={[
+            { id: 1, name: "RSO Name", key: "RSO_name" },
+            { id: 2, name: "RSO Category", key: "RSO_category" },
+            { id: 3, name: "Membership Status", key: "RSO_membershipStatus" },
+          ]}
+          tableRow={filteredOrgs()}
+          onClick={handleSelectedUser}
+          error={fetchWebRSOError}
+          isLoading={loading}
+        />
+      )}
 
       <AnimatePresence>
         {isSettingsModalOpen && (

@@ -3,12 +3,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserStoreWithAuth } from '../../store';
 import { useEffect } from "react";
 
-const getCoordinatorDocuments = async () => {
+const getCoordinatorDocuments = async ({ queryKey }) => {
     try {
         const token = useTokenStore.getState().getToken();
+        const [_key, params] = queryKey;
 
-        console.log("Fetching coordinator documents with token:", token, "and url: ", `${process.env.REACT_APP_BASE_URL}/api/coordinator/documents/fetch-documents`);
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/coordinator/documents/fetch-documents`, {
+        // Filter out undefined, null, or empty string values from params
+        const filteredParams = {};
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== "") {
+                filteredParams[key] = value;
+            }
+        });
+
+        // Construct the query string from params
+        const queryString = new URLSearchParams(filteredParams).toString();
+        console.log("Fetching coordinator documents with token:", token, "and url: ", `${process.env.REACT_APP_BASE_URL}/api/coordinator/documents/fetch-documents?${queryString}`);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/coordinator/documents/fetch-documents?${queryString}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -56,9 +67,33 @@ const approveCoordinatorDocument = async ({ formData, documentId }) => {
 
 }
 
-function useCoordinatorDocuments() {
+function useCoordinatorDocuments({
+    page = 1,
+    limit = 10,
+    purpose = "",
+    status = "",
+    rsoId = "",
+    startDate = "",
+    endDate = "",
+    search = "",
+    documentType = "",
+    yearId = "",
+} = {}) {
     const { isCoordinator } = useUserStoreWithAuth();
     const queryClient = useQueryClient();
+
+    const filters = {
+        page,
+        limit,
+        purpose,
+        status,
+        rsoId,
+        startDate,
+        endDate,
+        search,
+        documentType,
+        yearId,
+    };
 
     useEffect(() => {
         if (!isCoordinator) {
@@ -75,7 +110,7 @@ function useCoordinatorDocuments() {
         isRefetching: isRefetchingDocuments,
         isFetched: isDocumentsFetched,
     } = useQuery({
-        queryKey: ["coordinatorDocuments"],
+        queryKey: ["coordinatorDocuments", filters],
         queryFn: getCoordinatorDocuments,
         enabled: isCoordinator
     });

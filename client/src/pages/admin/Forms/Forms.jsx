@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAdminCentralizedForms } from '../../../hooks'
 
 export default function Forms() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState('all');
+
+    const {
+        allForms,
+        isLoadingAllForms,
+        isRefetchingAllForms,
+        errorAllForms
+    } = useAdminCentralizedForms();
 
     // Sample data - this would typically come from an API
     const sampleForms = [
@@ -15,6 +23,18 @@ export default function Forms() {
         { id: 5, title: "Officer Information Form", category: "Registration", createdAt: "2024-02-01", status: "Draft" },
         { id: 6, title: "Facilities Reservation Form", category: "Logistics", createdAt: "2024-01-20", status: "Published" },
     ];
+
+    useEffect(() => {
+        if (allForms) {
+            console.log("All centralized forms:", allForms);
+        } else if (!isLoadingAllForms && !isRefetchingAllForms) {
+            console.log("No centralized forms available.");
+        }
+
+        if (errorAllForms) {
+            console.error("Error fetching centralized forms:", errorAllForms);
+        }
+    }, [allForms, isLoadingAllForms, isRefetchingAllForms, errorAllForms]);
 
     // Filter forms based on search query and filter type
     const filteredForms = sampleForms.filter(form => {

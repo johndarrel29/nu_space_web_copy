@@ -45,36 +45,16 @@ const fetchUsersRequest = async () => {
 // check if it is hitting the correct url based on role
 
 // for admin updating user role
-const updateUserRequest = async (userId, userData, userRole) => {
+const updateUserRequest = async ({ userId, userData }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : "";
 
     console.log('Updating user with ID:', userId, 'and data:', userData);
 
-    if (!userRole) {
-        throw new Error('user role is missing. Cannot fetch profile.');
-    }
 
     try {
-        let url = '';
-
-        const role = userRole || '';
-
-        switch (role) {
-            case 'admin':
-                url = `${process.env.REACT_APP_BASE_URL}/api/admin/user/updateUserRole/${userId}`;
-                break;
-            case 'super_admin':
-                url = `${process.env.REACT_APP_BASE_URL}/api/admin/user/super-admin/updateUserRole/${userId}`;
-                break;
-            default:
-                console.warn(`No URL defined for role: ${role}`);
-
-        }
-
-        console.log('Updating user role for URL:', url);
         console.log('User data being sent:', userData);
-        const response = await fetch(url, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/updateUserRole/${userId}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",

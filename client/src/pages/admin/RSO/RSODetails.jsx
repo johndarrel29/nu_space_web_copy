@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import DefaultPicture from "../../../assets/images/default-profile.jpg";
-import { ReusableTable, TabSelector, ActivityCard, Button, CloseButton } from '../../../components';
+import { TabSelector, ActivityCard, Button, CloseButton, BackendTable } from '../../../components';
 import TagSelector from '../../../components/TagSelector'
-import { useTagSelector, useModal, useUserProfile, useDocumentManagement, useRSO } from '../../../hooks';
+import { useTagSelector, useModal, useUserProfile, useDocumentManagement, useAdminRSO, useAdminActivity } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import { useAuth } from "../../../context/AuthContext";
+
+// TODO: get rso detail hook
+// link the rso detail to the rso id from state
+// map the response into the UI.
+// RSO details for admin
+
+// use the metadata to know if the activity fetched is related to rso. if not, dont display.
 
 function RSODetails() {
   const location = useLocation()
@@ -21,14 +28,53 @@ function RSODetails() {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const { user: userProfile } = useUserProfile();
   const [successMessage, setSuccessMessage] = useState("");
-  const rsoID = user?.id || "default-rso-id";
+  const rsoID = user?.id || "";
   const [checked, setChecked] = React.useState(null);
-  const { updateRSOStatusMutate } = useRSO();
   const { user: authUser } = useAuth();
+  const {
+    rsoDetailData,
+    isRSODetailLoading,
+    isRSODetailError,
+    rsoDetailError,
+    refetchRSODetail
+  } = useAdminRSO(
+    rsoID ? rsoID : null
+  );
 
+  console.log("user id to send to admin activity:", rsoID);
+
+  useEffect(() => {
+    if (rsoDetailData) {
+      console.log("RSO Detail Data:", rsoDetailData);
+    }
+  }, [rsoDetailData]);
+
+  // admin activity route
+  const {
+    adminPaginatedActivities,
+    adminError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAdminActivity({
+    RSO: rsoDetailData?.data?.RSO_snapshot?.acronym,
+    sorted: "All",
+    RSOType: "All"
+  });
+
+  const localActivities = rsoID ? adminPaginatedActivities?.pages?.flatMap(page => page?.activities || []) : [];
+
+  // change this to use the new auth role
   const isAdmin = authUser?.role === "admin" || authUser?.role === "coordinator" || authUser?.role === "super_admin";
   const isRSORepresentative = authUser?.role === "rso_representative";
   const showLink = true;
+
+  // map this details to the ui
+  useEffect(() => {
+    if (rsoDetailData) {
+      console.log("RSO Detail Data:", rsoDetailData);
+    }
+  }, [rsoDetailData]);
 
   useEffect(() => {
     if (user?.RSO_membershipStatus === true) {
@@ -54,17 +100,6 @@ function RSODetails() {
     approveDocumentMutate,
     rejectDocumentMutate,
   } = useDocumentManagement({ rsoID });
-
-
-
-  const handleChange = (newChecked) => {
-    const status = newChecked.target.checked;
-    setChecked(status);
-
-    console.log("Checked status: ", status);
-    console.log("RSO ID: ", rsoID);
-    updateRSOStatusMutate({ id: rsoID, status });
-  }
 
 
   const handleDateTime = (dateTime) => {
@@ -156,12 +191,11 @@ function RSODetails() {
       submittedBy: name || "Unknown",
       createdAt: handleDateTime(doc.createdAt) || "Unknown",
       updatedAt: handleDateTime(doc.updatedAt) || "Unknown",
-
     }
   })
 
   const handleEditClick = () => {
-    navigate(`../../rso-management/rso-action`, { state: { mode: "edit", data: user, from: user.RSO_name } });
+    navigate(`/rsos/rso-action`, { state: { mode: "edit", data: user, from: user.RSO_name } });
   }
 
   return (
@@ -183,14 +217,14 @@ function RSODetails() {
         <div className='flex flex-col sm:flex-row w-full'>
           <img
             className='h-12 w-12 bg-white rounded-full object-cover'
-            src={user.picture || DefaultPicture}
+            src={rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || DefaultPicture}
             alt="RSO Picture"
           />
 
           <div className='flex flex-col justify-start mt-3 sm:mt-0 sm:ml-4 w-full'>
             {/* Name and Edit Button */}
             <div className='flex flex-col md:flex-row items-center gap-2'>
-              <h1 className='text-xl font-bold text-off-black'>{user.RSO_name || "RSO Name"}</h1>
+              <h1 className='text-xl font-bold text-off-black'>{rsoDetailData?.data?.RSO_snapshot?.name || "RSO Name"}</h1>
 
               <div
                 onClick={handleEditClick}
@@ -206,7 +240,7 @@ function RSODetails() {
             </div>
 
             {/* Category and Tags */}
-            <h2 className='text-sm font-light text-gray-600'>{user.RSO_category || "RSO Category"}</h2>
+            <h2 className='text-sm font-light text-gray-600'>{rsoDetailData?.data?.RSO_snapshot?.category || "RSO Category"}</h2>
             <div className='mt-4'>
               <TagSelector
                 style={"view"}
@@ -216,8 +250,24 @@ function RSODetails() {
                 searchedData={searchedData}
                 handleTagClick={handleTagClick}
                 selectedTags={selectedTags}
-                apiTags={user.RSO_tags}
+                apiTags={rsoDetailData?.data?.RSOid?.RSO_tags}
               />
+            </div>
+            {/* Stats Section */}
+            <div className=" flex flex-wrap gap-4">
+              {/* Members Count Card */}
+              <div className="flex bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+                <div className="w-2 bg-gradient-to-b from-[#312895] to-[#5a4ca8]"></div>
+                <div className="flex items-center p-4 gap-3">
+                  <div className="flex items-center justify-center h-10 w-10 bg-[#312895] bg-opacity-10 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="fill-[#312895] size-5" viewBox="0 0 640 512"><path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192l42.7 0c15.9 0 31 3.5 44.6 9.7c-1.3 7.2-1.9 14.7-1.9 22.3c0 38.2 16.8 72.5 43.3 96c-.2 0-.4 0-.7 0L21.3 320C9.6 320 0 310.4 0 298.7zM405.3 320c-.2 0-.4 0-.7 0c26.6-23.5 43.3-57.8 43.3-96c0-7.6-.7-15-1.9-22.3c13.6-6.3 28.7-9.7 44.6-9.7l42.7 0C592.2 192 640 239.8 640 298.7c0 11.8-9.6 21.3-21.3 21.3l-213.3 0c-14.7 0-26.7-11.9-26.7-26.7z" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-medium text-gray-500">Members</p>
+                    <p className="text-xl font-bold text-off-black">{user.RSO_memberCount || 0}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -229,74 +279,72 @@ function RSODetails() {
         </div> */}
       </div>
 
+
       <div className='lg:pl-10 lg:pr-10 md:pl-8 md:pr-8 pl-6 pr-6 mt-6'>
         {/* profile details */}
         <div className='w-full flex items-center justify-center'>
           <div className='flex flex-col lg:flex-row items-start gap-4 w-full'>
             {/* Description Card */}
-            <div className='h-auto w-full bg-white rounded-md p-4 border border-mid-gray'>
-              <h1 className='text-sm font-semibold text-off-black'>Description</h1>
-              <p className='text-sm font-light text-gray-700 mt-2'>{user.RSO_description || "No RSO description provided."}</p>
+            <div className='h-auto w-full bg-white rounded-lg p-4 border border-gray-100 shadow-sm'>
+              <p className="text-xs uppercase tracking-wider font-medium text-gray-500 mb-2">Description</p>
+              <p className='text-sm text-gray-700'>{rsoDetailData?.data?.RSOid?.RSO_description || "No RSO description provided."}</p>
             </div>
 
+
+
             {/* Info Table */}
-            <div className="w-full bg-white rounded-md p-4 border border-mid-gray">
-              <table className="w-full border-separate border-spacing-0">
+            <div className="w-full bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
+              <table className="w-full border-separate border-spacing-y-2">
                 <tbody>
                   <tr>
-                    <td className="text-sm font-light text-gray-500 py-1">Acronym</td>
-                    <td className="text-sm font-medium text-off-black py-1">{user.RSO_acronym || "RSO Acroynm"}</td>
+                    <td className="text-xs uppercase tracking-wider font-medium text-gray-500 py-1 w-1/3">Acronym</td>
+                    <td className="text-sm font-medium text-off-black py-1">{rsoDetailData?.data?.RSOid?.RSO_acronym || "RSO Acroynm"}</td>
                   </tr>
                   <tr>
-                    <td className="text-sm font-light text-gray-500 py-1">College</td>
-                    <td className="text-sm font-medium text-off-black py-1">{user.RSO_College || "No College"}</td>
+                    <td className="text-xs uppercase tracking-wider font-medium text-gray-500 py-1">College</td>
+                    <td className="text-sm font-medium text-off-black py-1">{rsoDetailData?.data?.RSOid?.RSO_College || "No College"}</td>
                   </tr>
                   <tr>
-                    <td className="text-sm font-light text-gray-500 py-1">Forms</td>
-                    <td className="text-sm font-medium py-1">
-                      <div className='flex items-center gap-2 hover:underline cursor-pointer text-off-black'>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="size-4 fill-[#312895] shrink-0" viewBox="0 0 640 512"><path d="M579.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L422.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C206.5 251.2 213 330 263 380c56.5 56.5 148 56.5 204.5 0L579.8 267.7zM60.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C74 372 74 321 105.5 289.5L217.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C433.5 260.8 427 182 377 132c-56.5-56.5-148-56.5-204.5 0L60.2 244.3z" /></svg>
-                        {showLink && user.RSO_forms ? (
-                          <a
-                            href={user.RSO_forms}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline truncate max-w-[40px] sm:max-w-[400px]"
-                            title='Click to view the form'
-                          >
-                            {user.RSO_forms}
-                          </a>
-                        ) : (
-                          "No forms available."
-                        )}
-                      </div>
+                    <td className="text-xs uppercase tracking-wider font-medium text-gray-500 py-1">Forms</td>
+                    <td className="text-sm py-1">
+                      {showLink && rsoDetailData?.data?.RSOid?.RSO_forms ? (
+                        <a
+                          href={rsoDetailData?.data?.RSOid?.RSO_forms}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-[#312895] hover:text-[#493ec4] transition-colors truncate max-w-[40px] sm:max-w-[400px]"
+                          title='Click to view the form'
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="size-4 fill-current shrink-0" viewBox="0 0 640 512"><path d="M579.8 267.7c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114L422.3 334.8c-31.5 31.5-82.5 31.5-114 0c-27.9-27.9-31.5-71.8-8.6-103.8l1.1-1.6c10.3-14.4 6.9-34.4-7.4-44.6s-34.4-6.9-44.6 7.4l-1.1 1.6C206.5 251.2 213 330 263 380c56.5 56.5 148 56.5 204.5 0L579.8 267.7zM60.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C74 372 74 321 105.5 289.5L217.7 177.2c31.5-31.5 82.5-31.5 114 0c27.9 27.9 31.5 71.8 8.6 103.9l-1.1 1.6c-10.3 14.4-6.9 34.4 7.4 44.6s34.4 6.9 44.6-7.4l1.1-1.6C433.5 260.8 427 182 377 132c-56.5-56.5-148-56.5-204.5 0L60.2 244.3z" /></svg>
+                          {user.RSO_forms}
+                        </a>
+                      ) : (
+                        <span className="text-gray-500 text-sm">No forms available</span>
+                      )}
                     </td>
                   </tr>
                   <tr>
-                    <td className="text-sm font-light text-gray-500 py-1">Managed By</td>
+                    <td className="text-xs uppercase tracking-wider font-medium text-gray-500 py-1">Managed By</td>
                     <td className="text-sm font-medium text-off-black py-1">
-                      {user?.RSO_assignedUsers?.length > 0
-                        ? user.RSO_assignedUsers.map((rsoUser, index) => (
-                          `${rsoUser.firstName} ${rsoUser.lastName}${index < user.RSO_assignedUsers.length - 1 ? ', ' : ''}`
+                      {rsoDetailData?.data?.RSOid?.RSO_assignedUsers?.length > 0
+                        ? rsoDetailData.data.RSOid.RSO_assignedUsers.map((rsoUser, index) => (
+                          `${rsoUser.firstName} ${rsoUser.lastName}${index < rsoDetailData.data.RSOid.RSO_assignedUsers.length - 1 ? ', ' : ''}`
                         ))
                         : "No assigned users"
                       }
                     </td>
                   </tr>
                   <tr>
-                    <td className="text-sm font-light text-gray-500 py-1">Probationary</td>
-                    <td className="text-sm font-medium py-1">
-                      <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${user?.RSO_probationary ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                        {user?.RSO_probationary ? 'On Probation' : 'Not Probationary'}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="text-sm font-light text-gray-500 py-1">Status</td>
-                    <td className="text-sm font-medium py-1">
-                      <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded ${user?.RSO_visibility ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {user?.RSO_visibility ? 'Visible' : 'Not visible'}
-                      </span>
+                    <td className="text-xs uppercase tracking-wider font-medium text-gray-500 py-1">Status</td>
+                    <td className="text-sm py-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${rsoDetailData?.data?.RSO_snapshot?.probationary ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          {rsoDetailData?.data?.RSO_snapshot?.probationary ? 'On Probation' : 'Active'}
+                        </span>
+                        <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${user?.RSO_visibility ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>
+                          {user?.RSO_visibility ? 'Visible' : 'Hidden'}
+                        </span>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -305,203 +353,109 @@ function RSODetails() {
           </div>
         </div>
 
-        {/* Additional RSO Details Section */}
-        <div className='mt-6'>
-          <h1 className='font-semibold text-off-black mb-4'>Recognition Details</h1>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            {/* Yearly Snapshot */}
-            <div className='p-4 bg-white rounded-md border border-mid-gray'>
-              <p className='text-xs text-gray-500'>Yearly Snapshot</p>
-              <h3 className='mt-2 text-sm font-semibold text-gray-800'>{user?.yearlyData?.RSO_snapshot?.name || user.RSO_name || '—'}</h3>
-              <p className='text-xs text-gray-500 mt-1'>{user?.yearlyData?.RSO_snapshot?.acronym || user.RSO_acronym}</p>
-              <p className='mt-3 text-sm text-gray-600'>
-                {user?.yearlyData?.RSO_snapshot?.description || 'No yearly description.'}
-              </p>
 
-              <div className='mt-4 grid grid-cols-2 gap-2 text-sm'>
-                <div>
-                  <p className='text-xs text-gray-500'>Total Members</p>
-                  <p className='font-medium text-gray-800'>{user?.yearlyData?.RSO_totalMembers ?? user.RSO_memberCount ?? 0}</p>
+
+        {/* Officers Section */}
+        <div className="mt-6">
+          <h2 className="text-sm font-semibold text-off-black uppercase tracking-wider mb-3">Officers</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {/* officer cards */}
+            {rsoDetailData?.data?.RSO_Officers && rsoDetailData?.data?.RSO_Officers.length > 0 ? (
+              rsoDetailData?.data?.RSO_Officers.map((officer, index) => (
+                <div
+                  key={index}
+                  onClick={() => {
+                    setModalMode("officers-edit");
+                    setSelected(officer);
+                    setTimeout(() => {
+                      openModal();
+                    }, 0);
+                  }}
+                  className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <div className="h-10 w-10 rounded-full flex-shrink-0 overflow-hidden border-2 border-[#312895]/20">
+                    <img
+                      className="h-full w-full object-cover"
+                      src={officer.OfficerPicture?.signedURL || DefaultPicture}
+                      alt={officer.OfficerName || "Officer"}
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-off-black">{officer.OfficerName || "N/A"}</h3>
+                    <p className="text-xs text-gray-500">{officer.OfficerPosition || "N/A"}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className='text-xs text-gray-500'>Membership Active</p>
-                  <p className='font-medium text-gray-800'>{user?.yearlyData?.RSO_membershipStatus ? 'Yes' : 'No'}</p>
-                </div>
+              ))
+            ) : (
+              <div className="col-span-full flex items-center justify-center h-16 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                <p className="text-sm text-gray-500">No officers available</p>
               </div>
-
-              <div className='mt-3 text-xs text-gray-500'>
-                <p>Membership End: <span className='text-gray-700 font-medium'>
-                  {user?.yearlyData?.RSO_membershipEndDate ? new Date(user.yearlyData.RSO_membershipEndDate).toLocaleString() : '—'}
-                </span></p>
-              </div>
-            </div>
-
-            {/* Recognition Status */}
-            <div className='p-4 bg-white rounded-md border border-mid-gray'>
-              <p className='text-xs text-gray-500'>Recognition Status</p>
-
-              <div className='mt-2'>
-                <p className='text-sm font-medium text-gray-800'>{user?.yearlyData?.RSO_recognition_status?.status || '—'}</p>
-                <p className='text-xs text-gray-500 mt-1'>Date Status: <span className='text-gray-700 font-medium'>{user?.yearlyData?.RSO_recognition_status?.date_status || '—'}</span></p>
-
-                <div className='mt-3 text-xs text-gray-500'>
-                  <p>Start Deadline: <span className='text-gray-700 font-medium'>
-                    {user?.yearlyData?.RSO_recognition_status?.start_deadline ? new Date(user.yearlyData.RSO_recognition_status.start_deadline).toLocaleString() : '—'}
-                  </span></p>
-                  <p className='mt-1'>End Deadline: <span className='text-gray-700 font-medium'>
-                    {user?.yearlyData?.RSO_recognition_status?.end_deadline ? new Date(user.yearlyData.RSO_recognition_status.end_deadline).toLocaleString() : '—'}
-                  </span></p>
-                </div>
-
-                <div className='mt-3'>
-                  <p className='text-xs text-gray-500'>Documents</p>
-                  <p className='text-sm font-medium text-gray-800'>{(user?.yearlyData?.RSO_recognition_status?.documents?.length) ?? 0}</p>
-                </div>
-              </div>
-
-              <div className='mt-4 border-t pt-3 text-xs text-gray-500'>
-                <p>Snapshot created: <span className='text-gray-700 font-medium'>
-                  {user?.yearlyData?.createdAt ? new Date(user.yearlyData.createdAt).toLocaleString() : '—'}
-                </span></p>
-                <p className='mt-1'>Last updated: <span className='text-gray-700 font-medium'>
-                  {user?.yearlyData?.updatedAt ? new Date(user.yearlyData.updatedAt).toLocaleString() : '—'}
-                </span></p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
-        <div className='flex items-center justify-start mt-6'>
-          <h1 className='font-semibold text-off-black'>Statistics</h1>
-        </div>
-
-        {/* profile stats */}
-        <div className='flex flex-col sm:flex-row w-full items-center justify-center mt-2 gap-4 h-auto sm:h-32'>
-          {/* Members Count Card - Full width on mobile, normal on larger screens */}
-          <div className='w-full sm:w-1/2 h-32 bg-gradient-to-br from-[#312895] to-[#5a4ca8] rounded-md flex items-center justify-center text-white'>
-            <div className='flex items-center justify-center gap-4'>
-              <div className='flex items-center justify-center h-12 w-12 bg-white/20 rounded-full backdrop-blur-sm'>
-                <svg xmlns="http://www.w3.org/2000/svg" className='fill-white size-6' viewBox="0 0 640 512"><path d="M144 0a80 80 0 1 1 0 160A80 80 0 1 1 144 0zM512 0a80 80 0 1 1 0 160A80 80 0 1 1 512 0zM0 298.7C0 239.8 47.8 192 106.7 192l42.7 0c15.9 0 31 3.5 44.6 9.7c-1.3 7.2-1.9 14.7-1.9 22.3c0 38.2 16.8 72.5 43.3 96c-.2 0-.4 0-.7 0L21.3 320C9.6 320 0 310.4 0 298.7zM405.3 320c-.2 0-.4 0-.7 0c26.6-23.5 43.3-57.8 43.3-96c0-7.6-.7-15-1.9-22.3c13.6-6.3 28.7-9.7 44.6-9.7l42.7 0C592.2 192 640 239.8 640 298.7c0 11.8-9.6 21.3-21.3 21.3l-213.3 0c-14.7 0-26.7-11.9-26.7-26.7z" /></svg>
-              </div>
-              <div>
-                <h1 className='text-2xl font-bold'>{user.RSO_memberCount || 0}</h1>
-                <p className='text-sm'>Members</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Files and Popularity - Full width on mobile, normal on larger screens */}
-          <div className='flex flex-col w-full sm:w-1/2 h-auto sm:h-full gap-4'>
-            {/* Files Uploaded Card */}
-            <div className='h-32 sm:h-full bg-white rounded-md border border-mid-gray flex items-center justify-center'>
-              <div className='flex items-center justify-center gap-3'>
-                <div className='flex items-center justify-center rounded-full bg-[#FFCC33] h-8 w-8'>
-                  <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 576 512"><path d="M88.7 223.8L0 375.8 0 96C0 60.7 28.7 32 64 32l117.5 0c17 0 33.3 6.7 45.3 18.7l26.5 26.5c12 12 28.3 18.7 45.3 18.7L416 96c35.3 0 64 28.7 64 64l0 32-336 0c-22.8 0-43.8 12.1-55.3 31.8zm27.6 16.1C122.1 230 132.6 224 144 224l400 0c11.5 0 22 6.1 27.7 16.1s5.7 22.2-.1 32.1l-112 192C453.9 474 443.4 480 432 480L32 480c-11.5 0-22-6.1-27.7-16.1s-5.7-22.2 .1-32.1l112-192z" /></svg>
-                </div>
-                <div>
-                  <h1 className='text-lg font-bold text-off-black'>{0}</h1>
-                  <p className='text-xs text-gray-600'>Files Uploaded</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Popularity Score Card */}
-            <div className='h-32 sm:h-full bg-white rounded-md border border-mid-gray flex items-center justify-center'>
-              <div className='flex items-center justify-center gap-3'>
-                <div className='flex items-center justify-center rounded-full bg-[#312895] h-8 w-8'>
-                  <svg xmlns="http://www.w3.org/2000/svg" className='size-4 fill-white' viewBox="0 0 448 512"><path d="M159.3 5.4c7.8-7.3 19.9-7.2 27.7 .1c27.6 25.9 53.5 53.8 77.7 84c11-14.4 23.5-30.1 37-42.9c7.9-7.4 20.1-7.4 28 .1c34.6 33 63.9 76.6 84.5 118c20.3 40.8 33.8 82.5 33.8 111.9C448 404.2 348.2 512 224 512C98.4 512 0 404.1 0 276.5c0-38.4 17.8-85.3 45.4-131.7C73.3 97.7 112.7 48.6 159.3 5.4zM225.7 416c25.3 0 47.7-7 68.8-21c42.1-29.4 53.4-88.2 28.1-134.4c-4.5-9-16-9.6-22.5-2l-25.2 29.3c-6.6 7.6-18.5 7.4-24.7-.5c-16.5-21-46-58.5-62.8-79.8c-6.3-8-18.3-8.1-24.7-.1c-33.8 42.5-50.8 69.3-50.8 99.4C112 375.4 162.6 416 225.7 416z" /></svg>
-                </div>
-                <div>
-                  <h1 className='text-lg font-bold text-off-black'>{Math.floor(user.RSO_popularityScoreCount) + "%" || 0}</h1>
-                  <p className='text-xs text-gray-600'>Popularity Score</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* profile rso officers */}
-        <div className='flex items-center justify-start mt-6'>
-          <h1 className='font-semibold text-off-black'>Officers</h1>
-        </div>
-
-        <div className='flex flex-wrap items-center justify-start gap-4 w-full mt-3'>
-          {console.log("rso officers ", user.RSO_Officers)}
-          {/* officer cards */}
-          {user?.RSO_Officers && user?.RSO_Officers.length > 0 ? (
-            user?.RSO_Officers.map((officer, index) => (
-              <div
-                key={index}
-                onClick={() => {
-                  setModalMode("officers-edit");
-                  setSelected(officer);
-                  setTimeout(() => {
-                    openModal();
-                  }, 0);
-                }}
-                className='flex items-center justify-center gap-3 bg-white p-3 rounded-md border border-mid-gray cursor-pointer hover:bg-gray-200'>
-                <div className='h-10 w-10 bg-[#312895] rounded-full flex items-center justify-center text-white font-medium'>
-                  <img
-                    className='h-full w-full object-cover rounded-full'
-                    src={officer.OfficerPictureUrl || DefaultPicture}
-                    alt="officer-picture" />
-                </div>
-                <div className='flex flex-col justify-start'>
-                  <h1 className='text-sm font-bold text-off-black'>{officer.OfficerName || "N/A"}</h1>
-                  <h2 className='text-xs font-light text-gray-600'>{officer.OfficerPosition || "N/A"}</h2>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className='w-full flex items-center justify-center h-16'>
-              <p className="text-gray-500">No officers available.</p>
-            </div>
-          )}
-        </div>
-
-        <div className='rounded-lg w-full mt-6'>
+        <div className="rounded-lg w-full mt-6">
           <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
           {activeTab === 0 && (
-            <ReusableTable
-              options={["All", "A-Z"]}
-              showAllOption={false}
-              columnNumber={4}
-              tableHeading={[
-                { name: "Document", key: "title" },
-                { name: "Status", key: "status" },
-                { name: "Submitted By", key: "submittedBy" },
-                { name: "Created At", key: "createdAt" },
-              ]}
-              tableRow={filteredDocuments}
-              onClick={(document) => {
-                setSelectedDocument(document);
-                setModalMode("documents");
-                openModal();
-              }}
-            />
+            rsoID ? (
+              <BackendTable
+                activeTab={1}
+                filters={{
+                  rsoId: rsoID,
+                  purpose: "recognition",
+                  limit: 10,
+                  page: 1
+                }}
+                rsoId={rsoID}
+              />
+            ) : (
+              <div className='w-full flex items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-300 mt-4'>
+                <div className='text-center'>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="size-10 mx-auto fill-gray-400 mb-2" viewBox="0 0 384 512">
+                    <path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM216 232V334.1l31-31c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-72 72c-9.4 9.4-24.6 9.4-33.9 0l-72-72c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l31 31V232c0-13.3 10.7-24 24-24s24 10.7 24 24z" />
+                  </svg>
+                  <p className="text-gray-500 font-medium">No RSO Documents Available</p>
+                  <p className="text-sm text-gray-400 mt-1">Documents will appear here once submitted</p>
+                </div>
+              </div>
+            )
           )}
 
           {activeTab === 1 && (
-            user.RSO_activities && user.RSO_activities.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full mt-4" >
-                {user.RSO_activities.map((activity) => (
-                  <ActivityCard
-                    key={activity._id}
-                    activity={activity}
-                    Activity_name={activity.Activity_name}
-                    Activity_description={activity.Activity_description}
-                    Activity_image={activity?.activityImageUrl}
-                    Activity_registration_total={activity.Activity_registration_total}
-                    onClick={handleActivityClick}
-                    Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
-                    Activity_place={activity.Activity_place}
-                    statusColor={activity.Activity_status === 'done' ? 'bg-green-500' :
-                      activity.Activity_status === 'pending' ? 'bg-[#FFCC33]' :
-                        'bg-red-500'}
-                  />
-                ))}
-              </div>
+            localActivities && localActivities.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full mt-4" >
+                  {localActivities.map((activity) => (
+                    <ActivityCard
+                      key={activity._id}
+                      activity={activity}
+                      Activity_name={activity.Activity_name}
+                      Activity_description={activity.Activity_description}
+                      Activity_image={activity?.activityImageUrl}
+                      Activity_registration_total={activity.Activity_registration_total}
+                      onClick={handleActivityClick}
+                      Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
+                      Activity_place={activity.Activity_place}
+                      statusColor={activity.Activity_status === 'done' ? 'bg-green-500' :
+                        activity.Activity_status === 'pending' ? 'bg-[#FFCC33]' :
+                          'bg-red-500'}
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-center mt-6 w-full">
+                  {hasNextPage && (
+                    <Button
+                      style={"secondary"}
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage ? 'Loading more...' : 'Load More'}
+                    </Button>
+                  )}
+                </div>
+              </>
             ) : (
               <div className='w-full flex items-center justify-center h-64'>
                 <p className="text-gray-500">No activities available.</p>
@@ -509,66 +463,60 @@ function RSODetails() {
             )
           )}
         </div>
-      </div>
+      </div >
 
 
       {/* modal for rso officers */}
-      <AnimatePresence>
-        {['officers-create', 'officers-edit'].includes(modalMode) && isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50`}
-          >
-            <div className='flex items-center justify-center h-screen'>
-              <motion.div
-                variants={DropIn}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className='bg-white rounded-lg w-[400px] p-4 shadow-md'
-              >
-                <div className='flex justify-between'>
-                  <h1 className='text-lg font-bold text-off-black'>RSO Officers</h1>
-                  <CloseButton onClick={() => {
-                    setModalMode("");
-                    closeModal();
-                  }} />
-                </div>
-
-                {/* rso details */}
-                {(isAdmin) && (
-                  <div className='flex flex-col items-center justify-center mt-4 gap-2'>
-                    <div className='aspect-square rounded-full bg-gray h-24'>
-                      <img
-                        className='h-full w-full object-cover rounded-full'
-                        src={selected?.OfficerPictureUrl || DefaultPicture}
-                        alt="officer-picture"
-                      />
-                    </div>
-                    <div className='flex flex-col items-center justify-center'>
-                      <h1>{selected.OfficerName}</h1>
-                      <h1 className='text-gray-600 text-sm'>{selected.OfficerPosition}</h1>
-                    </div>
+      < AnimatePresence >
+        {
+          ['officers-create', 'officers-edit'].includes(modalMode) && isOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-50`}
+            >
+              <div className='flex items-center justify-center h-screen'>
+                <motion.div
+                  variants={DropIn}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className='bg-white rounded-lg w-[400px] p-4 shadow-md'
+                >
+                  <div className='flex justify-between'>
+                    <h1 className='text-lg font-bold text-off-black'>RSO Officers</h1>
+                    <CloseButton onClick={() => {
+                      setModalMode("");
+                      closeModal();
+                    }} />
                   </div>
-                )}
-                <div className='flex items-center justify-end mt-4 gap-2'>
-                  {modalMode === "officers-create" && isOpen && (
-                    <>
-                      <Button>Assign Officer</Button>
-                      <Button style={"secondary"}>Cancel</Button>
-                    </>
+
+                  {/* rso details */}
+                  {(isAdmin) && (
+                    <div className='flex flex-col items-center justify-center mt-4 gap-2'>
+                      <div className='aspect-square rounded-full bg-gray h-24'>
+                        <img
+                          className='h-full w-full object-cover rounded-full'
+                          src={selected?.OfficerPicture?.signedURL || DefaultPicture}
+                          alt="officer-picture"
+                        />
+                      </div>
+                      <div className='flex flex-col items-center justify-center'>
+                        <h1>{selected.OfficerName}</h1>
+                        <h1 className='text-gray-600 text-sm'>{selected.OfficerPosition}</h1>
+                      </div>
+                    </div>
                   )}
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                </motion.div>
+              </div>
+            </motion.div>
+          )
+        }
+      </AnimatePresence >
 
       {/* modal for reviewing documents */}
-      <AnimatePresence>
+      < AnimatePresence >
         {modalMode === "documents" && isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -658,9 +606,9 @@ function RSODetails() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence >
 
-    </div>
+    </div >
 
   )
 }

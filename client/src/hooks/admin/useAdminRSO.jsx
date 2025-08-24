@@ -232,7 +232,28 @@ const extendMembershipDate = async ({ date, hours, minutes }) => {
     return response.json();
 };
 
-function useAdminRSO() {
+const getRSODetail = async (id) => {
+    try {
+        const token = useTokenStore.getState().getToken();
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/fetch-rso-details/${id}`, {
+            method: "GET",
+            headers: {
+                "Authorization": token || "",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error("Error fetching RSO details:", error);
+        throw error;
+    }
+};
+
+function useAdminRSO(rsoID = "") {
     const queryClient = useQueryClient();
     const { isUserAdmin, isUserCoordinator } = useUserStoreWithAuth();
 
@@ -409,6 +430,18 @@ function useAdminRSO() {
         enabled: isUserAdmin || isUserCoordinator,
     });
 
+    const {
+        data: rsoDetailData,
+        isLoading: isRSODetailLoading,
+        isError: isRSODetailError,
+        error: rsoDetailError,
+        refetch: refetchRSODetail,
+    } = useQuery({
+        queryKey: ["rsoDetail", rsoID],
+        queryFn: () => getRSODetail(rsoID),
+        enabled: !!rsoID,
+    });
+
     return {
         // for admin create RSO
         createRSOMutate,
@@ -479,6 +512,13 @@ function useAdminRSO() {
         isExtendMembershipDateError,
         extendMembershipDateError,
         resetExtendMembershipDate,
+
+        // for admin get RSO details
+        rsoDetailData,
+        isRSODetailLoading,
+        isRSODetailError,
+        rsoDetailError,
+        refetchRSODetail,
     }
 }
 

@@ -3,11 +3,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserStoreWithAuth } from '../../store';
 import { useEffect } from "react";
 
-const fetchDirectorDocuments = async () => {
+const fetchDirectorDocuments = async ({ queryKey }) => {
     try {
         const token = useTokenStore.getState().getToken();
+        const [_key, params] = queryKey;
 
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/director/documents/fetch-documents`, {
+        // Filter out undefined, null, or empty string values from params
+        const filteredParams = {};
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== "") {
+                filteredParams[key] = value;
+            }
+        });
+
+        // Construct the query string from params
+        const queryString = new URLSearchParams(filteredParams).toString();
+        console.log("Fetching director documents with token:", token, "and url: ", `${process.env.REACT_APP_BASE_URL}/api/director/documents/fetch-documents?${queryString}`);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/director/documents/fetch-documents?${queryString}`, {
             method: "GET",
             headers: {
                 Authorization: token || "",
@@ -28,11 +40,13 @@ const fetchDirectorDocuments = async () => {
 
 const approveDirectorDocument = async ({ formData, documentId }) => {
     try {
+        console.log("Received data for approval in director:", documentId, formData);
         const token = useTokenStore.getState().getToken();
 
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/director/documents/approve/${documentId}`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/director/documents/approveDocument/${documentId}`, {
             method: "PATCH",
             headers: {
+                "Content-Type": "application/json",
                 Authorization: token || "",
             },
             body: JSON.stringify(formData)
@@ -49,9 +63,33 @@ const approveDirectorDocument = async ({ formData, documentId }) => {
     }
 }
 
-function useDirectorDocuments() {
+function useDirectorDocuments({
+    page = 1,
+    limit = 10,
+    purpose = "",
+    status = "",
+    rsoId = "",
+    startDate = "",
+    endDate = "",
+    search = "",
+    documentType = "",
+    yearId = "",
+} = {}) {
     const { isDirector } = useUserStoreWithAuth();
     const queryClient = useQueryClient();
+
+    const filters = {
+        page,
+        limit,
+        purpose,
+        status,
+        rsoId,
+        startDate,
+        endDate,
+        search,
+        documentType,
+        yearId,
+    };
 
     useEffect(() => {
         if (!isDirector) {
@@ -68,7 +106,7 @@ function useDirectorDocuments() {
         isRefetching: isRefetchingDocuments,
         isFetched: isDocumentsFetched,
     } = useQuery({
-        queryKey: ["directorDocuments"],
+        queryKey: ["directorDocuments", filters],
         queryFn: fetchDirectorDocuments,
         enabled: isDirector,
     });

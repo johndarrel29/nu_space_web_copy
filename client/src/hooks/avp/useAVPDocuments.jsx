@@ -3,11 +3,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUserStoreWithAuth } from '../../store';
 import { useEffect } from "react";
 
-const getAVPDocuments = async () => {
+const getAVPDocuments = async ({ queryKey }) => {
     try {
         const token = useTokenStore.getState().getToken();
-        console.log("Fetching AVP documents with token:", token, "and url: ", `${process.env.REACT_APP_BASE_URL}/api/avp/documents/fetch-documents`);
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/avp/documents/fetch-documents`, {
+        const [_key, params] = queryKey;
+
+        // Filter out undefined, null, or empty string values from params
+        const filteredParams = {};
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== "") {
+                filteredParams[key] = value;
+            }
+        });
+
+        // Construct the query string from params
+        const queryString = new URLSearchParams(filteredParams).toString();
+        console.log("Fetching AVP documents with token:", token, "and url: ", `${process.env.REACT_APP_BASE_URL}/api/avp/documents/fetch-documents?${queryString}`);
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/avp/documents/fetch-documents?${queryString}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -28,15 +40,17 @@ const getAVPDocuments = async () => {
     }
 };
 
-const approveAVPDocument = async (documentId) => {
+const approveAVPDocument = async ({ formData, documentId }) => {
     try {
         const token = useTokenStore.getState().getToken();
 
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/avp/documents/approve/${documentId}`, {
-            method: "POST",
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/avp/documents/approveDocument/${documentId}`, {
+            method: "PATCH",
             headers: {
+                "Content-Type": "application/json",
                 Authorization: token || "",
             },
+            body: JSON.stringify(formData),
         });
 
         if (!response.ok) {

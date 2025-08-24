@@ -194,7 +194,7 @@ export default function ReusableTable({
                                                                 <td key={heading.id} className="p-3">
 
                                                                     {
-                                                                        ["title", "status", "submittedBy", "createdAt", "actions"].includes(heading.key)
+                                                                        ["title", "status", "submittedBy", "createdAt", "actions", "RSO_membershipStatus"].includes(heading.key)
                                                                             ? (
                                                                                 <>
                                                                                     <div className="py-0">
@@ -223,6 +223,23 @@ export default function ReusableTable({
                                                                                                 className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
                                                                                                 <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
                                                                                             </div>
+                                                                                        )}
+                                                                                        {heading.key === "RSO_membershipStatus" && (
+                                                                                            row.RSO_membershipStatus === true ? (
+                                                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                                                    </svg>
+                                                                                                    Open
+                                                                                                </span>
+                                                                                            ) : (
+                                                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                                                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                                                                    </svg>
+                                                                                                    Not open
+                                                                                                </span>
+                                                                                            )
                                                                                         )}
                                                                                     </div>
 

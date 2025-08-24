@@ -99,29 +99,24 @@ const fetchGeneralDocuments = async (id) => {
 };
 
 // checks if the user has a role and fetches the document template accordingly
-const fetchDocumentTemplate = async (documentFor, user) => {
+const fetchDocumentTemplate = async ({ queryKey }) => {
     try {
+        const [_key, params] = queryKey;
         // user is now passed as an argument
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
-        let url = '';
-        const role = user?.role || '';
-        switch (role) {
-            case 'admin':
-            case 'coordinator':
-            case 'super_admin':
-                url = `${process.env.REACT_APP_BASE_URL}/api/admin/documents/templateDocuments`;
-                break;
-            case 'rso_representative':
-                url = `${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/template?documentFor=${documentFor}`;
-                break;
-            default:
-                console.warn(`No URL defined for role: ${role}`);
-                throw new Error(`No URL defined for role: ${role}`);
-        }
+        const filteredParams = {};
+        Object.entries(params).forEach(([key, value]) => {
+            if (value != undefined && value != null && value != "") {
+                filteredParams[key] = value;
+            }
+        });
 
-        const res = await fetch(url, {
+        // construct query string from params
+        const queryString = new URLSearchParams(filteredParams).toString();
+        console.log("url request for templates: ", `${process.env.REACT_APP_BASE_URL}/api/admin/documents/templateDocuments?${queryString}`);
+        const res = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/documents/templateDocuments?${queryString}`, {
             method: "GET",
             headers: {
                 'Authorization': formattedToken,
@@ -132,6 +127,11 @@ const fetchDocumentTemplate = async (documentFor, user) => {
         if (!res.ok) {
             const errorText = await res.text();
             throw new Error(`Fetch failed: ${errorText}`);
+        }
+
+        if (res.status === 204) {
+            console.warn("No document templates found.");
+            return [];
         }
 
         const json = await res.json();
@@ -215,7 +215,37 @@ const setAccreditationDeadlineRequest = async (data) => {
     }
 }
 
+const fetchDocumentDetail = async ({ queryKey }) => {
+    try {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+        const documentId = queryKey[1];
+        console.log("Fetching document detail for ID:", documentId);
+
+        const res = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/documents/specific-document/${documentId}`, {
+            method: "GET",
+            headers: {
+                'Authorization': token,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Fetch failed: ${errorText}`);
+        }
+
+        const json = await res.json();
+        return json;
+    } catch (error) {
+        console.error("Error in fetchDocumentDetail:", error);
+        throw error;
+    }
+}
+
 function useAdminDocuments({
+
+    documentId = "",
     page = 1,
     limit = 10,
     purpose = "",
@@ -224,12 +254,18 @@ function useAdminDocuments({
     startDate = "",
     endDate = "",
     search = "",
-    documentType = "",
     yearId = "",
+
+    templatePage = 1,
+    templateLimit = 10,
+    documentType = "",
+    templateSearch = ""
 } = {}) {
     const { user } = useAuth();
     const { isUserAdmin } = useUserStoreWithAuth();
     const queryClient = useQueryClient();
+
+    console.log("received documentid ", documentId)
 
     const filters = {
         page,
@@ -240,9 +276,15 @@ function useAdminDocuments({
         startDate,
         endDate,
         search,
-        documentType,
         yearId,
     };
+
+    const templateFilters = {
+        page: templatePage,
+        limit: templateLimit,
+        documentType,
+        search: templateSearch
+    }
 
     useEffect(() => {
         if (!isUserAdmin) {
@@ -250,6 +292,19 @@ function useAdminDocuments({
             queryClient.removeQueries(['documents']);
         }
     }, [isUserAdmin, queryClient]);
+
+    const {
+        data: documentTemplate,
+        isLoading: documentTemplateLoading,
+        isError: documentTemplateError,
+        error: documentTemplateQueryError,
+        refetch: refetchDocumentTemplate,
+        isRefetching: isDocumentTemplateRefetching,
+    } = useQuery({
+        queryKey: ["documentTemplate", templateFilters],
+        queryFn: fetchDocumentTemplate,
+        enabled: isUserAdmin,
+    });
 
     const {
         data: allDocuments,
@@ -290,6 +345,19 @@ function useAdminDocuments({
         },
     });
 
+    const {
+        data: documentDetail,
+        isLoading: documentDetailLoading,
+        isError: documentDetailError,
+        error: documentDetailQueryError,
+        refetch: refetchDocumentDetail,
+        isRefetching: isDocumentDetailRefetching,
+    } = useQuery({
+        queryKey: ["documentDetail", documentId],
+        queryFn: fetchDocumentDetail,
+        enabled: !!documentId,
+    });
+
     return {
         allDocuments,
         allDocumentsLoading,
@@ -301,7 +369,22 @@ function useAdminDocuments({
         refetchSetAccreditationDeadline,
         setAccreditationDeadline,
         setAccreditationDeadlineError,
-        setAccreditationDeadlineSuccess
+        setAccreditationDeadlineSuccess,
+
+        // Document Template
+        documentTemplate,
+        documentTemplateLoading,
+        documentTemplateError,
+        documentTemplateQueryError,
+        refetchDocumentTemplate,
+        isDocumentTemplateRefetching,
+
+        documentDetail,
+        documentDetailLoading,
+        documentDetailError,
+        documentDetailQueryError,
+        refetchDocumentDetail,
+        isDocumentDetailRefetching
     };
 }
 

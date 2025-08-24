@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import useRSO from '../../hooks/useRSO';
 
-export default function DropdownSearch({ isDisabled, category, setSelectedCategory, selectedCategory, isSorting, setSelectedSorting, role }) {
+export default function DropdownSearch({ isDisabled, category, setSelectedCategory, selectedCategory, isSorting, setSelectedSorting, role, valueType = "label" }) {
   const { loading, RSOData, fetchData } = useRSO();
   const [selectedOption, setSelectedOption] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,8 +49,6 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
       menuPortalTarget={document.body}
       value={category ? options?.find((opt) => opt.value === category) : selectedOption}
       onChange={(option) => {
-        console.log("Dropdown change detected:");
-        console.log("Selected option:", option);
 
         if (option === null) {
           // When clearing, set to empty string
@@ -59,12 +57,11 @@ export default function DropdownSearch({ isDisabled, category, setSelectedCatego
           if (isSorting) {
             setSelectedSorting("");
           }
-          console.log("Reset to empty string");
         } else {
           setSelectedOption(option);
           setSelectedCategory(option.value);
           if (isSorting) {
-            setSelectedSorting(option.label);
+            setSelectedSorting(valueType === "id" ? option.value : option.label);
           }
         }
       }}

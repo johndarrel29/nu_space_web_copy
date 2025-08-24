@@ -4,24 +4,29 @@ import useTokenStore from "../../store/tokenStore";
 import { useUserStoreWithAuth } from '../../store';
 
 // admin fetch activity with parameters
-const fetchAdminActivity = async ({
-    pageParam = 1,
-    query = "",
-    sorted = "",
-    RSO = "",
-    RSOType = "",
-    college = ""
-}) => {
+const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
     const token = useTokenStore.getState().getToken();
+
+    const [_, filter] = queryKey;
+    const { limit = 12, query = "", sorted = "", RSO = "", RSOType = "", college = "" } = filter;
 
     const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/fetch-activities`);
     url.searchParams.set("page", pageParam);
-    url.searchParams.set("limit", 12);
+    url.searchParams.set("limit", limit);
     if (query) url.searchParams.set("search", query);
     if (RSO) url.searchParams.set("RSO", RSO)
     if (RSOType) url.searchParams.set("RSOType", RSOType);
     if (college) url.searchParams.set("college", college);
     if (sorted) url.searchParams.set("sorted", sorted);
+
+    console.log("Fetching admin activities with params:", {
+        page: pageParam,
+        query,
+        sorted,
+        RSO,
+        RSOType,
+        college,
+    });
 
     const response = await fetch(url, {
         headers: {
@@ -47,13 +52,23 @@ const fetchAdminActivity = async ({
 
 function useAdminActivity({
     debouncedQuery = "",
+    limit = 12,
     sorted = "",
     RSO = "",
     RSOType = "",
-    college = ""
+    college = "",
 }) {
     const { user } = useAuth();
     const { isUserAdmin, isUserCoordinator } = useUserStoreWithAuth();
+
+    const filter = {
+        query: debouncedQuery,
+        limit,
+        sorted,
+        RSO,
+        RSOType,
+        college,
+    };
 
     const {
         data: adminPaginatedActivities,
@@ -62,9 +77,8 @@ function useAdminActivity({
         hasNextPage,
         isFetchingNextPage,
     } = useInfiniteQuery({
-        queryKey: ["adminActivities", debouncedQuery, sorted, RSO, RSOType, college],
-        queryFn: ({ pageParam = 1 }) =>
-            fetchAdminActivity({ pageParam, query: debouncedQuery, sorted: sorted, RSO: RSO, RSOType: RSOType, college: college }),
+        queryKey: ["adminActivities", filter],
+        queryFn: fetchAdminActivity,
         // enabled: !!debouncedQuery || !!sorted || !!RSO || !!RSOType || !!college,
         getNextPageParam: (lastPage) => lastPage.nextPage,
     })
