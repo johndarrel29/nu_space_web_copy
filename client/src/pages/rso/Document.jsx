@@ -2,7 +2,7 @@
 import {
   ReusableTable, Button, Backdrop, CloseButton, TabSelector, UploadBatchModal
 } from '../../components'
-import { useDocumentManagement, useModal } from '../../hooks';
+import { useDocumentManagement, useModal, useRSODocuments } from '../../hooks';
 import { useEffect, useState } from 'react';
 import useNotification from '../../utils/useNotification';
 import { AnimatePresence } from "framer-motion";
@@ -10,9 +10,11 @@ import { DropIn } from "../../animations/DropIn";
 import { motion } from "framer-motion";
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { toast } from 'react-toastify';
 
 function Document() {
   // State and hooks initialization
+
   const {
     documents,
     fetchDocuments,
@@ -27,8 +29,25 @@ function Document() {
 
     generalDocuments,
     generalDocumentsLoading,
-    refetchGeneralDocuments
-  } = useDocumentManagement();
+    generalDocumentsError,
+    generalDocumentsQueryError,
+    refetchGeneralDocuments,
+
+    // uploadAccreditationDocument
+    uploadAccreditationDocument,
+    uploadAccreditationDocumentLoading,
+    uploadAccreditationDocumentSuccess,
+    uploadAccreditationDocumentError,
+    uploadAccreditationDocumentQueryError,
+
+    // deleteAccreditationDocument
+    deleteAccreditationDocument,
+    deleteAccreditationDocumentLoading,
+    deleteAccreditationDocumentSuccess,
+    deleteAccreditationDocumentError,
+    deleteAccreditationDocumentQueryError,
+  } = useRSODocuments();
+
   const [files, setFiles] = useState(null);
   const [titles, setTitles] = useState("");
   const { handleNotification } = useNotification();
@@ -49,7 +68,13 @@ function Document() {
     documentsQueryError,
     refetchDocuments
   } = useDocumentManagement({ userID });
-  console.log("generalDocuments", generalDocuments);
+  console.log("generalDocuments", {
+    generalDocuments,
+    generalDocumentsLoading,
+    generalDocumentsError,
+    generalDocumentsQueryError,
+    refetchGeneralDocuments,
+  });
 
   /**
    * Formats a date string to a readable format
@@ -91,10 +116,7 @@ function Document() {
           createdAt: formatDate(doc.createdAt) || '',
           updatedAt: formatDate(doc.updatedAt) || '',
           file: doc.file || '',
-          status: doc.status || '',
-          submittedBy: doc.submittedBy
-            ? `${doc.submittedBy.firstName} ${doc.submittedBy.lastName}`
-            : "N/A",
+          status: doc.document_status || '',
           title: doc.title || '',
           url: doc.url || '',
         };
@@ -165,6 +187,21 @@ function Document() {
     const updatedFiles = [...files];
     updatedFiles.splice(index, 1);
     setFiles(updatedFiles);
+  };
+
+  const handleDeleteDocument = (row) => {
+    console.log("Delete clicked for:", row.id);
+    deleteAccreditationDocument(row.id, {
+      onSuccess: () => {
+        console.log("Document deleted successfully");
+        toast.success("Document deleted successfully");
+        refetchGeneralDocuments(); // Refresh the document list
+      },
+      onError: (error) => {
+        console.error("Error deleting document:", error);
+        toast.error("Error deleting document");
+      }
+    });
   };
 
   /**
@@ -263,12 +300,12 @@ function Document() {
         tableHeading={[
           { name: "Title", key: "title" },
           { name: "Status", key: "status" },
-          { name: "Submitted By", key: "submittedBy" },
           { name: "Created At", key: "createdAt" },
           { name: "Action", key: "actions" }
         ]}
         onActionClick={(row) => {
-          console.log("Delete clicked for:", row);
+          console.log("Delete clicked for:", row.id);
+          handleDeleteDocument(row);
         }}
       />
 

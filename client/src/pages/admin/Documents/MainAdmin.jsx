@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import { useAdminDocuments, useAcademicYears } from "../../../hooks";
+import { toast } from "react-toastify";
 
 // todo: change the data to PH standard time for start and end date.
 
@@ -67,15 +68,15 @@ export default function MainAdmin() {
     }
 
     const handleSubmit = (data = modalData) => {
-        // For now just log the modal data. Convert probationary to string to match requested shape.
+        // For now just log the modal data. Pass probationary as boolean.
         console.log("Modal submit:", {
             ...data,
-            probationary: data.probationary ? "true" : "false"
+            probationary: data.probationary
         });
 
         const dataToSubmit = {
             ...data,
-            probationary: data.probationary ? "true" : "false"
+            probationary: data.probationary
         };
 
         setAccreditationDeadline(
@@ -84,13 +85,12 @@ export default function MainAdmin() {
             {
                 onSuccess: (data) => {
                     console.log("Accreditation deadline set successfully:", data);
-                    // setAccreditationDeadlineSuccess(data);
-                    // refetchSetAccreditationDeadline();
+                    toast.success("Accreditation deadline set successfully");
                     setDeadlineOpen(false);
                 },
                 onError: (error) => {
                     console.error("Error setting accreditation deadline:", error);
-
+                    toast.error("Failed to set accreditation deadline");
                 }
             }
         );
@@ -106,6 +106,14 @@ export default function MainAdmin() {
             })
         );
     }
+    const categories = [
+        { label: "Professional & Affiliates", value: "Professional & Affiliates" },
+        { label: "Professional", value: "Professional" },
+        { label: "Special Interest", value: "Special Interest" },
+        { label: "Office Aligned Organization", value: "Office Aligned Organization" }
+
+    ]
+
     return (
         <div>
             <div className="flex justify-between items-center w-full mb-4">
@@ -117,7 +125,7 @@ export default function MainAdmin() {
                     }}>
                         <div className="flex gap-2 items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="current" viewBox="0 0 640 640"><path d="M128 96C128 78.3 142.3 64 160 64L480 64C497.7 64 512 78.3 512 96C512 113.7 497.7 128 480 128L480 139C480 181.4 463.1 222.1 433.1 252.1L365.2 320L433.1 387.9C463.1 417.9 480 458.6 480 501L480 512C497.7 512 512 526.3 512 544C512 561.7 497.7 576 480 576L160 576C142.3 576 128 561.7 128 544C128 526.3 142.3 512 160 512L160 501C160 458.6 176.9 417.9 206.9 387.9L274.8 320L206.9 252.1C176.9 222.1 160 181.4 160 139L160 128C142.3 128 128 113.7 128 96zM224 128L224 139C224 164.5 234.1 188.9 252.1 206.9L320 274.8L387.9 206.9C405.9 188.9 416 164.5 416 139L416 128L224 128zM224 512L416 512L416 501C416 475.5 405.9 451.1 387.9 433.1L320 365.2L252.1 433.1C234.1 451.1 224 475.5 224 501L224 512z" /></svg>
-                            16/08/25
+                            Accreditation Deadline
                         </div>
                     </Button>
                     <Button style={"secondary"} onClick={() => {
@@ -153,7 +161,12 @@ export default function MainAdmin() {
                                             type="datetime-local"
                                             className="w-full border rounded px-3 py-2 text-sm"
                                             value={modalData.start_deadline}
-                                            onChange={(e) => setModalData(prev => ({ ...prev, start_deadline: e.target.value }))}
+                                            onChange={(e) => {
+                                                setModalData(prev => ({
+                                                    ...prev,
+                                                    start_deadline: e.target.value
+                                                }))
+                                            }}
                                         />
                                     </div>
 
@@ -163,7 +176,12 @@ export default function MainAdmin() {
                                             type="datetime-local"
                                             className="w-full border rounded px-3 py-2 text-sm"
                                             value={modalData.end_deadline}
-                                            onChange={(e) => setModalData(prev => ({ ...prev, end_deadline: e.target.value }))}
+                                            onChange={(e) => {
+                                                setModalData(prev => ({
+                                                    ...prev,
+                                                    end_deadline: e.target.value
+                                                }))
+                                            }}
                                         />
                                     </div>
 
@@ -189,6 +207,21 @@ export default function MainAdmin() {
                                             {academicYears?.years?.map((option) => (
                                                 <option key={option._id} value={option._id}>
                                                     {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {/* Category dropdown field */}
+                                        <label htmlFor="category-dropdown" className="text-sm font-medium text-gray-600 mt-3">Category</label>
+                                        <select
+                                            id="category-dropdown"
+                                            value={modalData.category}
+                                            onChange={(e) => setModalData(prev => ({ ...prev, category: e.target.value }))}
+                                            className="py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm"
+                                        >
+                                            <option value="">-- Select Option --</option>
+                                            {categories?.map((category, index) => (
+                                                <option key={index} value={category.value}>
+                                                    {category.label}
                                                 </option>
                                             ))}
                                         </select>

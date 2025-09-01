@@ -9,6 +9,8 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
     const queryClient = useQueryClient();
 
+
+
     // Check if user is already authenticated from localStorage
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -20,7 +22,7 @@ export function AuthProvider({ children }) {
                 if (userData && userData.token) {
                     const tokenPart = userData.token.replace('Bearer ', '');
                     const payload = JSON.parse(atob(tokenPart.split('.')[1]));
-
+                    const expiresIn = payload.exp * 1000 - Date.now();
 
                     // Check if token is still valid
                     if (payload.exp * 1000 > Date.now()) {
@@ -28,8 +30,20 @@ export function AuthProvider({ children }) {
                         setUser(userData);
                         setIsAuthenticated(true);
                     } else {
+                        // Token expired
+                        console.warn(
+                            `Token expired at: ${new Date(payload.exp * 1000).toLocaleString()}`
+                        );
                         // Token expired, clear storage
                         localStorage.removeItem("user");
+                    }
+
+                    if (expiresIn > 0) {
+                        setTimeout(() => {
+
+                            console.log(`Token expires in: ${expiresIn} ms`);
+                            logout();
+                        }, expiresIn);
                     }
                 }
             } catch (error) {
@@ -39,6 +53,8 @@ export function AuthProvider({ children }) {
         }
         setLoading(false);
     }, []);
+
+
 
 
     const login = (userData) => {
@@ -55,6 +71,8 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("user");
         queryClient.clear(); // Clear all queries on logout
     };
+
+
 
     console.log("AuthContext user:", user);
 

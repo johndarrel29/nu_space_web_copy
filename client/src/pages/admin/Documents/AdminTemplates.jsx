@@ -6,9 +6,9 @@ import { useAdminDocuments } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import { Backdrop, CloseButton, TextInput, ReusableDropdown } from '../../../components';
+import { toast } from 'react-toastify';
 
-// TODO: make the drag file working
-// TODO: map the data
+// BUGS: when a parameter is set for documentFor, the template option would show the filter option and not the whole options because it's affected to the filter.
 
 export default function AdminTemplates() {
     const navigate = useNavigate();
@@ -36,7 +36,29 @@ export default function AdminTemplates() {
         documentTemplateQueryError,
         refetchDocumentTemplate,
         isDocumentTemplateRefetching,
+
+        // delete single template doc
+        deleteSingleDocumentTemplate,
+        deleteSingleDocumentTemplateError,
+        deleteSingleDocumentTemplateSuccess,
+        refetchDeleteSingleDocumentTemplate,
+
+        // delete a document template type
+        deleteDocumentTemplate,
+        deleteDocumentTemplateError,
+        deleteDocumentTemplateSuccess,
+        refetchDeleteDocumentTemplate,
+
+        // upload document template
+        uploadDocumentTemplate,
+        uploadDocumentTemplateError,
+        uploadDocumentTemplateSuccess,
+        refetchUploadDocumentTemplate,
     } = useAdminDocuments(filters);
+
+    useEffect(() => {
+        console.log("Selected Template:", selectedTemplate);
+    }, [selectedTemplate]);
 
     useEffect(() => {
         if (documentTemplateError) {
@@ -57,17 +79,27 @@ export default function AdminTemplates() {
 
     const handleDeleteTemplate = () => {
         // TODO: Implement delete template functionality
-        console.log("Deleting template:", selectedTemplate);
-        setShowDeleteModal(false);
-        setSelectedTemplate(null);
+        console.log("Deleting template:", selectedTemplateCategory);
+        deleteDocumentTemplate(selectedTemplateCategory, {
+            onSuccess: () => {
+                toast.success("Template deleted successfully");
+                refetchDocumentTemplate();
+                setSelectedTemplateCategory("");
+            },
+            onError: (error) => {
+                console.error("Error deleting template:", error);
+                toast.error("Failed to delete template");
+            }
+        });
     };
 
     const handleCategoryChange = (e) => {
-        setSelectedCategory(e.target.value);
+        setFilters(prev => ({ ...prev, documentType: e.target.value }));
         console.log("Category filter changed to:", e.target.value);
         // Here you would typically update your filters state or trigger a refetch
     };
 
+    // deleting for document template
     const handleDeleteCategoryChange = (e) => {
         setSelectedTemplateCategory(e.target.value);
         console.log("Category filter changed to:", e.target.value);
@@ -98,6 +130,22 @@ export default function AdminTemplates() {
     const handleUploadSubmit = () => {
         console.log("Uploading files of type:", documentType);
         console.log("Files to upload:", uploadFiles);
+
+        uploadDocumentTemplate({
+            documentFor: documentType,
+            files: uploadFiles
+        },
+            {
+                onSuccess: () => {
+                    toast.success("Document template uploaded successfully");
+                    refetchDocumentTemplate();
+                },
+                onError: (error) => {
+                    console.error("Error uploading document template:", error);
+                    toast.error("Failed to upload document template");
+                }
+            });
+
         setShowUploadModal(false);
         setUploadStep(1);
         setDocumentType("");
@@ -150,9 +198,34 @@ export default function AdminTemplates() {
         return;
     }
 
-    const handleDeleteDocument = (id) => {
-        console.log("Deleting template with id:", id);
+    const handleDeleteDocument = (id, templateId) => {
+        console.log("Deleting template with id:", id, "and templateId:", templateId);
+
+        deleteSingleDocumentTemplate({ documentId: id, templateId }, {
+            onSuccess: () => {
+                console.log("Template deleted successfully");
+                toast.success("Template deleted successfully");
+                refetchDocumentTemplate();
+            },
+            onError: (error) => {
+                console.error("Error deleting template:", error);
+                toast.error("Error deleting template");
+            }
+        });
     };
+
+    const handleConfirmDelete = (e) => {
+        setSelectedTemplateCategory(e);
+        // e.preventDefault();
+        console.log("Confirming deletion for template ID:", selectedTemplateCategory);
+    }
+
+    const templateOptions = [
+        { value: "new_applicant_recognition", label: "New Applicant Recognition" },
+        { value: "off_campus_activities", label: "Off-Campus Activities" },
+        { value: "on_campus_activities", label: "On-Campus Activities" },
+        { value: "renewal_recognition", label: "Renewal Recognition" }
+    ];
 
     return (
         <div className="flex flex-col items-center justify-start w-full relative">
@@ -189,13 +262,14 @@ export default function AdminTemplates() {
                             <label htmlFor="category-filter" className="text-sm font-medium text-gray-600">Filter by:</label>
                             <select
                                 id="category-filter"
-                                value={selectedCategory}
+                                value={filters.documentType}
                                 onChange={handleCategoryChange}
                                 className="py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm"
                             >
-                                {documentTemplate?.documents?.map((option) => (
-                                    <option key={option._id} value={option._id}>
-                                        {handleDocumentTypeName(option.documentFor)}
+                                <option value="">-- Select Category --</option>
+                                {templateOptions.map((option, index) => (
+                                    <option key={option.index} value={option.value}>
+                                        {option.label}
                                     </option>
                                 ))}
                             </select>
@@ -209,33 +283,47 @@ export default function AdminTemplates() {
                     </div>
                 </div>
 
+                {console.log("flattenedDocuments", documentTemplate?.documents?.map((doc) => doc?.documents).flat().length === 0 ? "No templates found" : "")}
                 {/* Template item */}
-                {flattenedDocuments.map((doc, index) => (
-                    <div
-                        key={doc.id}
-                        className="w-full bg-white rounded border border-mid-gray p-4 flex justify-between items-center gap-4 cursor-pointer hover:bg-gray-100 mb-4"
-                        onClick={() => setSelectedTemplate(doc)}
-                    >
-                        <div className="flex items-center justify-between w-full px-4">
-                            <div className='flex gap-8 items-center'>
-                                <p>{index + 1}</p>
-                                <div className="flex flex-col">
-                                    <h1 className="font-bold truncate max-w-[30rem]">{doc.title}</h1>
-                                    <div className='flex gap-2 items-center'>
-                                        <h2 className="text-gray-600 text-sm">Activity Document</h2>
-                                        <div className='aspect-square rounded-full bg-gray-400 h-1 w-1'></div>
-                                        <h1 className="text-gray-600 text-sm">{doc.documentSize} MB</h1>
+                {documentTemplate?.documents?.map((doc) => doc?.documents).flat().length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="mb-4 w-12 h-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 018 0v2m-6 4h6a2 2 0 002-2v-5a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-2.414-2.414A2 2 0 0012.586 7H7a2 2 0 00-2 2v7a2 2 0 002 2h2" />
+                        </svg>
+                        <div className="text-center text-gray-500 text-lg font-medium">No templates found.</div>
+                        <div className="text-gray-400 text-sm mt-2">Try uploading a new template or changing your filter.</div>
+                    </div>
+                ) : (
+                    documentTemplate?.documents?.map((doc, index) => (
+                        doc?.documents.map((subDoc, i) => (
+                            <div
+                                key={subDoc.id}
+                                className="w-full bg-white rounded border border-mid-gray p-4 flex justify-between items-center gap-4 cursor-pointer hover:bg-gray-100 mb-4"
+                            // onClick={() => setSelectedTemplate(doc)}
+                            >
+                                <div className="flex items-center justify-between w-full px-4">
+                                    <div className='flex gap-8 items-center'>
+
+                                        <p>{i + 1}</p>
+                                        <div className="flex flex-col">
+                                            <h1 className="font-bold truncate max-w-[30rem]">{subDoc.title}</h1>
+                                            <div className='flex gap-2 items-center'>
+                                                <h2 className="text-gray-600 text-sm">{handleDocumentTypeName(doc?.documentFor)}</h2>
+                                                <div className='aspect-square rounded-full bg-gray-400 h-1 w-1'></div>
+                                                <h1 className="text-gray-600 text-sm">{subDoc.documentSize} MB</h1>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        onClick={() => handleDeleteDocument(subDoc._id, doc._id)}
+                                        className='rounded-full aspect-square h-8 flex items-center justify-center bg-white hover group'>
+                                        <svg xmlns="http://www.w3.org/2000/svg" className='fill-gray-600 size-4 group-hover:fill-gray-800' viewBox="0 0 640 640"><path d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z" /></svg>
                                     </div>
                                 </div>
                             </div>
-                            <div
-                                onClick={() => handleDeleteDocument(doc._id)}
-                                className='rounded-full aspect-square h-8 flex items-center justify-center bg-white hover group'>
-                                <svg xmlns="http://www.w3.org/2000/svg" className='fill-gray-600 size-4 group-hover:fill-gray-800' viewBox="0 0 640 640"><path d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z" /></svg>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                        ))
+                    ))
+                )}
             </div>
 
             {/* Delete Template Modal */}
@@ -254,19 +342,23 @@ export default function AdminTemplates() {
                                     <h2 className='text-sm font-semibold'>Delete Template</h2>
                                     <CloseButton onClick={() => setShowDeleteModal(false)} />
                                 </div>
+                                {console.log("Document Template inside modal:", documentTemplate)}
                                 <div className='flex flex-col gap-4'>
                                     <label htmlFor="category-filter" className="text-sm font-medium text-gray-600">Delete Template from:</label>
                                     <select
                                         id="category-filter"
                                         value={selectedTemplateCategory}
-                                        onChange={handleDeleteCategoryChange}
+                                        onChange={e => handleConfirmDelete(e.target.value)}
                                         className="py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm"
                                     >
-                                        {documentTemplate?.documents?.map((option) => (
-                                            <option key={option._id} value={option._id}>
-                                                {handleDocumentTypeName(option.documentFor)}
-                                            </option>
-                                        ))}
+                                        <option value="">-- Select Category --</option>
+                                        {documentTemplate?.documents
+                                            ?.filter(option => Array.isArray(option.documents) && option.documents.length > 0)
+                                            .map((option) => (
+                                                <option key={option._id} value={option._id}>
+                                                    {handleDocumentTypeName(option.documentFor)}
+                                                </option>
+                                            ))}
                                     </select>
 
                                     <div className='flex justify-end mt-4 gap-2'>
@@ -280,7 +372,7 @@ export default function AdminTemplates() {
                                             style="danger"
                                             onClick={handleDeleteTemplate}
                                         >
-                                            Delete Template
+                                            Confirm Delete
                                         </Button>
                                     </div>
                                 </div>
@@ -316,18 +408,18 @@ export default function AdminTemplates() {
                                             Please select the type of document you want to upload:
                                         </p>
                                         <div className='grid grid-cols-2 gap-3'>
-                                            {documentTemplate?.documents.map((type) => (
+                                            {templateOptions.map((type, index) => (
                                                 <div
-                                                    key={type._id}
-                                                    className={`p-4 border rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors ${documentType === type._id ? 'border-primary bg-blue-50' : 'border-gray-200'}`}
-                                                    onClick={() => handleDocumentTypeSelect(type._id)}
+                                                    key={index}
+                                                    className={`p-4 border rounded-md flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors ${documentType === type.value ? 'border-primary bg-blue-50' : 'border-gray-200'}`}
+                                                    onClick={() => handleDocumentTypeSelect(type.value)}
                                                 >
                                                     <div className='w-12 h-12 mb-2 flex items-center justify-center bg-blue-100 rounded-full'>
                                                         <svg xmlns="http://www.w3.org/2000/svg" className='size-6 fill-primary' viewBox="0 0 384 512">
                                                             <path d="M320 464c8.8 0 16-7.2 16-16V160H256c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320zM0 64C0 28.7 28.7 0 64 0H229.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z" />
                                                         </svg>
                                                     </div>
-                                                    <span className='font-medium text-sm'>{handleDocumentTypeName(type.documentFor)}</span>
+                                                    <span className='font-medium text-sm'>{type.label}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -353,7 +445,7 @@ export default function AdminTemplates() {
                                 {uploadStep === 2 && (
                                     <div className='flex flex-col gap-4'>
                                         <p className='text-sm text-gray-500 mb-2'>
-                                            Upload your {handleDocumentTypeName(documentTemplate?.documents.find(type => type._id === documentType)?.documentFor) || 'N/A'} template files:
+                                            Upload your {handleDocumentTypeName(documentType) || 'N/A'} template files:
                                         </p>
 
                                         <div

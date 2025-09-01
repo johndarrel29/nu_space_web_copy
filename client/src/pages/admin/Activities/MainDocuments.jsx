@@ -43,6 +43,7 @@ export default function MainDocuments() {
     console.log("data from the new hook ", activityLocalData)
   }, [activityLocalData, isLocalActivityRefetching]);
 
+
   // admin activity route
   const {
     adminPaginatedActivities,
@@ -75,6 +76,8 @@ export default function MainDocuments() {
   } = useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college);
 
   const allActivities = adminPaginatedActivities?.pages?.flatMap(page => page?.activities || []) || [];
+  console.log("Admin paginated activities:", adminPaginatedActivities?.pages?.[0]?.hasNextPage);
+
 
   const rso = (organizations ?? []).map((orgs) => orgs.RSO_acronym);
 
@@ -378,7 +381,7 @@ export default function MainDocuments() {
             <>
               <div className="flex items-center justify-center mb-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8 ">
-                  {console.log("Activities to Show:", activitiesToShow.map(activity => activity.activityImageUrl))}
+                  {console.log("Activities to Show:", activitiesToShow)}
                   {activitiesToShow?.map((activity) => (
                     <ActivityCard
                       key={activity._id}
@@ -386,6 +389,7 @@ export default function MainDocuments() {
                       Activity_name={activity.Activity_name}
                       Activity_description={activity.Activity_description}
                       RSO_acronym={activity.RSO_id?.RSO_acronym || "N/A"}
+                      Activity_date_status={activity.Activity_date_status}
                       //user imageUrl if rso_representative role
                       Activity_image={
                         isUserRSORepresentative ? activity?.imageUrl || DefaultPicture :

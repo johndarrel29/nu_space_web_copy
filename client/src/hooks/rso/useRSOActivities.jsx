@@ -1,6 +1,36 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../../context/AuthContext';
 import { useUserStoreWithAuth } from "../../store";
+import useTokenStore from "../../store/tokenStore";
+
+const getActivityDocumentsRequest = async ({ queryKey }) => {
+    try {
+        const [_key, { activityId }] = queryKey;
+
+        console.log("getActivityDocumentsRequest received activityId: ", activityId);
+        const token = useTokenStore.getState().token;
+        const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/fetch-activity/${activityId}`, {
+            method: "GET",
+            headers: {
+                Authorization: token,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Fetch failed: ${errorText}`);
+        }
+
+        return response.json();
+
+    } catch (error) {
+        console.error("Error fetching activity documents:", error);
+        throw error;
+    }
+};
 
 // Pure API: create activity
 const createActivityAPI = async (activity) => {
@@ -242,6 +272,8 @@ function useRSOActivities({ sorted, search, activityId } = {}) {
     const { isUserRSORepresentative } = useUserStoreWithAuth();
     const queryClient = useQueryClient();
 
+    console.log("useRSOActivities called with activityId:", activityId);
+
     // Create activity
     const {
         mutate: createActivityMutate,
@@ -320,7 +352,7 @@ function useRSOActivities({ sorted, search, activityId } = {}) {
         error: activityDetailsQueryError,
         refetch: refetchActivityDetails,
     } = useQuery({
-        queryKey: ["activityDocuments", { activityId }],
+        queryKey: ["activityDetails", { activityId }],
         queryFn: fetchActivityDocumentAPI,
         enabled: !!activityId,
         onSuccess: (data) => {
@@ -374,6 +406,23 @@ function useRSOActivities({ sorted, search, activityId } = {}) {
         mutationFn: deleteActivityDocumentAPI,
         onSuccess: () => {
             if (activityId) queryClient.invalidateQueries(["activityDocuments", { activityId }]);
+        },
+    });
+
+    const {
+        data: activityDocuments,
+        isLoading: activityDocumentsLoading,
+        isError: activityDocumentsError,
+        error: activityDocumentsErrorMessage,
+    } = useQuery({
+        queryKey: ["uploadActivityDocument", { activityId }],
+        queryFn: getActivityDocumentsRequest,
+        enabled: !!activityId,
+        onSuccess: (data) => {
+            console.log("Upload activity document data fetched:", data);
+        },
+        onError: (error) => {
+            console.error("Error fetching upload activity document data:", error);
         },
     });
 
@@ -433,6 +482,11 @@ function useRSOActivities({ sorted, search, activityId } = {}) {
         deleteActivityDocumentSuccess,
         deleteActivityDocumentError,
         deleteActivityDocumentErrorMessage,
+
+        activityDocuments,
+        activityDocumentsLoading,
+        activityDocumentsError,
+        activityDocumentsErrorMessage,
     };
 }
 

@@ -44,10 +44,77 @@ const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
     const data = await response.json();
     return {
         activities: data.activities,
+        hasNextPage: data.pagination?.hasNextPage,
         nextPage: data.pagination?.hasNextPage ? pageParam + 1 : undefined,
     }
     // return response.json();
 
+}
+
+const approveActivity = async ({ activityId }) => {
+    try {
+        console.log("url:", `${process.env.REACT_APP_BASE_URL}/api/admin/activities/approveActivity/${activityId}`);
+
+        const token = useTokenStore.getState().getToken();
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/approveActivity/${activityId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+            }
+        });
+
+        console.log("Response status:", response);
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        if (response.status === 400) {
+            const errorData = await response.json();
+            console.error("Error approving activity in hooks:", errorData.message);
+            throw new Error(errorData.message || "Error approving activity");
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error approving activity for approvedocument:", error);
+        throw error;
+    }
+}
+
+const rejectActivity = async ({ activityId }) => {
+    try {
+        console.log("url:", `${process.env.REACT_APP_BASE_URL}/api/admin/activities/rejectActivity/${activityId}`);
+
+        const token = useTokenStore.getState().getToken();
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/rejectActivity/${activityId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+            }
+        });
+
+        console.log("Response status:", response);
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        if (response.status === 400) {
+            const errorData = await response.json();
+            console.error("Error rejecting activity in hooks:", errorData.message);
+            throw new Error(errorData.message || "Error rejecting activity");
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error rejecting activity for rejectDocument:", error);
+        throw error;
+    }
 }
 
 function useAdminActivity({
@@ -57,7 +124,7 @@ function useAdminActivity({
     RSO = "",
     RSOType = "",
     college = "",
-}) {
+} = {}) {
     const { user } = useAuth();
     const { isUserAdmin, isUserCoordinator } = useUserStoreWithAuth();
 
@@ -83,6 +150,36 @@ function useAdminActivity({
         getNextPageParam: (lastPage) => lastPage.nextPage,
     })
 
+    const {
+        mutate: approveActivityMutate,
+        isLoading: isApprovingActivity,
+        isError: isErrorApprovingActivity,
+        isSuccess: isActivityApproved,
+    } = useMutation({
+        mutationFn: approveActivity,
+        onSuccess: () => {
+            console.log("Activity approved successfully");
+        },
+        onError: (error) => {
+            console.error("Error approving activity:", error);
+        }
+    });
+
+    const {
+        mutate: rejectActivityMutate,
+        isLoading: isRejectingActivity,
+        isError: isErrorRejectingActivity,
+        isSuccess: isActivityRejected,
+    } = useMutation({
+        mutationFn: rejectActivity,
+        onSuccess: () => {
+            console.log("Activity rejected successfully");
+        },
+        onError: (error) => {
+            console.error("Error rejecting activity:", error);
+        }
+    });
+
     return {
         // fetch admin activities
         adminPaginatedActivities,
@@ -90,8 +187,19 @@ function useAdminActivity({
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
+
+        // approve activity
+        isApprovingActivity,
+        isErrorApprovingActivity,
+        isActivityApproved,
+        approveActivityMutate,
+
+        rejectActivityMutate,
+        isRejectingActivity,
+        isErrorRejectingActivity,
+        isActivityRejected,
     }
 
 }
 
-export default useAdminActivity;
+export default useAdminActivity;    

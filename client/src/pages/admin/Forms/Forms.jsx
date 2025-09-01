@@ -1,18 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Searchbar, Button } from '../../../components';
 import { useAdminCentralizedForms } from '../../../hooks'
+import { FormatDate } from '../../../utils';
+import { toast } from 'react-toastify';
+
+// problem with stale request after reloading page
 
 export default function Forms() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState('all');
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [formToDelete, setFormToDelete] = useState(null);
+    const [selectedFormName, setSelectedFormName] = useState(""); // new state
 
     const {
         allForms,
         isLoadingAllForms,
         isRefetchingAllForms,
-        errorAllForms
+        refetchAllForms,
+        errorAllForms,
+
+        // delete forms
+        deleteFormMutate,
+        isDeletingForm,
+        isDeletingFormError,
+        deleteFormError
     } = useAdminCentralizedForms();
+
+
+    console.log("Is this allforms in the room with us? ", allForms ? true : false);
 
     // Sample data - this would typically come from an API
     const sampleForms = [
@@ -25,6 +43,9 @@ export default function Forms() {
     ];
 
     useEffect(() => {
+        if (isRefetchingAllForms) {
+            console.log("Refetching centralized forms...");
+        }
         if (allForms) {
             console.log("All centralized forms:", allForms);
         } else if (!isLoadingAllForms && !isRefetchingAllForms) {
@@ -36,18 +57,57 @@ export default function Forms() {
         }
     }, [allForms, isLoadingAllForms, isRefetchingAllForms, errorAllForms]);
 
-    // Filter forms based on search query and filter type
-    const filteredForms = sampleForms.filter(form => {
-        const matchesSearch = form.title.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilter = filterType === 'all' || form.category === filterType;
-        return matchesSearch && matchesFilter;
-    });
+    const handleDelete = (formId, formName) => {
+        console.log(`Requesting deletion for form: ${formName} (ID: ${formId})`);
+        setFormToDelete(formId);
+        setSelectedFormName(formName); // store form name
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (formToDelete) {
+            console.log("Deleting form with ID:", formToDelete);
+            // Place actual delete logic here
+            setDeleteModalOpen(false);
+            setFormToDelete(null);
+            setSelectedFormName(""); // clear form name
+            deleteFormMutate(formToDelete, {
+                onSuccess: () => {
+                    toast.success(`Form "${selectedFormName}" deleted successfully`);
+                    console.log("Form deleted successfully");
+                    refetchAllForms();
+                },
+                onError: (error) => {
+                    console.error("Error deleting form:", error);
+                },
+            });
+        }
+    };
+
+    const cancelDelete = () => {
+        setDeleteModalOpen(false);
+        setFormToDelete(null);
+        setSelectedFormName(""); // clear form name
+    };
 
     // Categories for filtering
     const categories = ['all', 'Registration', 'Events', 'Finance', 'Assessment', 'Logistics'];
 
+    function getFormTypeBadgeClass(formType) {
+        switch ((formType || '').toLowerCase()) {
+            case 'pre-activity':
+                return 'bg-blue-100 text-blue-800';
+            case 'post-activity':
+                return 'bg-green-100 text-green-800';
+            case 'membership':
+                return 'bg-purple-100 text-purple-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    }
+
     return (
-        <div className="p-6">
+        <>
             {/* Header with Create Form button */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
                 <div>
@@ -70,21 +130,12 @@ export default function Forms() {
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
                         <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Search Forms</label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <input
-                                id="search"
-                                type="text"
-                                placeholder="Search for forms..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 block w-full rounded-md border-gray-300 border p-2 focus:border-primary focus:ring-primary"
-                            />
-                        </div>
+                        <Searchbar
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search for forms..."
+                        // Search is now static, does not affect display
+                        />
                     </div>
                     <div className="md:w-1/4">
                         <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
@@ -93,6 +144,7 @@ export default function Forms() {
                             value={filterType}
                             onChange={(e) => setFilterType(e.target.value)}
                             className="block w-full rounded-md border-gray-300 border p-2 focus:border-primary focus:ring-primary"
+                        // Dropdown is now static, does not affect display
                         >
                             {categories.map(category => (
                                 <option key={category} value={category}>
@@ -106,27 +158,31 @@ export default function Forms() {
 
             {/* Forms Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                {filteredForms.map(form => (
+                {allForms?.forms.map(form => (
                     <div key={form.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
                         <div className="p-6">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-800">{form.title}</h3>
-                                    <span className="inline-block mt-2 px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                        {form.category}
+                                    <h3 className="text-lg font-semibold text-gray-800">{form.title || <span className="text-gray-400">Untitled Form</span>}</h3>
+                                    <span
+                                        className={`inline-block mt-2 px-2 py-1 text-xs font-semibold rounded-full ${getFormTypeBadgeClass(form.formType)}`}
+                                    >
+                                        {form.formType
+                                            ? form.formType.charAt(0).toUpperCase() + form.formType.slice(1)
+                                            : <span className="text-gray-400">Unknown Type</span>}
                                     </span>
                                 </div>
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${form.status === 'Published'
+                                {/* <span className={`px-2 py-1 text-xs font-semibold rounded-full ${form.status === 'Published'
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-yellow-100 text-yellow-800'
                                     }`}>
                                     {form.status}
-                                </span>
+                                </span> */}
                             </div>
-                            <p className="text-gray-600 text-sm mt-4">Created on: {form.createdAt}</p>
+                            <p className="text-gray-600 text-sm mt-4">Created on: {FormatDate(form.createdAt)}</p>
                             <div className="flex justify-between mt-6 pt-4 border-t border-gray-100">
                                 <button
-                                    onClick={() => navigate(`/form-viewer?id=${form.id}`)}
+                                    onClick={() => navigate(`/form-viewer`, { state: { formId: form._id } })}
                                     className="text-gray-600 hover:text-gray-900 font-medium text-sm flex items-center gap-1"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -136,7 +192,7 @@ export default function Forms() {
                                     View
                                 </button>
                                 <button
-                                    onClick={() => navigate(`/forms-builder?edit=${form.id}`)}
+                                    onClick={() => navigate(`/forms-builder`, { state: { formId: form._id } })}
                                     className="text-gray-500 hover:text-gray-800 font-medium text-sm flex items-center gap-1"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,6 +201,7 @@ export default function Forms() {
                                     Edit
                                 </button>
                                 <button
+                                    onClick={() => handleDelete(form._id, form.title)}
                                     className="text-gray-400 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,7 +216,7 @@ export default function Forms() {
             </div>
 
             {/* Empty State */}
-            {filteredForms.length === 0 && (
+            {allForms?.forms.length === 0 && (
                 <div className="bg-white rounded-lg shadow p-10 text-center">
                     <div className="mx-auto h-20 w-20 text-gray-400 mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -179,6 +236,27 @@ export default function Forms() {
                     </button>
                 </div>
             )}
-        </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
+                        <div className="flex items-center mb-4">
+                            <div className="bg-red-100 rounded-full p-2 mr-3">
+                                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                            <h2 className="text-lg font-semibold text-red-600">Delete Form</h2>
+                        </div>
+                        <p className="text-gray-700">{`Are you sure you want to delete ${selectedFormName}? This action cannot be undone.`}</p>
+                        <div className="mt-4 flex justify-end gap-2">
+                            <Button onClick={cancelDelete} style={"secondary"}>Cancel</Button>
+                            <Button onClick={confirmDelete} style={"danger"}>Delete</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }

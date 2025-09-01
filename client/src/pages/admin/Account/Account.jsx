@@ -338,7 +338,7 @@ export default function Account() {
                   {console.log("profileData?.RSO_Officers", profileData?.RSO_Officers)}
                   {
 
-                    profileData?.RSO_Officers?.map((officer, index) => {
+                    profileData?.yearlyData?.RSO_Officers?.map((officer, index) => {
                       return (
                         <>
                           <div

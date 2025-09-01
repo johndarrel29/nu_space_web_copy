@@ -5,16 +5,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { ReusableTable, Backdrop, Button, TabSelector, UploadBatchModal, TextInput, CloseButton } from '../../../components';
 import { DropIn } from "../../../animations/DropIn";
-import { useModal, useActivities, useAdminDocuments } from "../../../hooks";
+import { useModal, useActivities, useAdminDocuments, useRSOActivities } from "../../../hooks";
 import { useAuth } from "../../../context/AuthContext";
 import { toast } from 'react-toastify';
-import { useUserStoreWithAuth } from '../../../store'
+import { useUserStoreWithAuth, useDocumentStore } from '../../../store';
+
+// pre and post now works
 
 // ====================Activity Decline and Accept Functionality
 // accept works, and reject has to have remarks to work
 // reflect data to UI to show reject/accept status
 
-// ====================Forms Manaegment
+// ====================Forms Manaagement
 // from rso rep if review forms, show the stored data (edit, delete, & view)
 // from admin also have review forms, only review forms (view & flag/ review)
 // if create forms, show the form builder
@@ -31,11 +33,24 @@ export default function Activities() {
 
   // Router hooks
   const { activityId } = useParams();
+
   const navigate = useNavigate();
   const location = useLocation();
 
+  const {
+    activityDocuments,
+    activityDocumentsLoading,
+    activityDocumentsError,
+    activityDocumentsErrorMessage,
+  } = useRSOActivities({ activityId });
+
+  console.log("Activity documents :", activityDocuments);
   // Modal control
   const { isOpen, openModal, closeModal } = useModal();
+
+  // set document ID
+  const setDocumentId = useDocumentStore((state) => state.setDocumentId);
+  setDocumentId(activityId);
 
   // State management
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -54,8 +69,22 @@ export default function Activities() {
     refetchSetAccreditationDeadline,
     setAccreditationDeadline,
     setAccreditationDeadlineError,
-    setAccreditationDeadlineSuccess
-  } = useAdminDocuments();
+    setAccreditationDeadlineSuccess,
+
+    activityPreDocument,
+    activityPreDocumentLoading,
+    activityPreDocumentError,
+    activityPreDocumentQueryError,
+    refetchActivityPreDocument,
+    isActivityPreDocumentRefetching,
+
+    activityPostDocument,
+    activityPostDocumentLoading,
+    activityPostDocumentError,
+    activityPostDocumentQueryError,
+    refetchActivityPostDocument,
+    isActivityPostDocumentRefetching
+  } = useAdminDocuments({ activityId });
 
 
 
@@ -90,7 +119,7 @@ export default function Activities() {
   const activity = viewActivityData || {};
   console.log("Activity data:", activity);
 
-  console.log("activityId:", activityId);
+  console.log("activityId:", activityId, "activityPreDocument:", activityPreDocument);
 
   // Effect to handle upload status messages
   useEffect(() => {
@@ -148,7 +177,7 @@ export default function Activities() {
       day: 'numeric',
     }),
     url: doc.url,
-    status: doc.status,
+    status: doc.document_status,
   }));
 
   // Table configuration
@@ -244,6 +273,9 @@ export default function Activities() {
    * @param {Object} document - Document object to display
    */
   const handleDocumentClick = (document) => {
+    console.log("Document clicked:", document);
+
+
     setSelectedActivity(document);
     openModal();
     setModalType("details");
@@ -400,7 +432,7 @@ export default function Activities() {
                   Create Forms
                 </div>
               </Button>
-            ) : (viewActivityData?.activitySurvey.length > 0) ? (
+            ) : (viewActivityData?.activitySurvey?.length > 0) ? (
               <Button
                 onClick={() => navigate(navigateTo, {
                   state: {
@@ -608,28 +640,41 @@ export default function Activities() {
             >
               <div className="fixed inset-0 flex items-center justify-center z-50">
                 <div className="bg-white rounded-lg p-6 w-1/3 shadow-xl border border-mid-gray">
-                  <h2 className="text-lg font-semibold text-[#312895] mb-4">Document Details</h2>
+                  <div className='flex justify-between items-center'>
+                    <h2 className="text-lg font-semibold text-black mb-4">Document Details</h2>
+                    <CloseButton onClick={handleCloseModal}></CloseButton>
+                  </div>
                   <div className='space-y-3'>
                     <div>
-                      <p className='text-sm text-[#312895]/70'>Document Name</p>
-                      <p className='text-[#312895] font-medium'>{selectedActivity?.title}</p>
+                      <p className='text-sm text-gray-600'>Document Name</p>
+                      <p
+                        onClick={() => window.open(selectedActivity?.url, "_blank")}
+                        className='text-black font-medium hover:underline cursor-pointer'>{selectedActivity?.title}</p>
                     </div>
                     <div>
-                      <p className='text-sm text-[#312895]/70'>Type</p>
-                      <p className='text-[#312895] font-medium'>{selectedActivity?.purpose}</p>
+                      <p className='text-sm text-gray-600'>Type</p>
+                      <p className='text-black font-medium'>{selectedActivity?.purpose}</p>
                     </div>
                     <div>
-                      <p className='text-sm text-[#312895]/70'>Creation Date</p>
-                      <p className='text-[#312895] font-medium'>{selectedActivity?.createdAt}</p>
+                      <p className='text-sm text-gray-600'>Creation Date</p>
+                      <p className='text-black font-medium'>{selectedActivity?.createdAt}</p>
                     </div>
                   </div>
                   <div className='flex justify-end mt-6'>
-                    <Button
-                      onClick={handleCloseModal}
-                      className="px-4 bg-[#312895] hover:bg-[#312895]/90 text-white"
-                    >
-                      Close
-                    </Button>
+                    <div className='flex gap-2'>
+                      <Button
+                        onClick={handleCloseModal}
+                        style={"secondary"}
+                      >
+                        Decline
+                      </Button>
+                      <Button
+                        // onClick={handleApprove}
+                        style={"primary"}
+                      >
+                        Approve
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -647,7 +692,7 @@ export default function Activities() {
               animate="visible"
               exit="exit"
             >
-              <UploadBatchModal handleCloseModal={handleCloseModal} page={"activity"}></UploadBatchModal>
+              <UploadBatchModal handleCloseModal={handleCloseModal} page={"activity"} activityId={activityId}></UploadBatchModal>
             </motion.div>
           </Backdrop>
         )}

@@ -2,16 +2,17 @@ import Sidebar from "./Sidebar";
 import style from "../../css/Sidebar.module.css";
 import { Breadcrumb, Button, Backdrop, SidebarButton } from "../../components";
 import { use, useEffect, useRef, useState } from "react";
-import { useUserProfile, useRSODetails } from "../../hooks";
+import { useUserProfile, useRSODetails, useAdminActivity } from "../../hooks";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 import Skeleton from "react-loading-skeleton";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
-import { useUserStoreWithAuth } from '../../store';
+import { useUserStoreWithAuth, useDocumentStore } from '../../store';
 import { useAuth } from "../../context/AuthContext";
 import whiteLogoText from "../../assets/images/NUSpace_new.png";
 import blueLogoText from "../../assets/images/NUSpace_blue.png";
+import { toast } from "react-toastify";
 
 
 // ======bug=====
@@ -26,6 +27,21 @@ function MainLayout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
+  const params = useParams();
+  const activityId = params.activityId;
+  const documentId = useDocumentStore((state) => state.documentId);
+  const {
+    // approve activity
+    isApprovingActivity,
+    isErrorApprovingActivity,
+    isActivityApproved,
+    approveActivityMutate,
+
+    rejectActivityMutate,
+    isRejectingActivity,
+    isErrorRejectingActivity,
+    isActivityRejected,
+  } = useAdminActivity();
 
   // RSO hooks
   const {
@@ -141,6 +157,46 @@ function MainLayout({ children }) {
   // compute recognition banner visibility only after profile finished loading
   const recognitionStatus = userProfile?.rso?.yearlyData?.RSO_recognition_status?.status;
   const showViewOnlyBanner = !isUserProfileLoading && !!recognitionStatus && recognitionStatus !== "recognized";
+
+  // Add this variable for activity details page
+  const isActivityDetailsPage = location.pathname.startsWith('/documents/') && activityId && (isUserAdmin || isCoordinator);
+
+  const handleDocumentApproval = () => {
+    console.log("approving document: ", documentId);
+
+    if (!isUserAdmin && !isCoordinator) {
+      console.error("Only Admins and Coordinators can approve documents");
+      return;
+    }
+
+    approveActivityMutate({ activityId: documentId }, {
+      onSuccess: () => {
+        console.log("Document approved successfully");
+        toast.success("Document approved successfully");
+      },
+      onError: (error) => {
+        console.error("Error approving document:", error);
+        toast.error(error.message || "Error approving document");
+      }
+    });
+  }
+
+  const handleRejectDocument = () => {
+    try {
+      rejectActivityMutate({ activityId: documentId }, {
+        onSuccess: () => {
+          console.log("Document rejected successfully");
+          toast.success("Document rejected successfully");
+        },
+        onError: (error) => {
+          console.error("Error rejecting document:", error);
+          toast.error(error.message || "Error rejecting document");
+        }
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
 
   return (
     <div className="h-screen bg-background flex">
@@ -520,25 +576,28 @@ function MainLayout({ children }) {
               </h1>
             </div>
           )}
-          <main className={`mt-16 h-full overflow-y-auto p-4 lg:pl-12 lg:pr-12 
+          <main className={`mt-16  h-full overflow-y-auto p-4 lg:pl-12 lg:pr-12
             ${(isCollapsed) ? 'left-[15%] ' : 'left-[80px] '}`}>
             <div className="mb-6 flex flex-col">
               <Breadcrumb style={style.tabName} unSelected={style.disabled} />
             </div>
 
             {/* Page Content */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className={`bg-white rounded-lg shadow-lg p-6 ${isActivityDetailsPage ? 'mb-24' : ''}`}>
               {children}
             </div>
           </main>
-          {(location.pathname === '/form-viewer' && isUserAdmin) && (
+          {isActivityDetailsPage && (
             <div className="w-full py-6 bg-white fixed bottom-0 z-40 mt-auto flex items-center justify-center gap-4 border-t border-mid-gray">
               <Button
+                onClick={handleRejectDocument}
                 style="secondary"
               >
                 Reject
               </Button>
-              <Button>
+              <Button
+                onClick={handleDocumentApproval}
+              >
                 Approve
               </Button>
             </div>

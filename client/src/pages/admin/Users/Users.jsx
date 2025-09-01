@@ -1,7 +1,8 @@
 import { useState, useMemo, memo } from "react";
-import { Table, Searchbar, CreateUserModal, ReusableTable, Button } from "../../../components";
-import { useModal, useRSO, useUserProfile } from "../../../hooks";
-import { AnimatePresence } from "framer-motion";
+import { Table, Searchbar, CreateUserModal, ReusableTable, Button, Backdrop, CloseButton } from "../../../components";
+import { useModal, useRSO, useUserProfile, useRSOUsers } from "../../../hooks";
+import { motion, AnimatePresence } from "framer-motion";
+import { DropIn } from "../../../animations/DropIn";
 import { FormatDate } from "../../../utils";
 import { useUserStoreWithAuth } from "../../../store";
 
@@ -84,43 +85,82 @@ export default function Users() {
   const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
 
   const {
+    rsoMembers,
+    isErrorFetchingMembers,
+    errorFetchingMembers,
+    isRefetchingMembers
+  } = useRSOUsers();
+
+  console.log("and the members are ", rsoMembers?.members || null);
+
+  const {
     membersData,
   } = useRSO();
 
-  const tableRow = (membersData ?? []).map(member => ({
-    id: member.id,
+
+
+  const tableRow = rsoMembers?.members?.map(member => ({
+    _id: member._id,
     firstName: member.firstName,
     lastName: member.lastName,
-    email: member.email,
-    college: member.college,
-    role: member.role,
-    rsoMemberships: member.rsoMemberships || 0,
-    activitiesParticipated: member.activitiesParticipated || 0,
-    interests: member.interests || [],
-    createdAt: member.createdAt
-  }))
+    fullName: `${member.firstName} ${member.lastName}`,
+    email: member.email
+  })) || [];
+
+  function tableHeading() {
+    return [
+      { name: "Index", key: "index" },
+      { name: "Name", key: "fullName" },
+      { name: "Email", key: "email" },
+    ];
+  }
+
 
   const tableRowFiltered = useMemo(() => {
     return tableRow.filter((row) => {
       const fullName = `${row.firstName} ${row.lastName}`.toLowerCase();
       const email = row.email.toLowerCase();
-      const college = row.college.toLowerCase();
+      // const college = row.college.toLowerCase();
       const search = searchQuery.toLowerCase();
 
       // Add this filtering logic
       return search === '' ||
         fullName.includes(search) ||
-        email.includes(search) ||
-        college.includes(search);
-    }).map(row => ({
+        email.includes(search)
+      // college.includes(search);
+    }).map((row, idx) => ({
+      index: idx + 1,
       fullName: `${row.firstName} ${row.lastName}`,
       email: row.email,
-      college: row.college,
-      rsoMemberships: row.rsoMemberships,
-      activitiesParticipated: row.activitiesParticipated,
+      // college: row.college,
+      // rsoMemberships: row.rsoMemberships,
+      // activitiesParticipated: row.activitiesParticipated,
       id: row.id
     }));
   }, [tableRow, searchQuery]);
+
+  // User Info Modal State
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [userModalData, setUserModalData] = useState({
+    email: "",
+    fullName: "",
+    id: undefined,
+    index: 0
+  });
+
+  const handleOpenUserModal = (row) => {
+    setUserModalData({
+      email: row.email || "poquizjc@students.national-u.edu.ph",
+      fullName: row.fullName || "John Darrel Poquiz",
+      id: row.id,
+      index: row.index
+    });
+    setIsUserModalOpen(true);
+  };
+
+  const handleCloseUserModal = () => {
+    setIsUserModalOpen(false);
+  };
 
   return (
     <>
@@ -135,7 +175,7 @@ export default function Users() {
               selectedRole={selectedRole} />
           </>
         )}
-        {user && user.role === "rso_representative" && (
+        {isUserRSORepresentative && (
           <>
             <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md">
               <div className="flex items-center gap-2">
@@ -166,14 +206,8 @@ export default function Users() {
               tableRow={tableRowFiltered}
               searchQuery={searchQuery}
               placeholder={"Search a user"}
-              onClick={(row => console.log(row))}
-              tableHeading={[
-                { name: "Name", key: "fullName" },
-                { name: "Email", key: "email" },
-                { name: "College", key: "college" },
-                { name: "RSO Memberships", key: "rsoMemberships" },
-                { name: "Activities Participated", key: "activitiesParticipated" },
-              ]}
+              onClick={handleOpenUserModal}
+              tableHeading={tableHeading()}
               columnNumber={9}
             >
 
@@ -182,6 +216,59 @@ export default function Users() {
         )}
 
       </div>
+
+      {/* User Info Modal */}
+      <AnimatePresence>
+        {isUserModalOpen && (
+          <>
+            <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30" />
+            <motion.div
+              className="fixed inset-0 z-50 w-screen overflow-auto"
+              variants={DropIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-8 w-1/3">
+                  <div className='flex justify-between items-center mb-6'>
+                    <h2 className="text-lg font-medium text-[#312895]">
+                      User Information
+                    </h2>
+                    <CloseButton onClick={handleCloseUserModal} />
+                  </div>
+                  <div className='space-y-4'>
+                    <table className="w-full">
+                      <tbody>
+                        <tr>
+                          <td className="py-4 pr-8 text-gray-500">Full Name</td>
+                          <td className="py-4 font-medium">{userModalData.fullName}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-4 pr-8 text-gray-500">Email</td>
+                          <td className="py-4 font-medium">{userModalData.email}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-4 pr-8 text-gray-500">Index</td>
+                          <td className="py-4 font-medium">{userModalData.index}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex justify-end mt-8">
+                    <Button
+                      onClick={handleCloseUserModal}
+                      style="secondary"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence
         initial={false}

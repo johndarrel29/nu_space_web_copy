@@ -1,28 +1,37 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../../context/AuthContext';
 import { useUserStoreWithAuth } from "../../store";
+import useTokenStore from "../../store/tokenStore";
 
 // for rso representative
 // looks like this url is no longer available in backend
 const fetchDocuments = async () => {
-    const token = localStorage.getItem("token");
-    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+    try {
+        const token = useTokenStore.getState().getToken();
 
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/getDocuments`, {
-        method: "GET",
-        headers: {
-            Authorization: token ? `Bearer ${formattedToken}` : "",
-            'Content-Type': 'application/json'
-        },
-    });
+        console.log("response url ", `${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/fetch-accreditation-documents`);
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/fetch-accreditation-documents`, {
+            method: "GET",
+            headers: {
+                Authorization: token,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        console.log("response received for fetch docs:", response)
 
 
-    if (!response.ok) {
-        throw new Error(`Fetch failed: ${response.status} - ${response.statusText}`);
+        if (!response.ok) {
+            throw new Error(`Fetch failed: ${response.status} - ${response.statusText}`);
+        }
+
+        const json = await response.json();
+        return json.documents ?? []; // return only array of docs
+    } catch (error) {
+        console.error("Error fetching documents:", error);
+        throw error;
     }
-
-    const json = await response.json();
-    return json.documents ?? []; // return only array of docs
 }
 
 // submit document - pure API function (no local state)
@@ -80,10 +89,103 @@ const fetchDocumentTemplate = async (documentFor = "", user = {}) => {
     return res.json();
 }
 
-function useRSODocuments({ documentFor } = {}) {
+const uploadAccreditationDocumentRequest = async ({ formData }) => {
+    try {
+        const token = localStorage.getItem("token");
+        // const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        console.log("received formData:", formData);
+        // only take file
+        // if (!formData.get("file")) {
+        //     throw new Error("No file found");
+        // }
+
+        // Log all key-value pairs in FormData
+        for (let pair of formData.entries()) {
+            console.log("formsdata", pair[0], pair[1]);
+        }
+
+        const headers = { Authorization: token || '' };
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/accreditation/upload`, {
+            method: "POST",
+            headers: {
+                Authorization: token,
+            },
+            body: formData,
+        });
+        console.log("upload response:", response);
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error("Error uploading document:", error.message);
+        throw error;
+    }
+};
+
+const uploadActivityDocumentRequest = async ({ formData, activityId }) => {
+    try {
+        console.log("uploadActivityDocumentRequest received ", { formData, activityId });
+
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        const headers = { Authorization: formattedToken || '' };
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/activity/upload/${activityId}`, {
+            method: "POST",
+            headers: {
+                Authorization: token,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error("Error uploading document:", error);
+        throw error;
+    }
+};
+
+const deleteAccreditationDocumentRequest = async (documentId) => {
+    try {
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        const headers = { Authorization: formattedToken || '' };
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/deleteAccreditationDocument/${documentId}`, {
+            method: "DELETE",
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error("Error deleting document:", error.message);
+        throw error;
+    }
+}
+
+function useRSODocuments({ documentFor = "" } = {}) {
     const queryClient = useQueryClient();
     const { user } = useAuth();
     const { isUserRSORepresentative } = useUserStoreWithAuth();
+    const token = useTokenStore.getState().getToken();
+
+    console.log("useRSODOCS is being called.")
+
 
     const {
         data: generalDocuments,
@@ -94,7 +196,8 @@ function useRSODocuments({ documentFor } = {}) {
     } = useQuery({
         queryKey: ["documents"],
         queryFn: fetchDocuments,
-        enabled: isUserRSORepresentative,
+        // enabled: isUserRSORepresentative,
+        enabled: !!token,
         onSuccess: (data) => {
             console.log("Documents fetched successfully:", data);
         },
@@ -135,6 +238,49 @@ function useRSODocuments({ documentFor } = {}) {
         }
     });
 
+    const {
+        mutate: uploadAccreditationDocument,
+        isLoading: uploadAccreditationDocumentLoading,
+        isSuccess: uploadAccreditationDocumentSuccess,
+        isError: uploadAccreditationDocumentError,
+        error: uploadAccreditationDocumentQueryError,
+    } = useMutation({
+        mutationFn: ({ formData }) => uploadAccreditationDocumentRequest({ formData }),
+        onSuccess: () => {
+            queryClient.invalidateQueries(["documents"]);
+        },
+    });
+
+    const {
+        mutate: uploadActivityDocument,
+        isLoading: uploadActivityDocumentLoading,
+        isSuccess: uploadActivityDocumentSuccess,
+        isError: uploadActivityDocumentError,
+        error: uploadActivityDocumentQueryError,
+    } = useMutation({
+        mutationFn: ({ formData, activityId }) => uploadActivityDocumentRequest({ formData, activityId }),
+        onSuccess: () => {
+            queryClient.invalidateQueries(["documents"]);
+        },
+    });
+
+
+
+    const {
+        mutate: deleteAccreditationDocument,
+        isLoading: deleteAccreditationDocumentLoading,
+        isSuccess: deleteAccreditationDocumentSuccess,
+        isError: deleteAccreditationDocumentError,
+        error: deleteAccreditationDocumentQueryError,
+    } = useMutation({
+        mutationFn: deleteAccreditationDocumentRequest,
+        onSuccess: () => {
+            queryClient.invalidateQueries(["documents"]);
+        },
+    });
+
+
+
     return {
         // get document data
         generalDocuments,
@@ -156,6 +302,27 @@ function useRSODocuments({ documentFor } = {}) {
         documentTemplateError,
         documentTemplateQueryError,
         refetchDocumentTemplate,
+
+        // uploadAccreditationDocument
+        uploadAccreditationDocument,
+        uploadAccreditationDocumentLoading,
+        uploadAccreditationDocumentSuccess,
+        uploadAccreditationDocumentError,
+        uploadAccreditationDocumentQueryError,
+
+        // uploadActivityDocument
+        uploadActivityDocument,
+        uploadActivityDocumentLoading,
+        uploadActivityDocumentSuccess,
+        uploadActivityDocumentError,
+        uploadActivityDocumentQueryError,
+
+        // deleteAccreditationDocument
+        deleteAccreditationDocument,
+        deleteAccreditationDocumentLoading,
+        deleteAccreditationDocumentSuccess,
+        deleteAccreditationDocumentError,
+        deleteAccreditationDocumentQueryError,
     }
 }
 

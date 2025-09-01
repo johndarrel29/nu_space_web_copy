@@ -18,15 +18,6 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
 import { CardSkeleton } from '../../../components';
 
-// showing the rso loading when nothing is actually present.
-
-// getRSO succesfully connects to backend but not fetching the data correctly
-// fixed: nagend na ang yearly data kaya nawala na
-
-// TODO: find out the where the UI error from table is coming from
-// Update the mapping of data to the new fields from the backend
-// Update the RSO data structure to match the new backend response
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -186,8 +177,6 @@ export default function MainRSO() {
       toast.error("Invalid date selected. Please choose a valid date.");
       return;
     }
-
-    console.log("Updating membership date:", dateObject.toISOString());
 
     // Update membership date
     updateMembershipDateMutate({ date: date },

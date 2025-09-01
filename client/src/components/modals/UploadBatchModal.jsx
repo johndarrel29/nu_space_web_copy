@@ -1,32 +1,50 @@
-import { Button, CloseButton, TextInput, ReusableDropdown } from '../../components';
+import { Button, CloseButton, ReusableDropdown } from '../../components';
 import { useCallback, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useDocumentManagement } from '../../hooks';
+import { useDocumentManagement, useRSODocuments } from '../../hooks';
 import { useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 // TODO: Implement forceful download of file to avoid redirects to file URL
 
-function UploadBatchModal({ handleCloseModal, page }) {
+function UploadBatchModal({ handleCloseModal, page, activityId }) {
     const location = useLocation();
     const [file, setFile] = useState(null);
     const [fileList, setFileList] = useState([]);
     const [error, setError] = useState(null);
-    const [selectedTemplate, setSelectedTemplate] = useState([]);
-    const [formData, setFormData] = useState({
-        documentName: '',
-        documentDescription: '',
-    });
     const [initialPage, setInitialPage] = useState("templates");
     const [data, setData] = useState([]);
+    // Add selectedTemplate state
+    const [selectedTemplate, setSelectedTemplate] = useState([]);
 
     const { documentTemplate } = useDocumentManagement({
         documentFor: selectedTemplate
     });
 
+    const {
+        // uploadAccreditationDocument
+        uploadAccreditationDocument,
+        uploadAccreditationDocumentLoading,
+        uploadAccreditationDocumentSuccess,
+        uploadAccreditationDocumentError,
+        uploadAccreditationDocumentQueryError,
+
+        // activity upload
+        // uploadActivityDocument
+        uploadActivityDocument,
+        uploadActivityDocumentLoading,
+        uploadActivityDocumentSuccess,
+        uploadActivityDocumentError,
+        uploadActivityDocumentQueryError,
+
+    } = useRSODocuments();
+
     // Determine page type
     const currentPage = location.pathname;
     const isDocumentPage = currentPage.includes('/document') && !currentPage.includes('/documents');
     const isActivitiesPage = currentPage.startsWith('/documents') && !isDocumentPage;
+
+    console.log("activityId ", activityId);
 
     // Template options based on page type
     const genDocOptions = [
@@ -66,8 +84,8 @@ function UploadBatchModal({ handleCloseModal, page }) {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        multiple: false,
-        maxFiles: 1,
+        multiple: true,
+        maxFiles: 10,
         accept: {
             'application/pdf': ['.pdf'],
             'application/msword': ['.doc'],
@@ -77,24 +95,18 @@ function UploadBatchModal({ handleCloseModal, page }) {
 
     // Handlers
     const handleAddFile = () => {
-        if (!formData.documentName || !formData.documentDescription || !file) {
-            setError("Please fill in all fields and select a file.");
+        if (!file) {
+            setError("Please select a file.");
             return;
         }
 
         const fileEntry = {
             id: Date.now(),
             file,
-            name: formData.documentName,
-            description: formData.documentDescription,
         };
 
         setFileList(prevFiles => [...prevFiles, fileEntry]);
         setFile(null);
-        setFormData({
-            documentName: '',
-            documentDescription: '',
-        });
         setError(null);
     };
 
@@ -133,6 +145,57 @@ function UploadBatchModal({ handleCloseModal, page }) {
     const downloadDocument = (document) => {
         if (document.signedUrl) {
             window.open(document.signedUrl, '_blank');
+        }
+    };
+
+    const handleUploadDocuments = () => {
+        console.log("Uploading documents:", fileList);
+        if (fileList.length === 0) {
+            setError("Please add files to upload.");
+            return;
+        }
+
+        // Create a new FormData instance
+        const uploadFormData = new FormData();
+
+        // Only append the file itself
+        fileList.forEach(fileEntry => {
+            uploadFormData.append("files", fileEntry.file);
+        });
+
+        // Document upload
+        if (isDocumentPage) {
+            uploadAccreditationDocument({ formData: uploadFormData },
+                {
+                    onSuccess: () => {
+                        console.log("Document uploaded successfully");
+                        toast.success("Document uploaded successfully");
+                        // Clear the file list after upload
+                        setFileList([]);
+                    },
+                    onError: (error) => {
+                        console.error("Error uploading document:", error);
+                        toast.error(error.message || '');
+                    }
+                }
+            );
+        }
+
+        if (isActivitiesPage) {
+            uploadActivityDocument({ formData: uploadFormData, activityId: activityId },
+                {
+                    onSuccess: () => {
+                        console.log("Activity uploaded successfully");
+                        toast.success("Activity uploaded successfully");
+                        // Clear the file list after upload
+                        setFileList([]);
+                    },
+                    onError: (error) => {
+                        console.error("Error uploading activity:", error);
+                        toast.error(error.message || '');
+                    }
+                }
+            );
         }
     };
 
@@ -254,26 +317,6 @@ function UploadBatchModal({ handleCloseModal, page }) {
                                 )}
                             </div>
 
-                            <TextInput
-                                value={formData.documentName}
-                                onChange={(e) => {
-                                    setFormData({ ...formData, documentName: e.target.value });
-                                    setError(null);
-                                }}
-                                placeholder="Document Name"
-                            />
-
-                            <textarea
-                                rows="4"
-                                value={formData.documentDescription}
-                                onChange={(e) => {
-                                    setFormData({ ...formData, documentDescription: e.target.value });
-                                    setError(null);
-                                }}
-                                className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md p-2.5 w-full"
-                                placeholder="Provide more details about the document..."
-                            />
-
                             {error && <p className='text-red-500 text-sm'>{error}</p>}
 
                             <div className='flex justify-end mt-4'>
@@ -304,10 +347,7 @@ function UploadBatchModal({ handleCloseModal, page }) {
                                         key={fileEntry.id}
                                         className='p-4 border border-mid-gray rounded flex items-center justify-between hover:bg-gray-50'
                                     >
-                                        <span className='truncate'>{fileEntry.name}</span>
-                                        <span className='text-sm text-gray-600'>
-                                            {fileEntry.isPostDocument ? 'Post Document' : 'Pre Document'}
-                                        </span>
+                                        <span className='truncate'>{fileEntry.file.name}</span>
                                         <button
                                             onClick={() => removeFileFromList(fileEntry.id)}
                                             className='aspect-square flex items-center justify-center cursor-pointer rounded-full hover:bg-gray-200 p-1'
@@ -331,6 +371,7 @@ function UploadBatchModal({ handleCloseModal, page }) {
                             <Button
                                 className={`w-full ${fileList.length === 0 ? 'bg-gray-200 text-gray-500' : ''}`}
                                 disabled={fileList.length === 0}
+                                onClick={handleUploadDocuments}
                             >
                                 Upload Documents
                             </Button>
