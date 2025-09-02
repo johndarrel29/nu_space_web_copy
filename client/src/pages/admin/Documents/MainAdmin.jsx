@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import { useAdminDocuments, useAcademicYears } from "../../../hooks";
 import { toast } from "react-toastify";
+import { useUserStoreWithAuth } from '../../../store';
 
 // todo: change the data to PH standard time for start and end date.
 
@@ -16,6 +17,7 @@ export default function MainAdmin() {
         { label: "Activity Documents" }
     ]
     const [activeTab, setActiveTab] = useState(0);
+    const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
     const {
 
         // Set Accreditation Deadline
@@ -118,21 +120,23 @@ export default function MainAdmin() {
         <div>
             <div className="flex justify-between items-center w-full mb-4">
                 <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
-                <div className="flex gap-4">
-                    <Button style={"secondary"} onClick={() => {
-                        // Navigate to templates page
-                        openDeadlineModal();
-                    }}>
-                        <div className="flex gap-2 items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="current" viewBox="0 0 640 640"><path d="M128 96C128 78.3 142.3 64 160 64L480 64C497.7 64 512 78.3 512 96C512 113.7 497.7 128 480 128L480 139C480 181.4 463.1 222.1 433.1 252.1L365.2 320L433.1 387.9C463.1 417.9 480 458.6 480 501L480 512C497.7 512 512 526.3 512 544C512 561.7 497.7 576 480 576L160 576C142.3 576 128 561.7 128 544C128 526.3 142.3 512 160 512L160 501C160 458.6 176.9 417.9 206.9 387.9L274.8 320L206.9 252.1C176.9 222.1 160 181.4 160 139L160 128C142.3 128 128 113.7 128 96zM224 128L224 139C224 164.5 234.1 188.9 252.1 206.9L320 274.8L387.9 206.9C405.9 188.9 416 164.5 416 139L416 128L224 128zM224 512L416 512L416 501C416 475.5 405.9 451.1 387.9 433.1L320 365.2L252.1 433.1C234.1 451.1 224 475.5 224 501L224 512z" /></svg>
-                            Accreditation Deadline
-                        </div>
-                    </Button>
-                    <Button style={"secondary"} onClick={() => {
-                        // Navigate to templates page
-                        navigate("templates");
-                    }}>Document Templates</Button>
-                </div>
+                {(isUserAdmin || isCoordinator) && (
+                    <div className="flex gap-4">
+                        <Button style={"secondary"} onClick={() => {
+                            // Navigate to templates page
+                            openDeadlineModal();
+                        }}>
+                            <div className="flex gap-2 items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="size-4" fill="current" viewBox="0 0 640 640"><path d="M128 96C128 78.3 142.3 64 160 64L480 64C497.7 64 512 78.3 512 96C512 113.7 497.7 128 480 128L480 139C480 181.4 463.1 222.1 433.1 252.1L365.2 320L433.1 387.9C463.1 417.9 480 458.6 480 501L480 512C497.7 512 512 526.3 512 544C512 561.7 497.7 576 480 576L160 576C142.3 576 128 561.7 128 544C128 526.3 142.3 512 160 512L160 501C160 458.6 176.9 417.9 206.9 387.9L274.8 320L206.9 252.1C176.9 222.1 160 181.4 160 139L160 128C142.3 128 128 113.7 128 96zM224 128L224 139C224 164.5 234.1 188.9 252.1 206.9L320 274.8L387.9 206.9C405.9 188.9 416 164.5 416 139L416 128L224 128zM224 512L416 512L416 501C416 475.5 405.9 451.1 387.9 433.1L320 365.2L252.1 433.1C234.1 451.1 224 475.5 224 501L224 512z" /></svg>
+                                Accreditation Deadline
+                            </div>
+                        </Button>
+                        <Button style={"secondary"} onClick={() => {
+                            // Navigate to templates page
+                            navigate("templates");
+                        }}>Document Templates</Button>
+                    </div>
+                )}
             </div>
             {<BackendTable activeTab={activeTab} />}
 

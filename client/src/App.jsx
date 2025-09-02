@@ -13,7 +13,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
 import { Document } from './pages/rso';
-import { AnnouncementsPage, Forms, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOParent, Users, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
+import { AnnouncementsPage, DetailsParent, WaterMarkPage, Forms, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOParent, Users, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
@@ -171,7 +171,12 @@ function App() {
                       </MainLayout>
                     }>
                       <Route index element={<MainAdmin />} />
-                      <Route path=":documentId" element={<DocumentDetails />} />
+
+                      {/* document details route */}
+                      <Route path=":documentId" element={<DetailsParent />} >
+                        <Route index element={<DocumentDetails />} />
+                        <Route path="watermark" element={<WaterMarkPage />} />
+                      </Route>
                       <Route path="templates" element={<AdminTemplates />} />
                     </Route>
 

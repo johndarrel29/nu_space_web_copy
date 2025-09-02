@@ -94,7 +94,8 @@ export default function DocumentDetails() {
     };
 
     const handleDocumentClick = () => {
-        window.open(url, "_blank");
+        // window.open(url, "_blank");
+        navigate(`/admin-documents/${documentId}/watermark`, { state: { documentId, url } });
     };
 
     const handleDirectorSwitch = (e) => {

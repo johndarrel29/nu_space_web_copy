@@ -99,6 +99,36 @@ const fetchGeneralDocuments = async (id) => {
     }
 };
 
+// for admin
+// get function for pdf viewer
+const fetchPDFSignedUrlRequest = async (documentId) => {
+    try {
+
+        console.log("Fetching PDF signed URL for document ID:", documentId);
+        const token = localStorage.getItem("token");
+        const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+        const res = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/documents/pdfSignedUrl/${documentId}`, {
+            method: "GET",
+            headers: {
+                'Authorization': formattedToken,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Fetch failed: ${errorText}`);
+        }
+
+        const json = await res.json();
+        return json;
+    } catch (error) {
+        console.error("Error in fetchPDFSignedUrlRequest:", error);
+        throw error;
+    }
+}
+
 // checks if the user has a role and fetches the document template accordingly
 const fetchDocumentTemplate = async ({ queryKey }) => {
     try {
@@ -581,6 +611,17 @@ function useAdminDocuments({
         },
     });
 
+    const {
+        data: pdfSignedUrlData,
+        error: pdfSignedUrlError,
+        isError: ispdfSignedUrlError,
+        isLoading: ispdfSignedUrlLoading
+    } = useQuery({
+        queryKey: ["pdfSignedUrl", documentId],
+        queryFn: () => fetchPDFSignedUrlRequest(documentId),
+        enabled: !!documentId,
+    });
+
     return {
         allDocuments,
         allDocumentsLoading,
@@ -640,6 +681,12 @@ function useAdminDocuments({
         uploadDocumentTemplateError,
         uploadDocumentTemplateSuccess,
         refetchUploadDocumentTemplate,
+
+        ispdfSignedUrlError,
+        pdfSignedUrlError,
+        pdfSignedUrlData,
+        ispdfSignedUrlLoading
+
     };
 }
 

@@ -6,6 +6,7 @@ import { useAdminDocuments } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import { Backdrop, CloseButton, TextInput, ReusableDropdown } from '../../../components';
+
 import { toast } from 'react-toastify';
 
 // BUGS: when a parameter is set for documentFor, the template option would show the filter option and not the whole options because it's affected to the filter.
@@ -17,6 +18,7 @@ export default function AdminTemplates() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [selectedTemplate, setSelectedTemplate] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState("All");
+
     // New states for upload modal
     const [uploadStep, setUploadStep] = useState(1); // 1 for document type selection, 2 for file upload
     const [documentType, setDocumentType] = useState("");

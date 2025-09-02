@@ -583,7 +583,7 @@ function MainLayout({ children }) {
             </div>
 
             {/* Page Content */}
-            <div className={`bg-white rounded-lg shadow-lg p-6 ${isActivityDetailsPage ? 'mb-24' : ''}`}>
+            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${isActivityDetailsPage ? 'mb-24' : ''}`}>
               {children}
             </div>
           </main>
