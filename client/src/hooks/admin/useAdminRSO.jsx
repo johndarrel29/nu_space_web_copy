@@ -253,6 +253,99 @@ const getRSODetail = async (id) => {
     }
 };
 
+const softDeleteRSORequest = async ({ id }) => {
+    try {
+        const token = useTokenStore.getState().getToken();
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/softDeleteRSO/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token || "",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error("Error soft deleting RSO:", error);
+        throw error;
+    }
+}
+
+const hardDeleteRSORequest = async ({ id }) => {
+    try {
+        const token = useTokenStore.getState().getToken();
+
+        console.log("url request for hard delete:", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/hardDeleteRSO/${id}`);
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/hardDeleteRSO/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token || "",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error("Error hard deleting RSO:", error);
+        throw error;
+    }
+}
+
+const updateUpcomingRSORequest = async ({ id, formData, academicYearId }) => {
+    try {
+        const token = useTokenStore.getState().getToken();
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/update-upcoming-rso/${id}/${academicYearId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token || "",
+            },
+            body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error("Error updating upcoming RSO:", error);
+        throw error;
+    }
+}
+
+const recognizeRSORequest = async (id) => {
+    try {
+        const token = useTokenStore.getState().getToken();
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/recognize-rso/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token || "",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error("Error recognizing RSO:", error);
+        throw error;
+    }
+}
+
 function useAdminRSO(rsoID = "") {
     const queryClient = useQueryClient();
     const { isUserAdmin, isUserCoordinator } = useUserStoreWithAuth();
@@ -442,6 +535,44 @@ function useAdminRSO(rsoID = "") {
         enabled: !!rsoID,
     });
 
+    const {
+        mutate: softDeleteRSOMutate,
+        isLoading: isSoftDeleteRSOLoading,
+        isSuccess: isSoftDeleteRSOSuccess,
+        isError: isSoftDeleteRSOError,
+        error: softDeleteRSOError,
+        reset: resetSoftDeleteRSO,
+    } = useMutation({
+        mutationFn: softDeleteRSORequest,
+        onSuccess: () => {
+            console.log("RSO deleted successfully");
+            queryClient.invalidateQueries(["rsoData"]);
+        },
+        onError: (error) => {
+            console.error("Error deleting RSO:", error);
+        },
+        enabled: isUserAdmin || isUserCoordinator,
+    });
+
+    const {
+        mutate: hardDeleteRSOMutate,
+        isLoading: isHardDeleteRSOLoading,
+        isSuccess: isHardDeleteRSOSuccess,
+        isError: isHardDeleteRSOError,
+        error: hardDeleteRSOError,
+        reset: resetHardDeleteRSO,
+    } = useMutation({
+        mutationFn: hardDeleteRSORequest,
+        onSuccess: () => {
+            console.log("RSO hard deleted successfully");
+            queryClient.invalidateQueries(["rsoData"]);
+        },
+        onError: (error) => {
+            console.error("Error hard deleting RSO:", error);
+        },
+        enabled: isUserAdmin || isUserCoordinator,
+    });
+
     return {
         // for admin create RSO
         createRSOMutate,
@@ -519,6 +650,22 @@ function useAdminRSO(rsoID = "") {
         isRSODetailError,
         rsoDetailError,
         refetchRSODetail,
+
+        // for admin soft delete RSO
+        softDeleteRSOMutate,
+        isSoftDeleteRSOLoading,
+        isSoftDeleteRSOSuccess,
+        isSoftDeleteRSOError,
+        softDeleteRSOError,
+        resetSoftDeleteRSO,
+
+        // for admin hard delete RSO
+        hardDeleteRSOMutate,
+        isHardDeleteRSOLoading,
+        isHardDeleteRSOSuccess,
+        isHardDeleteRSOError,
+        hardDeleteRSOError,
+        resetHardDeleteRSO,
     }
 }
 

@@ -40,6 +40,13 @@ export default function MainRSO() {
     isRSOError,
     rsoError,
     refetchRSOData,
+
+    softDeleteRSOMutate,
+    isSoftDeleteRSOLoading,
+    isSoftDeleteRSOSuccess,
+    isSoftDeleteRSOError,
+    softDeleteRSOError,
+    resetSoftDeleteRSO,
   } = useAdminRSO();
 
 
@@ -73,22 +80,25 @@ export default function MainRSO() {
   const rsoList = rsoData?.rsos ?? [];
   console.log("Processed RSO List:", rsoList);
   console.log("rso membership status: ", rsoList.map(org => org.RSO_membershipStatus));
-  const tableRow = rsoList.map((org) => {
-    const snapshot = org.RSO_snapshot || {};
 
-    // snapshot will remain but some of the details are from the first layer
-    // on rso detail, use id to show details
-    return {
-      id: org.rsoId,
-      RSO_name: snapshot.name || '',
-      RSO_acronym: snapshot.acronym || '',
-      RSO_category: snapshot.category || '',
-      RSO_college: snapshot.college || '',
-      RSO_picture: org.RSO_picture || '',
-      RSO_memberCount: org.RSO_members?.length || 0,
-      RSO_membershipStatus: org.RSO_membershipStatus ? "true" : "false"
-    };
-  });
+  const tableRow = rsoList
+    .filter(org => org.rsoId != null)
+    .map((org) => {
+      const snapshot = org.RSO_snapshot || {};
+
+      // snapshot will remain but some of the details are from the first layer
+      // on rso detail, use id to show details
+      return {
+        id: org.rsoId || null,
+        RSO_name: snapshot.name || '',
+        RSO_acronym: snapshot.acronym || '',
+        RSO_category: snapshot.category || '',
+        RSO_college: snapshot.college || '',
+        RSO_picture: org.RSO_picture || '',
+        RSO_memberCount: org.RSO_members?.length || 0,
+        RSO_membershipStatus: org.RSO_membershipStatus ? "true" : "false"
+      };
+    });
 
   console.log("Table Row Picture:", tableRow?.map(org => org.RSO_picture));
 
@@ -201,6 +211,23 @@ export default function MainRSO() {
     dependencies: [handleCreate]
   });
 
+  const handleActionClick = (user) => {
+    // setSelectedUser(user);
+    console.log(" selected user data ", user)
+    // navigate('rso-details', { state: { user } });
+
+    softDeleteRSOMutate({ id: user.id }, {
+      onSuccess: (data) => {
+        console.log("RSO soft deleted successfully:", data);
+        toast.success("RSO soft deleted successfully!");
+      },
+      onError: (error) => {
+        console.error("Error soft deleting RSO:", error);
+        toast.error("Failed to soft delete RSO. Please try again.");
+      }
+    });
+  };
+
   return (
     <>
       <div className="flex flex-col items-start lg:flex-row lg:justify-between lg:items-center">
@@ -249,14 +276,16 @@ export default function MainRSO() {
           showAllOption={false}
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          columnNumber={3}
+          columnNumber={4}
           tableHeading={[
             { id: 1, name: "RSO Name", key: "RSO_name" },
             { id: 2, name: "RSO Category", key: "RSO_category" },
             { id: 3, name: "Membership Status", key: "RSO_membershipStatus" },
+            { id: 4, name: "Action", key: "remove" },
           ]}
           tableRow={filteredOrgs()}
           onClick={handleSelectedUser}
+          onActionClick={handleActionClick}
           error={fetchWebRSOError}
           isLoading={loading}
         />

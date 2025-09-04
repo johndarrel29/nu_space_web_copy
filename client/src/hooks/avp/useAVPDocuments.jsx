@@ -6,7 +6,7 @@ import { useEffect } from "react";
 const getAVPDocuments = async ({ queryKey }) => {
     try {
         const token = useTokenStore.getState().getToken();
-        const [_key, params] = queryKey;
+        const [_key, params = {}] = queryKey;
 
         // Filter out undefined, null, or empty string values from params
         const filteredParams = {};
@@ -85,7 +85,7 @@ function useAVPDocuments() {
     } = useQuery({
         queryKey: ["avpDocuments"],
         queryFn: getAVPDocuments,
-        enabled: isAVP,
+        enabled: !!isAVP,
     });
 
     const {

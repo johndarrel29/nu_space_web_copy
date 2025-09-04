@@ -13,7 +13,7 @@ export default function MainAdmin() {
     const navigate = useNavigate();
     const tabs = [
         { label: "All" },
-        { label: "General Documents" },
+        { label: "Recognition Documents" },
         { label: "Activity Documents" }
     ]
     const [activeTab, setActiveTab] = useState(0);

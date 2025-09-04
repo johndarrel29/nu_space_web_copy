@@ -579,6 +579,11 @@ function DocumentAction() {
                 onChange={handleCampusChange}
               ></ReusableDropdown>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Select a Form for the Activity</label>
+              <Button style={"secondary"}>Selected: none</Button>
+            </div>
           </section>
 
           <section className="flex flex-row gap-4 items-center justify-between p-6">

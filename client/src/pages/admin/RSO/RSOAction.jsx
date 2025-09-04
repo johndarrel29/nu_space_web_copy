@@ -29,6 +29,13 @@ function RSOAction() {
     isCreateSuccess,
     isCreateError,
     resetCreate,
+
+    hardDeleteRSOMutate,
+    isHardDeleteRSOLoading,
+    isHardDeleteRSOSuccess,
+    isHardDeleteRSOError,
+    hardDeleteRSOError,
+    resetHardDeleteRSO,
   } = useAdminRSO();
   const {
     academicYears,
@@ -361,11 +368,19 @@ function RSOAction() {
 
   const handleDelete = async () => {
     try {
-      const result = await deleteRSO(data.id);
-      console.log("RSO deleted:", result);
-      navigate('..', { relative: 'path' });
+      hardDeleteRSOMutate({ id: data.id }, {
+        onSuccess: (data) => {
+          console.log("RSO hard deleted successfully:", data);
+          navigate('..', { relative: 'path' });
+          toast.success("RSO hard deleted successfully!");
+        },
+        onError: (error) => {
+          console.error("Error hard deleting RSO:", error);
+          toast.error("Failed to hard delete RSO. Please try again.");
+        }
+      });
     } catch (error) {
-      console.error("Error deleting RSO:", error);
+
     }
 
   };

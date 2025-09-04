@@ -116,7 +116,7 @@ function Document() {
           createdAt: formatDate(doc.createdAt) || '',
           updatedAt: formatDate(doc.updatedAt) || '',
           file: doc.file || '',
-          status: doc.document_status || '',
+          document_status: doc.document_status || '',
           title: doc.title || '',
           url: doc.url || '',
         };
@@ -135,7 +135,7 @@ function Document() {
 
     return tableRow.filter((doc) => {
       const matchesTab = activeTab === 0 ||
-        doc.status.toLowerCase() === tabs[activeTab].label.toLowerCase();
+        doc.document_status.toLowerCase() === tabs[activeTab].label.toLowerCase();
       const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesTab && matchesSearch;
     });
@@ -299,7 +299,7 @@ function Document() {
         isLoading={generalDocumentsLoading}
         tableHeading={[
           { name: "Title", key: "title" },
-          { name: "Status", key: "status" },
+          { name: "Status", key: "document_status" },
           { name: "Created At", key: "createdAt" },
           { name: "Action", key: "actions" }
         ]}
@@ -349,11 +349,12 @@ function Document() {
 
                   <div className="flex items-center justify-between py-3 border-b border-[#312895]/10">
                     <span className="text-[#312895]/70 font-medium">Status:</span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${selectedDocument?.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      selectedDocument?.status === 'pending' ? 'bg-[#FFCC33]/20 text-[#FFCC33]/90' :
-                        'bg-red-100 text-red-800'
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${selectedDocument?.document_status
+                      === 'approved' ? 'bg-green-100 text-green-800' : selectedDocument?.document_status
+                        === 'pending' ? 'bg-[#FFCC33]/20 text-[#FFCC33]/90' :
+                      'bg-red-100 text-red-800'
                       }`}>
-                      {selectedDocument?.status || "pending"}
+                      {selectedDocument?.document_status || "n/a"}
                     </span>
                   </div>
                 </div>

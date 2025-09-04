@@ -196,7 +196,7 @@ export default function ReusableTable({
                                                                 <td key={heading.id} className="p-3">
 
                                                                     {
-                                                                        ["title", "status", "submittedBy", "createdAt", "actions", "RSO_membershipStatus"].includes(heading.key)
+                                                                        ["title", "status", "submittedBy", "createdAt", "actions", "RSO_membershipStatus", "remove"].includes(heading.key)
                                                                             ? (
                                                                                 <>
                                                                                     <div className="py-0">
@@ -227,6 +227,20 @@ export default function ReusableTable({
                                                                                                 }}
                                                                                                 className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
                                                                                                 <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
+                                                                                            </div>
+                                                                                        )}
+                                                                                        {heading.key === "remove" && (
+                                                                                            <div
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    if (onActionClick) {
+                                                                                                        onActionClick(row);
+                                                                                                    } else {
+                                                                                                        handleDelete(activityId, row.id);
+                                                                                                    }
+                                                                                                }}
+                                                                                                className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
+                                                                                                <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 640 640"><path d="M183.1 137.4C170.6 124.9 150.3 124.9 137.8 137.4C125.3 149.9 125.3 170.2 137.8 182.7L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7L320.5 365.3L457.9 502.6C470.4 515.1 490.7 515.1 503.2 502.6C515.7 490.1 515.7 469.8 503.2 457.3L365.8 320L503.1 182.6C515.6 170.1 515.6 149.8 503.1 137.3C490.6 124.8 470.3 124.8 457.8 137.3L320.5 274.7L183.1 137.4z" /></svg>
                                                                                             </div>
                                                                                         )}
                                                                                         {heading.key === "RSO_membershipStatus" && (

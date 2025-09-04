@@ -90,6 +90,8 @@ export default function BackendTable({ activeTab, rsoId = "" }) {
         }
     }, [isOnRSODetailsPage, rsoId]);
 
+    console.log("is avp? ", isAVP);
+
     // Effects
     useEffect(() => {
         if (coordinatorDocuments && isCoordinator) {
@@ -308,7 +310,7 @@ export default function BackendTable({ activeTab, rsoId = "" }) {
                     />
                 </div>
             </div>
-
+            {console.log("table data before render ", tableData)}
             <div className="flex justify-between items-center mb-4 w-full">
                 <span className="text-gray-700 font-semibold">
                     Showing {tableData?.signedDocuments ? tableData.signedDocuments.length : tableData?.length || 0} results
@@ -348,7 +350,7 @@ export default function BackendTable({ activeTab, rsoId = "" }) {
                                     ))}
                                 </tr>
                             </thead>
-
+                            {console.log("table data ", tableData)}
                             <tbody>
                                 {(tableData?.signedDocuments || tableData).length > 0 ? (
                                     (tableData?.signedDocuments || tableData).map((row, index) => (
@@ -363,8 +365,11 @@ export default function BackendTable({ activeTab, rsoId = "" }) {
                                                         {index + 1}
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm font-semibold text-gray-900">
+                                                        <span className="text-md font-semibold text-gray-900">
                                                             {row.title}
+                                                        </span>
+                                                        <span className="text-sm text-gray-600">
+                                                            submitted by {row.submittedBy?.RSO_acronym || "N/A"}
                                                         </span>
                                                     </div>
                                                 </div>
