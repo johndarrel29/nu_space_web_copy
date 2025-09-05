@@ -4,10 +4,12 @@ import FormViewer from '../../../components/FormViewer';
 import { MainLayout } from '../../../components';
 import PreLoader from '../../../components/Preloader';
 import { toast } from 'react-toastify';
-import { useSurvey, useAdminSurvey, useAdminCentralizedForms } from '../../../hooks';
+import { useSurvey, useAdminSurvey, useAdminCentralizedForms, useRSOForms } from '../../../hooks';
 import { useLocation } from 'react-router-dom';
 import { useUserStoreWithAuth } from '../../../store'
 import { useNavigate } from 'react-router-dom';
+
+// get specific form for rso representative
 
 // still thinking of removing view for RSO Representatives since this route is primarily for Admins
 // but for now, we will keep it as is
@@ -28,6 +30,12 @@ function FormViewerPage() {
         isErrorSpecificForm,
         specificFormError,
     } = useAdminCentralizedForms(formId);
+    const {
+        specificRSOForm,
+        isLoadingSpecificRSOForm,
+        isErrorSpecificRSOForm,
+        errorSpecificRSOForm,
+    } = useRSOForms(formId);
     const { isUserRSORepresentative, isUserAdmin } = useUserStoreWithAuth();
     const {
         adminActivitySurvey,
@@ -41,6 +49,8 @@ function FormViewerPage() {
         isErrorSurveys,
         surveysError,
     } = useSurvey(activityId);
+
+    console.log("specific form data:", specificRSOForm);
 
     useEffect(() => {
         if (isLoadingSpecificForm) {

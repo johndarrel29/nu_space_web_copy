@@ -13,6 +13,7 @@ import DefaultPicture from '../../../assets/images/default-picture.png';
 import { toast } from 'react-toastify';
 import Cropper from "react-easy-crop";
 import getCroppedImg from '../../../utils/cropImage';
+import { useSelectedFormStore } from '../../../store';
 
 // TODO: replace hooks from useActivities to useRSOActivities
 
@@ -21,6 +22,7 @@ function DocumentAction() {
   const location = useLocation();
   const navigate = useNavigate();
   const { mode, data, from } = location.state || {};
+  const selectedForm = useSelectedFormStore((state) => state.selectedForm);
   const { createActivity, updateActivity, deleteActivity, error, success, loading } = useRSOActivities();
 
   // hook for creating activity
@@ -44,6 +46,8 @@ function DocumentAction() {
     isActivityDeletionError,
     activityDeletionError,
   } = useRSOActivities();
+
+  console.log("the selected form is ", selectedForm);
 
 
   const fileInputRef = useRef(null);
@@ -284,7 +288,7 @@ function DocumentAction() {
             },
             onError: (error) => {
               console.error("Error creating activity:", error);
-              toast.error("Error creating activity");
+              toast.error(error.message || "Error creating activity");
             },
           }
         );
@@ -582,7 +586,9 @@ function DocumentAction() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Select a Form for the Activity</label>
-              <Button style={"secondary"}>Selected: none</Button>
+              <Button
+                onClick={() => navigate("/documents/form-selection")}
+                style={"secondary"}>Selected: {selectedForm ? selectedForm.title : "none"}</Button>
             </div>
           </section>
 

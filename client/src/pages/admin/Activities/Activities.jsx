@@ -614,7 +614,7 @@ export default function Activities() {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                     showAllOption={false}
-                    onClick={handleDocumentClick}
+                    onClick={(row) => navigate(`/documents/${activityId}/${row.id}`, { state: { documentId: row.id } })}
                     headerColor="#312895"
                     activityId={activityId}
                   />

@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { ReusableDropdown, Searchbar } from "../ui";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
+import { handleDocumentStatus } from '../../utils/useDocumentStatus';
 import Badge from "../ui/Badge"
 import { CardSkeleton } from '../../components';
 import { useActivities } from "../../hooks";
@@ -62,10 +63,10 @@ export default function ReusableTable({
         if (badge === "pending") {
             return <Badge style="primary" text={"Pending"} />
         }
-        if (badge === "Approved") {
+        if (badge === "approved") {
             return <Badge style="success" text={"Approved"} />
         }
-        if (badge === "Rejected") {
+        if (badge === "rejected") {
             return <Badge style="error" text={"Rejected"} />
         }
     }
@@ -196,7 +197,7 @@ export default function ReusableTable({
                                                                 <td key={heading.id} className="p-3">
 
                                                                     {
-                                                                        ["title", "status", "submittedBy", "createdAt", "actions", "RSO_membershipStatus", "remove"].includes(heading.key)
+                                                                        ["title", "document_status", "submittedBy", "createdAt", "actions", "RSO_membershipStatus", "remove"].includes(heading.key)
                                                                             ? (
                                                                                 <>
                                                                                     <div className="py-0">
@@ -206,8 +207,8 @@ export default function ReusableTable({
                                                                                                 <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.title}</span>
                                                                                             </div>
                                                                                         )}
-                                                                                        {heading.key === "status" && (
-                                                                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{handleBadge(row.status)}</span>
+                                                                                        {heading.key === "document_status" && (
+                                                                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{handleBadge(row.document_status)}</span>
                                                                                         )}
                                                                                         {heading.key === "submittedBy" && (
                                                                                             <span className="font-light text-gray-600 dark:text-white flex items-center text-xs ">{row.submittedBy}</span>

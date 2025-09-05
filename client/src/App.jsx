@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
-import { Document } from './pages/rso';
+import { Document, MainDocument } from './pages/rso';
 import { AnnouncementsPage, DetailsParent, WaterMarkPage, Forms, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOParent, Users, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
 import { SidebarProvider } from './context/SidebarContext';
@@ -22,8 +22,24 @@ import 'react-toastify/dist/ReactToastify.css';
 import { generateToken, messaging } from './config/firebase';
 import { onMessage } from 'firebase/messaging';
 import { toast } from 'react-toastify';
+import { useSelectedFormStore } from './store';
+import { useLocation } from 'react-router-dom';
 
+// refactor the app content
 
+function AppContent() {
+  const location = useLocation();
+  const clearSelectedForm = useSelectedFormStore((state) => state.clearSelectedForm);
+
+  // Clear selected form when navigating away from the form selection page
+  useEffect(() => {
+    const allowedRoutes = ['/document-action', '/forms'];
+    if (!allowedRoutes.includes(location.pathname)) {
+      clearSelectedForm();
+    }
+  }, [location, clearSelectedForm]);
+
+}
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -93,7 +109,10 @@ function App() {
                           <Document />
                         </MainLayout>
                       }
-                    />
+                    >
+                      <Route index element={<MainDocument />} />
+                      <Route path=":documentId" element={<DocumentDetails />} />
+                    </Route>
 
                     {/* SDAO admin routes */}
                     <Route path="/error" element={<ErrorPage />} />
@@ -135,8 +154,10 @@ function App() {
                     >
                       <Route index element={<MainDocuments />} />
                       <Route path="document-action" element={<DocumentAction />} />
+                      <Route path="form-selection" element={<Forms />} />
                       <Route path=":activityId" element={<MainActivities />}>
                         <Route index element={<Activities />} />
+                        <Route path=":documentId" element={<DocumentDetails />} />
                       </Route>
                     </Route>
 

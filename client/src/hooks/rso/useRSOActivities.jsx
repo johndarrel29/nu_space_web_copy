@@ -67,8 +67,8 @@ const createActivityAPI = async (activity) => {
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
+        const errorData = await response.json(); // try to read the server's message
+        throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
     }
 
     const json = await response.json();

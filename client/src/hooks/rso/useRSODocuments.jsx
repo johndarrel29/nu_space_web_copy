@@ -155,20 +155,26 @@ const uploadActivityDocumentRequest = async ({ formData, activityId }) => {
     }
 };
 
-const deleteAccreditationDocumentRequest = async (documentId) => {
+const deleteAccreditationDocumentRequest = async ({ documentId }) => {
     try {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
         const headers = { Authorization: formattedToken || '' };
 
+        console.log("url request for deleting document:", `${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/deleteAccreditationDocument/${documentId}`);
+
+        if (!documentId) {
+            throw new Error("Document ID is required to delete document");
+        }
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/deleteAccreditationDocument/${documentId}`, {
             method: "DELETE",
             headers,
         });
 
         if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            const errorData = await response.json(); // try to read the server's message
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
         }
 
         return response.json();
@@ -178,11 +184,38 @@ const deleteAccreditationDocumentRequest = async (documentId) => {
     }
 }
 
-function useRSODocuments({ documentFor = "" } = {}) {
+const fetchSpecificDocument = async ({ queryKey }) => {
+    try {
+        const documentId = queryKey[1]; // Extract documentId from queryKey
+        console.log(`url request is ${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/${documentId}`);
+        if (!documentId) {
+            throw new Error("Document ID is required to fetch specific document");
+        }
+        const token = useTokenStore.getState().getToken();
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/documents/${documentId}`, {
+            method: "GET",
+            headers: {
+                Authorization: token,
+                'Content-Type': 'application/json'
+            },
+        });
+        if (!response.ok) {
+            throw new Error(`Fetch failed: ${response.status} - ${response.statusText}`);
+        }
+        const json = await response.json();
+        return json?.data || {}; // return specific document data
+    } catch (error) {
+        console.error("Error fetching specific document:", error);
+        throw error;
+    }
+}
+
+function useRSODocuments({ documentFor = "", documentId = "" } = {}) {
     const queryClient = useQueryClient();
     const { user } = useAuth();
     const { isUserRSORepresentative } = useUserStoreWithAuth();
     const token = useTokenStore.getState().getToken();
+    console.log("received documedId:", documentId);
 
     console.log("useRSODOCS is being called.")
 
@@ -264,8 +297,6 @@ function useRSODocuments({ documentFor = "" } = {}) {
         },
     });
 
-
-
     const {
         mutate: deleteAccreditationDocument,
         isLoading: deleteAccreditationDocumentLoading,
@@ -279,7 +310,16 @@ function useRSODocuments({ documentFor = "" } = {}) {
         },
     });
 
-
+    const {
+        data: specificDocument,
+        isLoading: specificDocumentLoading,
+        isError: specificDocumentError,
+        error: specificDocumentQueryError,
+    } = useQuery({
+        queryKey: ["documents", documentId],
+        queryFn: fetchSpecificDocument,
+        enabled: !!documentId && !!isUserRSORepresentative,
+    });
 
     return {
         // get document data
@@ -323,6 +363,12 @@ function useRSODocuments({ documentFor = "" } = {}) {
         deleteAccreditationDocumentSuccess,
         deleteAccreditationDocumentError,
         deleteAccreditationDocumentQueryError,
+
+        // specific document
+        specificDocument,
+        specificDocumentLoading,
+        specificDocumentError,
+        specificDocumentQueryError,
     }
 }
 

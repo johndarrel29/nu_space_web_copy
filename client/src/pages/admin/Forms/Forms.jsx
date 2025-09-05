@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Searchbar, Button } from '../../../components';
-import { useAdminCentralizedForms } from '../../../hooks'
+import { useAdminCentralizedForms, useRSOForms } from '../../../hooks'
 import { FormatDate } from '../../../utils';
 import { toast } from 'react-toastify';
+import useTokenStore from "../../../store/tokenStore";
+import { set } from 'react-hook-form';
+import { useUserStoreWithAuth, useSelectedFormStore } from "../../../store";
 
 // problem with stale request after reloading page
 
@@ -14,6 +17,10 @@ export default function Forms() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [formToDelete, setFormToDelete] = useState(null);
     const [selectedFormName, setSelectedFormName] = useState(""); // new state
+    const [formToDisplay, setFormToDisplay] = useState(null);
+    const { isUserRSORepresentative } = useUserStoreWithAuth();
+
+    console.log("formToDisplay:", formToDisplay);
 
     const {
         allForms,
@@ -29,8 +36,22 @@ export default function Forms() {
         deleteFormError
     } = useAdminCentralizedForms();
 
+    const {
+        rsoFormsTemplate,
+        isLoadingRSOFormsTemplate,
+        isErrorRSOFormsTemplate,
+        errorRSOFormsTemplate,
+    } = useRSOForms();
 
-    console.log("Is this allforms in the room with us? ", allForms ? true : false);
+    console.log("RSO Forms Template:", rsoFormsTemplate);
+
+    useEffect(() => {
+        if (isUserRSORepresentative && rsoFormsTemplate) {
+            setFormToDisplay(rsoFormsTemplate);
+        } else if (!isUserRSORepresentative && allForms) {
+            setFormToDisplay(allForms);
+        }
+    }, [isUserRSORepresentative, rsoFormsTemplate, allForms]);
 
     // Sample data - this would typically come from an API
     const sampleForms = [
@@ -106,27 +127,35 @@ export default function Forms() {
         }
     }
 
+    const handleRSOSelectedForm = (form) => {
+        useSelectedFormStore.getState().setSelectedForm(form);
+        navigate(-1, { state: { selectedFormId: form._id } });
+    }
+
     return (
         <>
             {/* Header with Create Form button */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Forms Management</h1>
-                    <p className="text-gray-600 mt-1">Create and manage forms for your organization</p>
-                </div>
-                <button
-                    onClick={() => navigate('/forms-builder')}
-                    className="mt-4 md:mt-0 bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+                <div className="w-full"
+
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
-                    Create New Form
-                </button>
+                    <Button style={"secondary"}>Go Back</Button>
+                </div>
+                {!isUserRSORepresentative && (
+                    <button
+                        onClick={() => navigate('/forms-builder')}
+                        className="mt-4 md:mt-0 bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                        Create New Form
+                    </button>
+                )}
             </div>
 
             {/* Search and Filter Section */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <div className="bg-white rounded-lg border border-gray-300 p-6 mb-6">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
                         <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Search Forms</label>
@@ -158,8 +187,8 @@ export default function Forms() {
 
             {/* Forms Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                {allForms?.forms.map(form => (
-                    <div key={form.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                {formToDisplay?.forms.map(form => (
+                    <div key={form.id} className="bg-white rounded-lg border border-gray-300 hover:border-gray-500 transition-shadow">
                         <div className="p-6">
                             <div className="flex justify-between items-start">
                                 <div>
@@ -191,24 +220,33 @@ export default function Forms() {
                                     </svg>
                                     View
                                 </button>
-                                <button
-                                    onClick={() => navigate(`/forms-builder`, { state: { formId: form._id } })}
-                                    className="text-gray-500 hover:text-gray-800 font-medium text-sm flex items-center gap-1"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(form._id, form.title)}
-                                    className="text-gray-400 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Delete
-                                </button>
+                                {!isUserRSORepresentative && (
+                                    <>
+                                        <button
+                                            onClick={() => navigate(`/forms-builder`, { state: { formId: form._id } })}
+                                            className="text-gray-500 hover:text-gray-800 font-medium text-sm flex items-center gap-1"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(form._id, form.title)}
+                                            className="text-gray-400 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Delete
+                                        </button>
+                                    </>
+                                )}
+                                {isUserRSORepresentative && (
+                                    <Button onClick={() => handleRSOSelectedForm(form)}>
+                                        Select form
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -216,8 +254,8 @@ export default function Forms() {
             </div>
 
             {/* Empty State */}
-            {allForms?.forms.length === 0 && (
-                <div className="bg-white rounded-lg shadow p-10 text-center">
+            {formToDisplay?.forms.length === 0 && (
+                <div className="bg-white rounded-lg border border-gray-300 p-10 text-center">
                     <div className="mx-auto h-20 w-20 text-gray-400 mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -240,7 +278,7 @@ export default function Forms() {
             {/* Delete Confirmation Modal */}
             {deleteModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full">
+                    <div className="bg-white p-6 rounded border border-gray-300 max-w-sm w-full">
                         <div className="flex items-center mb-4">
                             <div className="bg-red-100 rounded-full p-2 mr-3">
                                 <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

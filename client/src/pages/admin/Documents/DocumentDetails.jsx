@@ -1,7 +1,7 @@
 import { Button, TabSelector } from '../../../components';
 import { useUserStoreWithAuth } from '../../../store';
 import { data, useLocation, useNavigate } from 'react-router-dom';
-import { useCoordinatorDocuments, useAVPDocuments, useDirectorDocuments, useAdminDocuments } from '../../../hooks';
+import { useCoordinatorDocuments, useAVPDocuments, useDirectorDocuments, useAdminDocuments, useRSODocuments } from '../../../hooks';
 import { handleDocumentStatus } from '../../../utils/useDocumentStatus';
 import { useState, useEffect } from 'react';
 import Switch from '@mui/material/Switch';
@@ -24,11 +24,24 @@ export default function DocumentDetails() {
         isDocumentDetailRefetching
     } = useAdminDocuments({ documentId });
 
+    const {
+        specificDocument,
+        specificDocumentLoading,
+        specificDocumentError,
+        specificDocumentQueryError,
+    } = useRSODocuments({ documentId });
+
     console.log("Document ID:", documentId);
     console.log("Document Details:", documentDetail?.document);
+    console.log("specificDocument:", specificDocument, "and id of ", documentId);
 
     // add: derived doc + helpers
-    const doc = documentDetail?.document;
+    const doc = documentDetail && !isUserRSORepresentative
+        ? documentDetail.document
+        : specificDocument && isUserRSORepresentative
+            ? specificDocument
+            : null;
+
     const formatDateTime = (iso) => {
         if (!iso) return 'N/A';
         const d = new Date(iso);
@@ -76,19 +89,19 @@ export default function DocumentDetails() {
     });
 
     // Define tabs conditionally based on user role
-    const tabs = isUserAdmin
-        ? [{ label: "Details" }, { label: "Remarks" }]
-        : [{ label: "Action" }, { label: "Details" }, { label: "Remarks" }];
+    const tabs = (isUserAdmin || isUserRSORepresentative)
+        ? [/* Removed Details tab */ { label: "Remarks" }]
+        : [{ label: "Action" }, /* Removed Details tab */ { label: "Remarks" }];
 
     const [activeTab, setActiveTab] = useState(0);
 
     // If user is admin, ensure activeTab is adjusted
     useEffect(() => {
-        if (isUserAdmin && activeTab === 0) {
+        if ((isUserAdmin || isUserRSORepresentative) && activeTab === 0) {
             // For admin users, "Action" tab doesn't exist, so adjust tab indexes
-            setActiveTab(0); // Set to "Details" tab
+            setActiveTab(0); // Set to "Remarks" tab
         }
-    }, [isUserAdmin, activeTab]);
+    }, [isUserAdmin, isUserRSORepresentative, activeTab]);
 
     const handleBackClick = () => {
         navigate(-1);
@@ -129,15 +142,13 @@ export default function DocumentDetails() {
 
     // Helper function to get the real tab index for non-admin users
     const getTabContent = (tabIndex) => {
-        if (isUserAdmin) {
-            // For admin users: 0 = Details, 1 = Remarks
-            if (tabIndex === 0) return renderDetailsTab();
-            if (tabIndex === 1) return renderRemarksTab();
+        if (isUserAdmin || isUserRSORepresentative) {
+            // For admin users: 0 = Remarks
+            if (tabIndex === 0) return renderRemarksTab();
         } else {
-            // For non-admin users: 0 = Action, 1 = Details, 2 = Remarks
+            // For non-admin users: 0 = Action, 1 = Remarks
             if (tabIndex === 0) return renderActionTab();
-            if (tabIndex === 1) return renderDetailsTab();
-            if (tabIndex === 2) return renderRemarksTab();
+            if (tabIndex === 1) return renderRemarksTab();
         }
     };
 
@@ -245,19 +256,24 @@ export default function DocumentDetails() {
         </div>
     );
 
-    const renderDetailsTab = () => (
-        <div>
-            <h2 className="text-sm text-gray-600">Description</h2>
-            <p className="mt-1">
-                {(doc?.description && doc.description.trim()) ? doc.description : 'No description provided.'}
-            </p>
-        </div>
-    );
-
     const renderRemarksTab = () => (
         <div>
-            <h2 className="text-sm text-gray-600 mb-1">Remarks</h2>
-            <p className="whitespace-pre-line">{doc?.remarks || 'No remarks provided.'}</p>
+            {doc?.remarks && doc.remarks.trim() ? (
+                <p className="whitespace-pre-line">{doc.remarks}</p>
+            ) : (
+                <div className="flex flex-col items-center justify-center py-8">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="mb-2 w-10 h-10 text-gray-300"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 14h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
+                    </svg>
+                    <span className="text-gray-400 text-sm font-medium">No remarks provided.</span>
+                </div>
+            )}
         </div>
     );
 
@@ -544,10 +560,10 @@ export default function DocumentDetails() {
                 </div>
 
                 {/* Loading/Error Hints (non-blocking) */}
-                {documentDetailLoading && (
+                {(documentDetailLoading && !isUserRSORepresentative) && (
                     <p className="text-xs text-gray-500 mb-2">Loading document details...</p>
                 )}
-                {(documentDetailError || documentDetailQueryError) && (
+                {(documentDetailError || documentDetailQueryError) && !isUserRSORepresentative && (
                     <p className="text-xs text-red-600 mb-2">Failed to load some details.</p>
                 )}
 
