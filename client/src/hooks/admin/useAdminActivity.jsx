@@ -100,13 +100,8 @@ const rejectActivity = async ({ activityId }) => {
         console.log("Response status:", response);
 
         if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        if (response.status === 400) {
-            const errorData = await response.json();
-            console.error("Error rejecting activity in hooks:", errorData.message);
-            throw new Error(errorData.message || "Error rejecting activity");
+            const errorText = await response.text();
+            throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -140,6 +135,9 @@ function useAdminActivity({
     const {
         data: adminPaginatedActivities,
         error: adminError,
+        isLoading: isAdminActivitiesLoading,
+        isError: isAdminActivitiesError,
+        isFetching: isAdminActivitiesFetching,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
@@ -187,6 +185,9 @@ function useAdminActivity({
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
+        isAdminActivitiesLoading,
+        isAdminActivitiesError,
+        isAdminActivitiesFetching,
 
         // approve activity
         isApprovingActivity,

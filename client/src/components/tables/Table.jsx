@@ -14,8 +14,8 @@ import { useAuth } from "../../context/AuthContext";
 const Table = React.memo(({ searchQuery, selectedRole }) => {
 
   const [mode, setMode] = useState('delete');
-  const { usersData, updateUserMutate, deleteStudentAccount, error, refetch, isLoading, refetchAdminProfile, refetchUsersData } = useAdminUser();
-  const { sdaoAccounts, createAccount, deleteAdminAccount, updateAdminRole, refetchAccounts } = useSuperAdminUsers();
+  const { usersData, isUsersLoading, updateUserMutate, deleteStudentAccount, error, refetch, isLoading, refetchAdminProfile, refetchUsersData } = useAdminUser();
+  const { sdaoAccounts, createAccount, deleteAdminAccount, updateAdminRole, refetchAccounts, accountsLoading } = useSuperAdminUsers();
 
   const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
   const [selectedUser, setSelectedUser] = useState(null);
@@ -66,7 +66,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
 
   // Makes the search query debounced so that it doesn't render on every key stroke
   useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
+    const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 100);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -276,6 +276,8 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             {typeof error === 'string' ? error : error?.message || 'An unknown error occurred'}
           </p>
         </div>
+      ) : ((isUserAdmin || isCoordinator) ? isUsersLoading : accountsLoading) ? (
+        <CardSkeleton />
       )
         : filterError ? (
           <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center mb-4">
@@ -335,7 +337,27 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
                 </table>
               </div>
             </div>
-          ) : <CardSkeleton />}
+          ) : (
+            <div className="p-4 bg-gray-50 text-gray-500 rounded-lg flex flex-col items-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-12 w-12 text-gray-400 mb-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-gray-500 font-medium text-center max-w-md px-4">
+                No data available
+              </p>
+            </div>
+          )}
 
       <div className='w-full bottom-20 mt-4'>
         <nav>

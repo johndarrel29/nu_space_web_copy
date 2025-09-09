@@ -5,56 +5,66 @@ import { useEffect } from "react";
 
 // Create RSO function - clean implementation for React Query
 const createRSO = async (newOrg) => {
-    console.log("Creating RSO:", newOrg);
-    // Handle file upload case
-    if (newOrg.RSO_picture && newOrg.RSO_picture instanceof File) {
-        newOrg.RSO_image = newOrg.RSO_picture;
-        delete newOrg.RSO_picture;
-    }
+    try {
+        console.log("Creating RSO:", newOrg);
+        // Handle file upload case
+        if (newOrg.RSO_picture && newOrg.RSO_picture instanceof File) {
+            newOrg.RSO_image = newOrg.RSO_picture;
+            delete newOrg.RSO_picture;
+        }
 
-    const token = useTokenStore.getState().getToken();
-    const isFileUpload = newOrg.RSO_image instanceof File;
+        const token = useTokenStore.getState().getToken();
+        const isFileUpload = newOrg.RSO_image instanceof File;
 
-    let body;
-    let headers = {
-        "Authorization": token || "",
-    };
+        let body;
+        let headers = {
+            "Authorization": token || "",
+        };
 
-    if (isFileUpload) {
-        const formData = new FormData();
+        if (isFileUpload) {
+            const formData = new FormData();
 
-        Object.entries(newOrg).forEach(([key, value]) => {
-            if (key === "RSO_picturePreview") return;
-            if (key === "RSO_picture") {
-                formData.append("RSO_image", value);
-                return;
-            }
+            Object.entries(newOrg).forEach(([key, value]) => {
+                if (key === "RSO_picturePreview") return;
+                if (key === "RSO_picture") {
+                    formData.append("RSO_image", value);
+                    return;
+                }
 
-            if (key === "RSO_tags" && Array.isArray(value)) {
-                value.forEach((tag) => formData.append("RSO_tags[]", tag));
-            } else {
-                formData.append(key, value);
-            }
+                if (key === "RSO_tags" && Array.isArray(value)) {
+                    value.forEach((tag) => formData.append("RSO_tags[]", tag));
+                } else {
+                    formData.append(key, value);
+                }
+            });
+
+            body = formData;
+        } else {
+            headers["Content-Type"] = "application/json";
+            body = JSON.stringify(newOrg);
+        }
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/createRSO`, {
+            method: "POST",
+            headers,
+            body,
         });
 
-        body = formData;
-    } else {
-        headers["Content-Type"] = "application/json";
-        body = JSON.stringify(newOrg);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
+        }
+        // if (!response.ok) {
+        //     const errorData = await response.json(); // try to read the server's message
+        //     throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+
+        // }
+        return response.json();
+
+    } catch (error) {
+        console.error("Error creating RSO:", error);
+        throw error;
     }
-
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/createRSO`, {
-        method: "POST",
-        headers,
-        body,
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
-    }
-
-    return response.json();
 };
 
 // Update RSO function
@@ -137,10 +147,19 @@ const deleteRSO = async (id) => {
 };
 
 // Fetch all RSOs
-const fetchWebRSO = async () => {
+const fetchWebRSO = async ({ queryKey }) => {
     const token = useTokenStore.getState().getToken();
+    const [_key, filters] = queryKey;
 
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb`, {
+    const queryParams = new URLSearchParams();
+    if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+            queryParams.append(key, value);
+        });
+    }
+    console.log("parameter request url ", `${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb?${queryParams.toString()}`)
+
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/allRSOweb?${queryParams.toString()}`, {
         method: "GET",
         headers: {
             "Authorization": token || "",
@@ -232,11 +251,14 @@ const extendMembershipDate = async ({ date, hours, minutes }) => {
     return response.json();
 };
 
-const getRSODetail = async (id) => {
+const getRSODetail = async (rsoID) => {
     try {
         const token = useTokenStore.getState().getToken();
+        // use local tokenstorage
+        // const token = localStorage.getItem('token');
+        console.log("token in getRSODetail:", token);
 
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/fetch-rso-details/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/fetch-rso-details/${rsoID}`, {
             method: "GET",
             headers: {
                 "Authorization": token || "",
@@ -323,7 +345,7 @@ const updateUpcomingRSORequest = async ({ id, formData, academicYearId }) => {
     }
 }
 
-const recognizeRSORequest = async (id) => {
+const recognizeRSORequest = async ({ id }) => {
     try {
         const token = useTokenStore.getState().getToken();
 
@@ -336,7 +358,9 @@ const recognizeRSORequest = async (id) => {
         });
 
         if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            const errorData = await response.json(); // try to read the server's message
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+
         }
 
         return response.json();
@@ -346,9 +370,20 @@ const recognizeRSORequest = async (id) => {
     }
 }
 
-function useAdminRSO(rsoID = "") {
+function useAdminRSO({
+    rsoID = "",
+    isDeleted = false,
+    recognitionStatus = "",
+    search = "",
+    category = ""
+} = {}) {
     const queryClient = useQueryClient();
     const { isUserAdmin, isUserCoordinator } = useUserStoreWithAuth();
+
+    console.log("id is ", rsoID);
+
+    console.log("isUserAdmin in useAdminRSO:", isUserAdmin);
+    console.log("isUserCoordinator in useAdminRSO:", isUserCoordinator);
 
     // Clear queries when user loses admin/coordinator privileges
     useEffect(() => {
@@ -357,6 +392,13 @@ function useAdminRSO(rsoID = "") {
             queryClient.removeQueries(['membershipDate']);
         }
     }, [isUserAdmin, isUserCoordinator, queryClient]);
+
+    const filters = {
+        isDeleted,
+        recognitionStatus,
+        search,
+        category
+    }
 
     const {
         mutate: createRSOMutate,
@@ -440,7 +482,7 @@ function useAdminRSO(rsoID = "") {
         error: rsoError,
         refetch: refetchRSOData,
     } = useQuery({
-        queryKey: ["rsoData"],
+        queryKey: ["rsoData", filters],
         queryFn: fetchWebRSO,
         refetchOnWindowFocus: false,
         retry: 1,
@@ -467,6 +509,7 @@ function useAdminRSO(rsoID = "") {
         },
         enabled: isUserAdmin || isUserCoordinator,
     });
+
 
     const {
         data: membershipDateData,
@@ -573,6 +616,25 @@ function useAdminRSO(rsoID = "") {
         enabled: isUserAdmin || isUserCoordinator,
     });
 
+    const {
+        mutate: recognizeRSOMutate,
+        isLoading: isRecognizingRSO,
+        isSuccess: isRecognizeRSOSuccess,
+        isError: isRecognizeRSOError,
+        error: recognizeRSOError,
+    } = useMutation({
+        mutationFn: recognizeRSORequest,
+        onSuccess: () => {
+            console.log("RSO recognized successfully");
+            queryClient.invalidateQueries(["rsoData"]);
+        },
+        onError: (error) => {
+            console.error("Error recognizing RSO:", error);
+        },
+        enabled: isUserAdmin || isUserCoordinator,
+    });
+
+
     return {
         // for admin create RSO
         createRSOMutate,
@@ -666,6 +728,13 @@ function useAdminRSO(rsoID = "") {
         isHardDeleteRSOError,
         hardDeleteRSOError,
         resetHardDeleteRSO,
+
+        // for admin recognize RSO
+        recognizeRSOMutate,
+        isRecognizingRSO,
+        isRecognizeRSOSuccess,
+        isRecognizeRSOError,
+        recognizeRSOError,
     }
 }
 

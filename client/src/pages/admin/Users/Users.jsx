@@ -208,6 +208,7 @@ export default function Users() {
               placeholder={"Search a user"}
               onClick={handleOpenUserModal}
               tableHeading={tableHeading()}
+              isLoading={isRefetchingMembers}
               columnNumber={9}
             >
 

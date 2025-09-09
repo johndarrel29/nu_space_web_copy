@@ -2,22 +2,23 @@ import Sidebar from "./Sidebar";
 import style from "../../css/Sidebar.module.css";
 import { Breadcrumb, Button, Backdrop, SidebarButton } from "../../components";
 import { use, useEffect, useRef, useState } from "react";
-import { useUserProfile, useRSODetails, useAdminActivity } from "../../hooks";
+import { useUserProfile, useRSODetails, useAdminActivity, useAdminRSO } from "../../hooks";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 import Skeleton from "react-loading-skeleton";
 import { useLocation, useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
-import { useUserStoreWithAuth, useDocumentStore } from '../../store';
+import { useUserStoreWithAuth, useDocumentStore, selectedRSOStore, useDocumentIdStore } from '../../store';
 import { useAuth } from "../../context/AuthContext";
 import whiteLogoText from "../../assets/images/NUSpace_new.png";
 import blueLogoText from "../../assets/images/NUSpace_blue.png";
 import { toast } from "react-toastify";
-
+import { motion, AnimatePresence } from "framer-motion";
 
 // ======bug=====
 // when logging director, coord, or avp, the profile dropdown name shows the admin first name last name
 // instead of the currently assigned role's name
+// fix recognition status. it should remove the "recognized" status after april 30
 
 // mobile sidebar fix responsive issue only showing icon for collapsed sidebar
 
@@ -30,6 +31,7 @@ function MainLayout({ children }) {
   const params = useParams();
   const activityId = params.activityId;
   const documentId = useDocumentStore((state) => state.documentId);
+  const rsoID = selectedRSOStore((state) => state.selectedRSO);
   const {
     // approve activity
     isApprovingActivity,
@@ -42,6 +44,14 @@ function MainLayout({ children }) {
     isErrorRejectingActivity,
     isActivityRejected,
   } = useAdminActivity();
+
+  const {
+    recognizeRSOMutate,
+    isRecognizingRSO,
+    isRecognizeRSOSuccess,
+    isRecognizeRSOError,
+    recognizeRSOError,
+  } = useAdminRSO();
 
   // RSO hooks
   const {
@@ -76,15 +86,20 @@ function MainLayout({ children }) {
   const [profileData, setProfileData] = useState(null);
   const [isNotificationClicked, setIsNotificationClicked] = useState(false);
 
+  // Modal state for reject
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectRemark, setRejectRemark] = useState("");
+
   // Refs
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
 
   // Computed values
-  const excludedPaths = ["/document"];
+  const excludedPaths = ["/documents", `/documents/${documentId}`];
   // only set for new rso for now
   const isUserStatusActive = (isUserRSORepresentative && userProfile?.rso?.yearlyData?.RSO_recognition_status?.status === 'new_rso')
-  const shouldShowOverlay = isUserStatusActive && !excludedPaths.includes(currentPath);
+  const shouldShowOverlay = isUserStatusActive && !excludedPaths.includes(currentPath) && !currentPath.startsWith('/documents/');
+  console.log("excluded paths startwith documents", userProfile);
 
   useEffect(() => {
     if (rsoDetails) {
@@ -160,30 +175,48 @@ function MainLayout({ children }) {
 
   // Add this variable for activity details page
   const isActivityDetailsPage = location.pathname.startsWith('/documents/') && activityId && (isUserAdmin || isCoordinator);
+  const isRSODetailsPage = location.pathname.startsWith('/rsos/rso-details') && (isUserAdmin || isCoordinator);
 
   const handleDocumentApproval = () => {
     console.log("approving document: ", documentId);
+    console.log("rso id from store: ", rsoID);
 
     if (!isUserAdmin && !isCoordinator) {
       console.error("Only Admins and Coordinators can approve documents");
       return;
     }
 
-    approveActivityMutate({ activityId: documentId }, {
-      onSuccess: () => {
-        console.log("Document approved successfully");
-        toast.success("Document approved successfully");
-      },
-      onError: (error) => {
-        console.error("Error approving document:", error);
-        toast.error(error.message || "Error approving document");
-      }
-    });
+    if (isActivityDetailsPage && documentId) {
+      approveActivityMutate({ activityId: documentId }, {
+        onSuccess: () => {
+          console.log("Document approved successfully");
+          toast.success("Document approved successfully");
+        },
+        onError: (error) => {
+          console.error("Error approving document:", error);
+          toast.error(error.message || "Error approving document");
+        }
+      });
+      return;
+    }
+    console.log("isRSODetailsPage:", isRSODetailsPage, "documentId:", documentId, "rsoID:", rsoID);
+    if (isRSODetailsPage && rsoID) {
+      recognizeRSOMutate({ id: rsoID }, {
+        onSuccess: () => {
+          console.log("RSO Document recognized successfully");
+          toast.success("RSO Document recognized successfully");
+        },
+        onError: (error) => {
+          console.error("Error recognizing RSO document:", error);
+          toast.error(error.message || "Error recognizing RSO document");
+        }
+      });
+    }
   }
 
-  const handleRejectDocument = () => {
+  const handleRejectDocument = (remark) => {
     try {
-      rejectActivityMutate({ activityId: documentId }, {
+      rejectActivityMutate({ activityId: documentId, remark }, {
         onSuccess: () => {
           console.log("Document rejected successfully");
           toast.success("Document rejected successfully");
@@ -197,6 +230,22 @@ function MainLayout({ children }) {
       throw error;
     }
   }
+
+  const handleOpenRejectModal = () => {
+    setRejectModalOpen(true);
+    setRejectRemark("");
+  };
+
+  const handleCloseRejectModal = () => {
+    setRejectModalOpen(false);
+    setRejectRemark("");
+  };
+
+  const handleRejectDocumentWithRemark = () => {
+    handleRejectDocument(rejectRemark);
+    setRejectModalOpen(false);
+    setRejectRemark("");
+  };
 
   return (
     <div className="h-screen bg-background flex">
@@ -237,9 +286,9 @@ function MainLayout({ children }) {
                 isCollapsed={true}
                 iconPath="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 38.6C310.1 219.5 256 287.4 256 368c0 59.1 29.1 111.3 73.7 143.3c-3.2 .5-6.4 .7-9.7 .7L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128zm48 96a144 144 0 1 1 0 288 144 144 0 1 1 0-288zm16 80c0-8.8-7.2-16-16-16s-16 7.2-16 16l0 48-48 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l48 0 0 48c0 8.8 7.2 16 16 16s16-7.2 16-16l0-48 48 0c8.8 0 16-7.2 16-16s-7.2-16-16-16l-48 0 0-48z"
                 text="Documents"
-                active={location.pathname === "/document"}
+                active={location.pathname === "/documents"}
                 onClick={() => {
-                  navigate("/document");
+                  navigate("/documents");
                   setMobileSidebarOpen(false);
                 }}
               />
@@ -257,9 +306,9 @@ function MainLayout({ children }) {
                 isCollapsed={true}
                 iconPath="M234.5 5.7c13.9-5 29.1-5 43.1 0l192 68.6C495 83.4 512 107.5 512 134.6l0 242.9c0 27-17 51.2-42.5 60.3l-192 68.6c-13.9 5-29.1 5-43.1 0l-192-68.6C17 428.6 0 404.5 0 377.4L0 134.6c0-27 17-51.2 42.5-60.3l192-68.6zM256 66L82.3 128 256 190l173.7-62L256 66zm32 368.6l160-57.1 0-188L288 246.6l0 188z"
                 text="Activities"
-                active={location.pathname.startsWith("/documents")}
+                active={location.pathname.startsWith("/activities")}
                 onClick={() => {
-                  navigate("/documents");
+                  navigate("/activities");
                   setMobileSidebarOpen(false);
                 }}
               />
@@ -289,6 +338,16 @@ function MainLayout({ children }) {
               />
               <SidebarButton
                 isCollapsed={true}
+                iconPath={"M0 64C0 28.7 28.7 0 64 0h224v128c0 17.7 14.3 32 32 32h128v288c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64zm384-22.6L256 0v128h128V41.4zM224 224H64v32h160v-32zm0 64H64v32h160v-32zm-96 64H64v32h64v-32zm352-128H320v32h160v-32zm-96 64h-64v32h64v-32zm-64 64h64v32h-64v-32z"}
+                text="Forms"
+                active={location.pathname.startsWith("/forms")}
+                onClick={() => {
+                  navigate("/forms");
+                  setMobileSidebarOpen(false);
+                }}
+              />
+              <SidebarButton
+                isCollapsed={true}
                 iconPath={"M224 64C206.3 64 192 78.3 192 96L192 128L160 128C124.7 128 96 156.7 96 192L96 240L544 240L544 192C544 156.7 515.3 128 480 128L448 128L448 96C448 78.3 433.7 64 416 64C398.3 64 384 78.3 384 96L384 128L256 128L256 96C256 78.3 241.7 64 224 64zM96 288L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 288L96 288z"}
                 text="Academic Year"
                 active={location.pathname.startsWith("/academic-year")}
@@ -311,9 +370,9 @@ function MainLayout({ children }) {
                 isCollapsed={true}
                 iconPath={"M234.5 5.7c13.9-5 29.1-5 43.1 0l192 68.6C495 83.4 512 107.5 512 134.6l0 242.9c0 27-17 51.2-42.5 60.3l-192 68.6c-13.9 5-29.1 5-43.1 0l-192-68.6C17 428.6 0 404.5 0 377.4L0 134.6c0-27 17-51.2 42.5-60.3l192-68.6zM256 66L82.3 128 256 190l173.7-62L256 66zm32 368.6l160-57.1 0-188L288 246.6l0 188z"}
                 text="Activities"
-                active={location.pathname.startsWith("/documents")}
+                active={location.pathname.startsWith("/activities")}
                 onClick={() => {
-                  navigate("/documents");
+                  navigate("/activities");
                   setMobileSidebarOpen(false);
                 }}
               />
@@ -544,7 +603,7 @@ function MainLayout({ children }) {
           {/* fix that this should open if rso and userProfile?.rso?.yearlyData?.RSO_recognition_status?.status === null */}
           {console.log("user profile status in rso", userProfile?.rso?.yearlyData?.RSO_recognition_status?.status)}
           {(isUserRSORepresentative && userProfile?.rso?.yearlyData?.RSO_recognition_status?.status === 'new_rso') && (
-            <div className="fixed top-16 left-[4%] bg-white w-full h-8  z-30">
+            <div className="fixed top-16 xl:left-[4%] bg-white w-full h-8  z-30">
               <div className="flex items-center justify-center h-full bg-yellow-100 text-yellow-800">
                 <h1 className="text-sm font-semibold">
                   <div className="flex items-center gap-2">
@@ -556,7 +615,7 @@ function MainLayout({ children }) {
             </div>
           )}
           {(isUserRSORepresentative && userProfile?.rso?.yearlyData?.RSO_recognition_status?.status === 'pending') && (
-            <div className="fixed top-16 left-[4%] bg-white w-full h-8  z-30">
+            <div className="fixed top-16 md:left-[4%] bg-white w-full h-8  z-30">
               <div className="flex items-center justify-center h-full bg-yellow-100 text-yellow-800">
                 <h1 className="text-sm font-semibold">
                   <div className="flex items-center gap-2">
@@ -583,25 +642,83 @@ function MainLayout({ children }) {
             </div>
 
             {/* Page Content */}
-            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${isActivityDetailsPage ? 'mb-24' : ''}`}>
+            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${(isActivityDetailsPage || isRSODetailsPage) ? 'mb-24' : ''}`}>
               {children}
             </div>
           </main>
-          {isActivityDetailsPage && (
+
+          {/* Reject/ approve bottom nav button */}
+          {(isActivityDetailsPage || isRSODetailsPage) && (
             <div className="w-full py-6 bg-white fixed bottom-0 z-40 mt-auto flex items-center justify-center gap-4 border-t border-mid-gray">
-              <Button
-                onClick={handleRejectDocument}
-                style="secondary"
-              >
-                Reject
-              </Button>
+              {isActivityDetailsPage && (
+                <Button
+                  onClick={handleOpenRejectModal}
+                  style="secondary"
+                >
+                  Reject
+                </Button>
+              )}
               <Button
                 onClick={handleDocumentApproval}
               >
-                Approve
+                {` Approve ${isActivityDetailsPage ? "Activity" : "RSO Recognition"}`}
               </Button>
             </div>
           )}
+
+          {/* Reject Modal */}
+          <AnimatePresence>
+            {rejectModalOpen && (
+              <>
+                <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" />
+                <motion.div
+                  className="fixed inset-0 z-50 w-screen overflow-auto flex items-center justify-center"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="bg-white rounded-lg p-6 max-w-md shadow-xl border border-gray-100">
+                    <div className='flex justify-between items-center mb-4'>
+                      <h2 className='text-lg font-semibold'>Reject Document</h2>
+                      <button
+                        onClick={handleCloseRejectModal}
+                        className="rounded-full p-1 hover:bg-gray-200"
+                        aria-label="Close"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="size-4 fill-gray-600" viewBox="0 0 384 512"><path d="M231 256l107-107c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L185.7 210.7 78.6 103.6c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L140.3 256 33.2 363.1c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l107-107 107 107c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L231 256z" /></svg>
+                      </button>
+                    </div>
+                    <div className='py-4'>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Remark (required)</label>
+                      <textarea
+                        rows="3"
+                        value={rejectRemark}
+                        onChange={e => setRejectRemark(e.target.value)}
+                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md block w-full p-2.5"
+                        placeholder="Provide reason for rejection..."
+                      />
+                    </div>
+                    <div className='flex justify-end gap-3 mt-6'>
+                      <Button
+                        style="secondary"
+                        onClick={handleCloseRejectModal}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        style="danger"
+                        onClick={handleRejectDocumentWithRemark}
+                        disabled={!rejectRemark.trim()}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

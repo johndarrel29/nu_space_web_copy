@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getMessaging, getToken } from "firebase/messaging";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { toast } from "react-toastify";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBAOT2Dezhk1_w-y44-wHEOv_TlJojBjZ0",
@@ -16,6 +17,24 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
 
+Notification.requestPermission().then((permission) => {
+    if (permission === "granted") {
+        getToken(messaging, {
+            vapidKey: "BPWciAUT0uZ246BNykgHW6-P0AcnbGzF-I1h16sLBfBEWdOEKRfnx00r1zOWkSrzpdilTflcrQGR57IVZSp0_vc",
+        }).then((currentToken) => {
+            if (currentToken) {
+
+                console.log('FCM Token:', currentToken);
+            }
+        });
+    }
+});
+
+// listen for foreground messages
+onMessage(messaging, (payload) => {
+    console.log('Message received. ', payload);
+})
+
 export const generateToken = async () => {
     const permission = await Notification.requestPermission();
 
@@ -24,8 +43,12 @@ export const generateToken = async () => {
             messaging, {
             vapidKey:
                 "BPWciAUT0uZ246BNykgHW6-P0AcnbGzF-I1h16sLBfBEWdOEKRfnx00r1zOWkSrzpdilTflcrQGR57IVZSp0_vc",
+        }).then((currentToken) => {
+            if (currentToken) {
+
+                console.log('FCM Token:', currentToken);
+            }
         });
-        console.log('FCM Token:', token);
     }
 
 

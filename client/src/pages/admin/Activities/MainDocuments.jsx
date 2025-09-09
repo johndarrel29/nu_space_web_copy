@@ -51,6 +51,9 @@ export default function MainDocuments() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isAdminActivitiesLoading,
+    isAdminActivitiesError,
+    isAdminActivitiesFetching,
   } = useAdminActivity({
     debouncedQuery,
     sorted,
@@ -112,7 +115,7 @@ export default function MainDocuments() {
   // }, [isUserRSORepresentative, refetchLocalActivities]);
 
   const handleCreate = () => {
-    navigate("document-action", {
+    navigate("activity-action", {
       state: {
         mode: "create",
       },
@@ -159,7 +162,7 @@ export default function MainDocuments() {
   const handleActivityClick = (activity) => {
     setSelectedActivity(activity);
     console.log("Selected Activity:", activity);
-    navigate(`/documents/${activity._id}`);
+    navigate(`/activities/${activity._id}`);
   };
 
   // console.log("activities:", fetchActivity);
@@ -348,7 +351,7 @@ export default function MainDocuments() {
       </div>
 
       {/* Activity Cards Section */}
-      {isLocalActivityRefetching ? (
+      {(isUserRSORepresentative ? isLocalActivitiesLoading : isAdminActivitiesLoading) ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <ActivitySkeleton count={8} />
         </div>
@@ -421,17 +424,18 @@ export default function MainDocuments() {
               )}
 
             </>
+          ) : (isLocalActivitiesLoading || isLocalActivityRefetching || isAdminActivitiesLoading || isAdminActivitiesFetching) ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <ActivitySkeleton count={8} />
+            </div>
           )
             : (
-              // <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
-              //   <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary /50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              //     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              //   </svg>
-              //   <h3 className="mt-2 text-lg font-medium text-primary ">No activities found</h3>
-              //   <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
-              // </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                <ActivitySkeleton count={8} />
+              <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary /50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="mt-2 text-lg font-medium text-primary ">No activities found</h3>
+                <p className="text-sm text-gray-500">Try adjusting your search or filters</p>
               </div>
             )
 

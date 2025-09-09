@@ -100,7 +100,7 @@ function App() {
                   <Route element={<ProtectedRoutes />}>
                     {/* RSO routes */}
                     <Route
-                      path="/document"
+                      path="/documents"
                       element={
                         <MainLayout
                           tabName="Documents"
@@ -142,18 +142,18 @@ function App() {
                     />
 
                     <Route
-                      path="/documents"
+                      path="/activities"
                       element={
                         <MainLayout
-                          tabName="Documents"
-                          headingTitle="Manage document approval"
+                          tabName="Activities"
+                          headingTitle="Manage Activities"
                         >
                           <Documents />
                         </MainLayout>
                       }
                     >
                       <Route index element={<MainDocuments />} />
-                      <Route path="document-action" element={<DocumentAction />} />
+                      <Route path="activity-action" element={<DocumentAction />} />
                       <Route path="form-selection" element={<Forms />} />
                       <Route path=":activityId" element={<MainActivities />}>
                         <Route index element={<Activities />} />

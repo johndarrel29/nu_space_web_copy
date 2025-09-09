@@ -112,7 +112,7 @@ export default function MainAdmin() {
         { label: "Professional & Affiliates", value: "Professional & Affiliates" },
         { label: "Professional", value: "Professional" },
         { label: "Special Interest", value: "Special Interest" },
-        { label: "Office Aligned Organization", value: "Office Aligned Organization" }
+        { label: "Office Aligned Organization", value: "Office Aligned Organization" },
 
     ]
 
@@ -208,6 +208,7 @@ export default function MainAdmin() {
                                             onChange={handleAcademicYearChange}
                                             className="py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary text-sm"
                                         >
+                                            <option value="">-- Select Academic Year --</option>
                                             {academicYears?.years?.map((option) => (
                                                 <option key={option._id} value={option._id}>
                                                     {option.label}

@@ -41,8 +41,8 @@ function UploadBatchModal({ handleCloseModal, page, activityId }) {
 
     // Determine page type
     const currentPage = location.pathname;
-    const isDocumentPage = currentPage.includes('/document') && !currentPage.includes('/documents');
-    const isActivitiesPage = currentPage.startsWith('/documents') && !isDocumentPage;
+    const isDocumentPage = currentPage.includes('/documents') && !currentPage.includes('/activities');
+    const isActivitiesPage = currentPage.startsWith('/activities') && !isDocumentPage;
 
     console.log("activityId ", activityId);
 

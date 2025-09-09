@@ -45,11 +45,9 @@ const editAcademicYearRequest = async (params) => {
             },
             body: JSON.stringify(academicYearData),
         });
-
         if (!response.ok) {
             const errorText = await response.text();
-            console.error("Edit academic year failed:", errorText);
-            throw new Error("Failed to edit academic year");
+            throw new Error(errorText.message || `Error: ${response.status} - ${response.statusText}`);
         }
 
         return response.json();

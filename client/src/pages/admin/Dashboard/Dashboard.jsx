@@ -367,7 +367,7 @@ export default function Dashboard() {
               Generate Report
             </Button>
             {isUserRSORepresentative && (
-              <Button style={"secondary"} onClick={() => navigate('/document')}>
+              <Button style={"secondary"} onClick={() => navigate('/documents')}>
                 Upload Document
               </Button>
             )}

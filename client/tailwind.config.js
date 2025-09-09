@@ -25,7 +25,7 @@ module.exports = withMT({
         'light-gray': '#f5f5f5',
         'mid-gray': 'var(--mid-gray)',
         'dark-gray': 'var(--dark-gray)',
-
+        'nu-yellow': '#FBD117',
         'primary-rso': 'var(--primary-rso)',
       }
     },

@@ -1,4 +1,3 @@
-
 import {
     ReusableTable, Button, Backdrop, CloseButton, TabSelector, UploadBatchModal
 } from '../../components'
@@ -12,6 +11,8 @@ import { motion } from "framer-motion";
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { toast } from 'react-toastify';
+
+// add modal confirmation before deleting
 
 function MainDocument() {
     // State and hooks initialization
@@ -60,6 +61,8 @@ function MainDocument() {
     const [selectedDocument, setSelectedDocument] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [descriptions, setDescriptions] = useState([]);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [documentToDelete, setDocumentToDelete] = useState(null);
     const user = JSON.parse(localStorage.getItem("user"));
     const userID = user?.id || "";
 
@@ -252,7 +255,8 @@ function MainDocument() {
                     // setMsg("Error uploading file.");
                     handleNotification("Error submitting document. Please try again.");
                 }
-            });
+            }
+            );
             // setMsg("File uploaded successfully!");
             handleNotification("Document submitted successfully!");
         } catch (error) {
@@ -293,9 +297,11 @@ function MainDocument() {
 
             <ReusableTable
                 options={["All", "A-Z", "Most Popular"]}
-                onClick={(row) => Navigate(`/document/${row.id}`, { state: { fromRequirements: true, documentId: row.id } })}
+                onClick={(row) => Navigate(`/documents/${row.id}`, { state: { fromRequirements: true, documentId: row.id } })}
                 value={""}
                 showAllOption={false}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
                 tableRow={filteredDocuments()}
                 error={error}
                 isLoading={generalDocumentsLoading}
@@ -306,8 +312,8 @@ function MainDocument() {
                     { name: "Action", key: "actions" }
                 ]}
                 onActionClick={(row) => {
-                    console.log("Delete clicked for:", row.id);
-                    handleDeleteDocument(row);
+                    setDocumentToDelete(row);
+                    setShowDeleteModal(true);
                 }}
             />
 
@@ -388,7 +394,41 @@ function MainDocument() {
                         </motion.div>
                     </Backdrop>
                 )}
-
+                {showDeleteModal && (
+                    <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <motion.div
+                            className="bg-white rounded-lg shadow-lg w-[70%] max-w-[400px] border border-[#312895]/20"
+                            variants={DropIn}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                        >
+                            <div className="p-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+                                    <CloseButton onClick={() => setShowDeleteModal(false)} />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-sm text-gray-600">Are you sure you want to delete the document <span className="font-bold">{documentToDelete?.title}</span>?</p>
+                                </div>
+                                <div className="flex justify-end mt-8">
+                                    <Button onClick={() => setShowDeleteModal(false)} style={"secondary"} className="mr-2">
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            handleDeleteDocument(documentToDelete);
+                                            setShowDeleteModal(false);
+                                        }}
+                                        style={"danger"}
+                                    >
+                                        Confirm Delete
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </Backdrop>
+                )}
 
             </AnimatePresence>
         </div>

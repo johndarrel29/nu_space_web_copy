@@ -143,13 +143,13 @@ function useAdminUser() {
         error: usersError,
         refetch: refetchUsersData,
     } = useQuery({
-        initialData: null,
+        // initialData: null,
         queryKey: ["users", user?.id],
         queryFn: fetchUsersRequest,
-        refetchOnWindowFocus: false,
-        retry: 1,
-        staleTime: 0,
-        cacheTime: 0,
+        // refetchOnWindowFocus: false,
+        // retry: 1,
+        // staleTime: 0,
+        // cacheTime: 0,
         enabled: isUserAdmin || isUserCoordinator, // Only fetch if the user is an admin or coordinator
     });
 

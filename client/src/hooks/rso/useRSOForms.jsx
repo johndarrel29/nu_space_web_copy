@@ -2,11 +2,16 @@ import { useUserStoreWithAuth } from "../../store";
 import useTokenStore from "../../store/tokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const getTemplateFormsRequest = async () => {
+const getTemplateFormsRequest = async ({ queryKey }) => {
     try {
         const token = useTokenStore.getState().token;
+        const [, filter] = queryKey;
+        const { search, formType } = filter;
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append("search", search);
+        if (formType && formType !== "All") queryParams.append("formType", formType);
 
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/forms/fetch-forms`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/forms/fetch-forms?${queryParams.toString()}`, {
             method: "GET",
             headers: {
                 Authorization: token,
@@ -48,8 +53,16 @@ const getSpecificFormRequest = async (formId) => {
     }
 }
 
-function useRSOForms() {
+function useRSOForms({
+    search = "",
+    formType = "All",
+} = {}) {
     const { isUserRSORepresentative } = useUserStoreWithAuth();
+
+    const filters = {
+        search,
+        formType,
+    };
 
     const {
         data: rsoFormsTemplate,
@@ -57,7 +70,7 @@ function useRSOForms() {
         isError: isErrorRSOFormsTemplate,
         error: errorRSOFormsTemplate,
     } = useQuery({
-        queryKey: ["rsoFormsTemplate"],
+        queryKey: ["rsoFormsTemplate", filters],
         queryFn: getTemplateFormsRequest,
         refetchOnWindowFocus: false,
         enabled: !!isUserRSORepresentative, // Only run if the user is an RSO representative

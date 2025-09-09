@@ -3,12 +3,17 @@ import { useAuth } from "../../context/AuthContext";
 import useTokenStore from "../../store/tokenStore";
 import { useUserStoreWithAuth } from '../../store';
 
-const fetchAllForms = async () => {
+const fetchAllForms = async ({ queryKey }) => {
     try {
         const token = useTokenStore.getState().getToken();
         console.log("Fetched token:", token);
+        const [, filter] = queryKey;
+        const { search, formType } = filter;
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append("search", search);
+        if (formType && formType !== "All") queryParams.append("formType", formType);
 
-        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/forms/fetch-all-centralized-forms`, {
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/forms/fetch-all-centralized-forms?${queryParams.toString()}`, {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": token,
@@ -127,8 +132,20 @@ const deleteCentralizedForm = async (formId) => {
     }
 }
 
-function useAdminCentralizedForms(formId = "") {
+function useAdminCentralizedForms({
+    formId = "",
+    search = "",
+    formType = "All",
+} = {}) {
     const token = useTokenStore.getState().getToken();
+    const { isUserAdmin, isCoordinator } = useUserStoreWithAuth();
+
+    console.log(" useAdminCentralizedForms has been called ", { formId });
+
+    const filter = {
+        search,
+        formType,
+    }
 
     const {
         data: allForms,
@@ -137,10 +154,10 @@ function useAdminCentralizedForms(formId = "") {
         refetch: refetchAllForms,
         error: errorAllForms
     } = useQuery({
-        queryKey: ["admin-centralized-forms"],
+        queryKey: ["admin-centralized-forms", filter],
         queryFn: fetchAllForms,
         staleTime: 60000,
-        enabled: !!token,
+        enabled: !!token && (isUserAdmin || isCoordinator), // only run if token exists and user is admin
     });
 
     const {

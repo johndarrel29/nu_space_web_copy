@@ -587,7 +587,7 @@ function DocumentAction() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Select a Form for the Activity</label>
               <Button
-                onClick={() => navigate("/documents/form-selection")}
+                onClick={() => navigate("/activities/form-selection")}
                 style={"secondary"}>Selected: {selectedForm ? selectedForm.title : "none"}</Button>
             </div>
           </section>

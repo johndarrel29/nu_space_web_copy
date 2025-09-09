@@ -23,8 +23,9 @@ export default function ReusableTable({
     onDocumentClick,
     showFilters = true,
     activityId = null, // Default to null if not provided
+    searchQuery,
+    setSearchQuery,
 }) {
-    const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(10);
     const [showSearch, setShowSearch] = useState(false);
@@ -158,7 +159,7 @@ export default function ReusableTable({
                             <div className="overflow-x-auto">
                                 {isLoading ? (
                                     <div className="w-full flex justify-center">
-                                        <CardSkeleton></CardSkeleton>
+                                        {/* <CardSkeleton></CardSkeleton> */}
                                     </div>
                                 )
                                     :

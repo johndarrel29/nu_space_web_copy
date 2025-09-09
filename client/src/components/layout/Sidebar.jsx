@@ -75,8 +75,8 @@ function Sidebar() {
           isCollapsed={isCollapsed}
           iconPath="M234.5 5.7c13.9-5 29.1-5 43.1 0l192 68.6C495 83.4 512 107.5 512 134.6l0 242.9c0 27-17 51.2-42.5 60.3l-192 68.6c-13.9 5-29.1 5-43.1 0l-192-68.6C17 428.6 0 404.5 0 377.4L0 134.6c0-27 17-51.2 42.5-60.3l192-68.6zM256 66L82.3 128 256 190l173.7-62L256 66zm32 368.6l160-57.1 0-188L288 246.6l0 188z"
           text="Activities"
-          active={location.pathname.startsWith("/documents")}
-          onClick={() => navigate("/documents")}
+          active={location.pathname.startsWith("/activities")}
+          onClick={() => navigate("/activities")}
         />
 
         <SidebarButton
@@ -134,8 +134,8 @@ function Sidebar() {
           isCollapsed={isCollapsed}
           iconPath="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 38.6C310.1 219.5 256 287.4 256 368c0 59.1 29.1 111.3 73.7 143.3c-3.2 .5-6.4 .7-9.7 .7L64 512c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128zm48 96a144 144 0 1 1 0 288 144 144 0 1 1 0-288zm16 80c0-8.8-7.2-16-16-16s-16 7.2-16 16l0 48-48 0c-8.8 0-16 7.2-16 16s7.2 16 16 16l48 0 0 48c0 8.8 7.2 16 16 16s16-7.2 16-16l0-48 48 0c8.8 0 16-7.2 16-16s-7.2-16-16-16l-48 0 0-48z"
           text="Documents"
-          active={location.pathname === "/document"}
-          onClick={() => navigate("/document")}
+          active={location.pathname === "/documents"}
+          onClick={() => navigate("/documents")}
         />
 
         <SidebarButton
@@ -150,8 +150,8 @@ function Sidebar() {
           isCollapsed={isCollapsed}
           iconPath="M234.5 5.7c13.9-5 29.1-5 43.1 0l192 68.6C495 83.4 512 107.5 512 134.6l0 242.9c0 27-17 51.2-42.5 60.3l-192 68.6c-13.9 5-29.1 5-43.1 0l-192-68.6C17 428.6 0 404.5 0 377.4L0 134.6c0-27 17-51.2 42.5-60.3l192-68.6zM256 66L82.3 128 256 190l173.7-62L256 66zm32 368.6l160-57.1 0-188L288 246.6l0 188z"
           text="Activities"
-          active={location.pathname.startsWith("/documents")}
-          onClick={() => navigate("/documents")}
+          active={location.pathname.startsWith("/activities")}
+          onClick={() => navigate("/activities")}
         />
 
         <div className="mt-4 mb-4 bg-mid-gray py-[1px] rounded"></div>

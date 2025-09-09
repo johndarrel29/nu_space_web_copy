@@ -12,6 +12,8 @@ import Switch from '@mui/material/Switch';
 
 // make the academicYears an object so that the display is label while when clicked, the selected value is an id
 
+// todo: academic year not showing the correct data from edit data
+// allow acad year dropdown to read id and display label
 
 
 // file manipulation
@@ -19,10 +21,18 @@ import Cropper from "react-easy-crop";
 import getCroppedImg from '../../../utils/cropImage';
 
 function RSOAction() {
-
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { mode, data, from, id } = location.state || {};
   // decommission this after implementing useAdminRSO
   const { createRSO, updateRSO, deleteRSO, loading, updateError, createError, success } = useRSO();
   const {
+    rsoDetailData,
+    isRSODetailLoading,
+    isRSODetailError,
+    rsoDetailError,
+    refetchRSODetail,
+
     // for admin create RSO
     createRSOMutate,
     isCreating,
@@ -36,7 +46,7 @@ function RSOAction() {
     isHardDeleteRSOError,
     hardDeleteRSOError,
     resetHardDeleteRSO,
-  } = useAdminRSO();
+  } = useAdminRSO({ rsoID: id });
   const {
     academicYears,
     academicYearsLoading,
@@ -46,9 +56,7 @@ function RSOAction() {
     isRefetchingAcademicYears,
     isAcademicYearsFetched
   } = useAcademicYears();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { mode, data, from } = location.state || {};
+
   const [showSearch, setShowSearch] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedTag, setSelectedTag] = useState("");
@@ -71,6 +79,7 @@ function RSOAction() {
 
   console.log("fetching years list:", academicYears?.years?.map(year => year.label));
 
+  console.log("details data ", rsoDetailData, " with id: ", id);
 
   const isEdit = mode === 'edit';
   const isCreate = mode === 'create';
@@ -114,25 +123,25 @@ function RSOAction() {
   const options = academicYears?.years || [];
 
   useEffect(() => {
-    if (isEdit && data) {
+    if (isEdit && rsoDetailData) {
       setFormData({
-        RSO_name: data.RSO_name || "",
-        RSO_acronym: data.RSO_acronym || "",
-        picture: data.picture || null,
-        RSO_category: data.RSO_category || "",
-        RSO_tags: data.RSO_tags || [],
-        RSO_College: data.RSO_College || "",
-        RSO_status: data.RSO_status ?? false,
-        RSO_description: data.RSO_description || "",
-        RSO_picture: data.RSO_picture || null,
-        RSO_picturePreview: data.picture || DefaultPicture,
-        RSO_forms: data.RSO_forms || "",
-        RSO_probationary: data.RSO_probationary || false,
-        RSO_academicYear: data.RSO_academicYear || "", // <-- add this field
+        RSO_name: rsoDetailData?.data?.RSO_snapshot?.name || "",
+        RSO_acronym: rsoDetailData?.data?.RSO_snapshot?.acronym || "",
+        picture: rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || null,
+        RSO_category: rsoDetailData?.data?.RSO_snapshot?.category || "",
+        RSO_tags: rsoDetailData?.data?.RSOid?.RSO_tags || [],
+        RSO_College: rsoDetailData?.data?.RSO_snapshot?.college || "",
+        RSO_status: rsoDetailData?.data?.RSO_status ?? false,
+        RSO_description: rsoDetailData?.data?.RSO_snapshot?.description || "",
+        RSO_picture: rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || null,
+        RSO_picturePreview: rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || DefaultPicture,
+        RSO_probationary: rsoDetailData?.data?.RSO_snapshot?.probationary || false,
+        RSO_academicYear: rsoDetailData?.data?.academicYear || "", // <-- add this field
       });
+      { console.log("RSO details data for tags:", rsoDetailData?.data?.RSOid?.RSO_tags) }
 
-      if (data.RSO_tags?.length) {
-        const tagStrings = data.RSO_tags.map(tagObj =>
+      if (rsoDetailData?.data?.RSOid?.RSO_tags?.length) {
+        const tagStrings = rsoDetailData?.data?.RSOid?.RSO_tags.map(tagObj =>
           typeof tagObj === 'object' ? tagObj.tag : tagObj
         );
         setSelectedTags(tagStrings);
@@ -151,7 +160,7 @@ function RSOAction() {
 
 
   const handleOptions = ['CCIT', 'CBA', 'COA', 'COE', 'CAH', 'CEAS', 'CTHM'];
-  const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest']
+  const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest', 'Office Aligned Organization'];
 
   const [RSO_picture, setRSOPicture] = useState(null);
   const [formData, setFormData] = useState({
@@ -261,13 +270,6 @@ function RSOAction() {
     delete payload.RSO_academicYear;
 
     // Validate form data
-    if (formData.RSO_forms && !formData.RSO_forms.startsWith("https://")) {
-      setError("Registration forms link must start with https://");
-      return;
-    } else {
-      setError("");
-    }
-
     if (formData.RSO_description === "" || formData.RSO_description === null) {
       setDescriptionError("Description is required");
       return;
@@ -335,7 +337,6 @@ function RSOAction() {
           RSO_acronym: "",
           RSO_category: "",
           RSO_tags: "",
-          RSO_forms: "",
           RSO_College: "",
           RSO_status: "",
           RSO_description: "",
@@ -593,21 +594,6 @@ function RSOAction() {
                 ></ReusableDropdown>
               </div>
 
-              <label htmlFor="RSO_forms" className='text-sm'>Registration Forms Link</label>
-              <TextInput
-                id={'RSO_forms'}
-                name={'RSO_forms'}
-                type={'text'}
-                placeholder={'Ex. https://forms.gle/....'}
-                value={formData.RSO_forms}
-                onChange={handleChange}
-              ></TextInput>
-              {error && (
-                <div className="text-red-500 text-sm mt-1">
-                  {error}
-                </div>
-              )}
-
               <div className='mt-2'>
                 <label htmlFor="large-input" className='text-sm'>Description</label>
                 <textarea
@@ -625,9 +611,11 @@ function RSOAction() {
                 )}
               </div>
               <label htmlFor="probationary" className='text-sm'>Probationary Status</label>
+
+
               <Switch
                 id='probationary'
-                checked={rsoStatus}
+                checked={formData.RSO_probationary}
                 value={formData.RSO_probationary}
                 onChange={(e) => {
                   const isChecked = e.target.checked;

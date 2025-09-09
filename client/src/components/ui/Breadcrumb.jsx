@@ -34,9 +34,9 @@ export default function Breadcrumb({ style, unSelected }) {
 
 
 
-    if (location.state?.fromRequirements) {
-        paths.splice(-1, 0, "requirements");
-    }
+    // if (location.state?.fromRequirements) {
+    //     paths.splice(-1, 0, "requirements");
+    // }
 
     const capitalize = (str) => {
         if (str === activityId) {

@@ -42,8 +42,8 @@ export default function CreateUserModal({ closeModal }) {
                     closeModal();
                 },
                 onError: (error) => {
-                    toast.error("Error creating user");
-                    console.error("Error creating user:", error);
+                    toast.error(error.message || "Error creating user");
+                    console.error(error.message || "Error creating user");
                 }
             }
         );

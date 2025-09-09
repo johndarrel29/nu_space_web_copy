@@ -21,17 +21,16 @@ import { CardSkeleton } from '../../../components';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const tabs = [
-  { label: "All" },
-  { label: "Professional" },
-  { label: "Professional & Affiliates" },
-  { label: "Special Interest" },
-];
 
 export default function MainRSO() {
   const navigate = useNavigate();
   const { searchQuery, setSearchQuery } = useSearchQuery();
-  const { token } = useAuth();
+  const [filters, setFilters] = useState({
+    isDeleted: false,
+    recognitionStatus: "",
+    search: "",
+    category: "All",
+  });
 
   // Admin RSO Hooks
   const {
@@ -47,7 +46,7 @@ export default function MainRSO() {
     isSoftDeleteRSOError,
     softDeleteRSOError,
     resetSoftDeleteRSO,
-  } = useAdminRSO();
+  } = useAdminRSO(filters);
 
 
   // RSO data and operations
@@ -65,16 +64,27 @@ export default function MainRSO() {
     closeMembershipDateMutate,
   } = useRSO();
 
+  const tabs = [
+    { label: "All" },
+    { label: "Professional" },
+    { label: "Professional & Affiliates" },
+    { label: "Special Interest" },
+    { label: "Office Aligned Organization" }
+  ];
+
+  const activeTabIndex = tabs.findIndex(tab => tab.label === filters.category);
 
 
   // State management
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(activeTabIndex);
   const [sort, setSort] = useState("All");
   const [selectedUser, setSelectedUser] = useState(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [membershipStatus, setMembershipStatus] = useState(false);
   const [date, setDate] = useState(new Date());
   const [membershipEndDate, setMembershipEndDate] = useState(null);
+
+  // todo: add archive section to show isDeleted = true data
 
   // Process RSO data for table
   const rsoList = rsoData?.rsos ?? [];
@@ -100,7 +110,28 @@ export default function MainRSO() {
       };
     });
 
-  console.log("Table Row Picture:", tableRow?.map(org => org.RSO_picture));
+  console.log("search query:", searchQuery);
+
+  useEffect(() => {
+    if (searchQuery.length > 0) {
+      console.log("is refetching data...", isRSOLoading);
+
+      // delay for 500ms before setting the search filter
+      const timer = setTimeout(() => {
+        setFilters({
+          ...filters,
+          search: searchQuery
+        });
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setFilters({
+        ...filters,
+        search: ""
+      });
+    }
+  }, [searchQuery]);
 
   // Filter and sort organizations
   const filteredOrgs = () => {
@@ -228,6 +259,36 @@ export default function MainRSO() {
     });
   };
 
+  const handleFilter = (value) => {
+    console.log("Filter value:", value);
+    if (value && value === "Soft Deleted RSOs") {
+      setFilters({
+        ...filters,
+        isDeleted: true,
+        recognitionStatus: ""
+      });
+      return;
+    }
+
+    if (value && value === "New RSOs") {
+      setFilters({
+        ...filters,
+        recognitionStatus: "new_rso",
+        isDeleted: false
+      });
+      return;
+    }
+
+    if (value && value === "All") {
+      setFilters({
+        ...filters,
+        isDeleted: false,
+        recognitionStatus: ""
+      });
+      return;
+    }
+  }
+
   return (
     <>
       <div className="flex flex-col items-start lg:flex-row lg:justify-between lg:items-center">
@@ -248,7 +309,7 @@ export default function MainRSO() {
             </svg>
           </div>
         </div>
-        <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabSelector tabs={tabs} activeTab={activeTabIndex} onTabChange={(tabIndex) => setFilters({ ...filters, category: tabs[tabIndex].label })} />
       </div>
       {/* Membership Status */}
       {/* <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
@@ -272,22 +333,26 @@ export default function MainRSO() {
         </div>
       ) : (
         <ReusableTable
-          options={["All", "A-Z", "Most Popular"]}
+          options={["All", "Soft Deleted RSOs", "New RSOs"]}
           showAllOption={false}
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
+          value={filters.isDeleted ? "Soft Deleted RSOs" : filters.recognitionStatus === "new_rso" ? "New RSOs" : "All"}
+          onChange={(e) => handleFilter(e.target.value)}
           columnNumber={4}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
           tableHeading={[
             { id: 1, name: "RSO Name", key: "RSO_name" },
             { id: 2, name: "RSO Category", key: "RSO_category" },
             { id: 3, name: "Membership Status", key: "RSO_membershipStatus" },
             { id: 4, name: "Action", key: "remove" },
           ]}
-          tableRow={filteredOrgs()}
+          tableRow={tableRow}
           onClick={handleSelectedUser}
           onActionClick={handleActionClick}
           error={fetchWebRSOError}
           isLoading={loading}
+
+
         />
       )}
 

@@ -117,7 +117,9 @@ const uploadAccreditationDocumentRequest = async ({ formData }) => {
         console.log("upload response:", response);
 
         if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            const errorData = await response.json(); // try to read the server's message
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+
         }
 
         return response.json();
