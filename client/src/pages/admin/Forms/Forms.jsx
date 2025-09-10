@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Searchbar, Button } from '../../../components';
 import { useAdminCentralizedForms, useRSOForms } from '../../../hooks'
 import { FormatDate } from '../../../utils';
@@ -14,6 +14,8 @@ import { useUserStoreWithAuth, useSelectedFormStore } from "../../../store";
 
 export default function Forms() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const isEdit = location.state?.mode === "edit" || false;
     const [searchQuery, setSearchQuery] = useState('');
     const [filterType, setFilterType] = useState('all');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -181,7 +183,12 @@ export default function Forms() {
 
     const handleSubmitSelectedForms = (forms) => {
         useSelectedFormStore.getState().setSelectedForm(forms);
-        navigate(-1, { state: { selectedForms: forms } });
+        if (isEdit) {
+            navigate(-1, { state: { selectedForms: forms } });
+            return;
+        } else {
+            navigate("/activities/activity-action", { state: { selectedForms: forms, mode: "create" } });
+        }
         toast.success("Forms selected successfully!");
     }
 

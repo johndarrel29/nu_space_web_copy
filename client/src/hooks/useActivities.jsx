@@ -399,6 +399,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
 
         switch (role) {
             case 'admin':
+            case 'coordinator':
                 url = `${process.env.REACT_APP_BASE_URL}/api/admin/activities/${activityId}`;
                 console.log("Admin URL:", url);
                 break;

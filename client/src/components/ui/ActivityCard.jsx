@@ -9,23 +9,23 @@ function ActivityCard({
   RSO_acronym,
   Activity_image,
   Activity_datetime,
-  Activity_date_status,
+  Activity_approval_status,
   Activity_place,
   Activity_registration_total,
 }) {
 
   const status =
-    Activity_date_status === 'done' ? 'Done' :
-      Activity_date_status === 'pending' ? 'Pending' :
-        'Ongoing';
+    Activity_approval_status === 'approved' ? 'Approved' :
+      Activity_approval_status === 'rejected' ? 'Rejected' :
+        'Pending';
 
-  // Add status-based badge color
+  // Add status-based badge color with improved readability
   const statusBadgeClass =
-    status === 'Done'
-      ? 'bg-green-200 text-green-800'
-      : status === 'Pending'
-        ? 'bg-yellow-200 text-yellow-800'
-        : 'bg-blue-200 text-blue-800';
+    status === 'Approved'
+      ? 'bg-green-100 text-green-900 border border-green-300'
+      : status === 'Rejected'
+        ? 'bg-red-100 text-red-900 border border-red-300'
+        : 'bg-yellow-100 text-yellow-900 border border-yellow-300';
 
 
 

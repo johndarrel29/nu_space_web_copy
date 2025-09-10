@@ -8,7 +8,7 @@ const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
     const token = useTokenStore.getState().getToken();
 
     const [_, filter] = queryKey;
-    const { limit = 12, query = "", sorted = "", RSO = "", RSOType = "", college = "" } = filter;
+    const { limit = 12, query = "", sorted = "", RSO = "", RSOType = "", college = "", isGPOA = "All" } = filter;
 
     const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/fetch-activities`);
     url.searchParams.set("page", pageParam);
@@ -16,6 +16,7 @@ const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
     if (query) url.searchParams.set("search", query);
     if (RSO) url.searchParams.set("RSO", RSO)
     if (RSOType) url.searchParams.set("RSOType", RSOType);
+    if (isGPOA && isGPOA !== "All") url.searchParams.set("isGPOA", isGPOA === true ? "true" : "false");
     if (college) url.searchParams.set("college", college);
     if (sorted) url.searchParams.set("sorted", sorted);
 
@@ -23,6 +24,7 @@ const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
         page: pageParam,
         query,
         sorted,
+        isGPOA,
         RSO,
         RSOType,
         college,
@@ -51,6 +53,69 @@ const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
 
 }
 
+const preDocumentDeadlineRequest = async ({ activityId, preDocumentDeadline }) => {
+    try {
+        console.log("url:", `${process.env.REACT_APP_BASE_URL}/api/admin/activities/deadline/preDocDeadline/${activityId}`);
+        console.log("preDocumentDeadline:", preDocumentDeadline);
+
+        const token = useTokenStore.getState().getToken();
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/deadline/preDocDeadline/${activityId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+            },
+            body: JSON.stringify({ end_deadline: preDocumentDeadline }),
+        });
+
+        console.log("Response status:", response);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error setting pre-document deadline:", error);
+        throw error;
+    }
+}
+
+const postDocumentDeadlineRequest = async ({ activityId, postDocumentDeadline }) => {
+    try {
+        console.log("url:", `${process.env.REACT_APP_BASE_URL}/api/admin/activities/deadline/postDocDeadline/${activityId}`);
+        console.log("postDocumentDeadline:", JSON.stringify({ postDocumentDeadline }), "id :", activityId);
+
+        const token = useTokenStore.getState().getToken();
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/deadline/postDocDeadline/${activityId}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: token,
+            },
+            body: JSON.stringify({ end_deadline: postDocumentDeadline }),
+        });
+
+        console.log("Response status:", response);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error setting post-document deadline:", error);
+        throw error;
+    }
+}
+
+
+
+
 const approveActivity = async ({ activityId }) => {
     try {
         console.log("url:", `${process.env.REACT_APP_BASE_URL}/api/admin/activities/approveActivity/${activityId}`);
@@ -67,14 +132,10 @@ const approveActivity = async ({ activityId }) => {
         console.log("Response status:", response);
 
         if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            const errorData = await response.json(); // try to read the server's message
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
         }
 
-        if (response.status === 400) {
-            const errorData = await response.json();
-            console.error("Error approving activity in hooks:", errorData.message);
-            throw new Error(errorData.message || "Error approving activity");
-        }
 
         const data = await response.json();
         return data;
@@ -84,9 +145,10 @@ const approveActivity = async ({ activityId }) => {
     }
 }
 
-const rejectActivity = async ({ activityId }) => {
+const rejectActivity = async ({ activityId, remark }) => {
     try {
         console.log("url:", `${process.env.REACT_APP_BASE_URL}/api/admin/activities/rejectActivity/${activityId}`);
+        console.log("Remark:", remark);
 
         const token = useTokenStore.getState().getToken();
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/rejectActivity/${activityId}`, {
@@ -94,7 +156,8 @@ const rejectActivity = async ({ activityId }) => {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: token,
-            }
+            },
+            body: JSON.stringify({ remarks: remark }),
         });
 
         console.log("Response status:", response);
@@ -119,15 +182,17 @@ function useAdminActivity({
     RSO = "",
     RSOType = "",
     college = "",
+    isGPOA = "All",
 } = {}) {
     const { user } = useAuth();
-    const { isUserAdmin, isUserCoordinator } = useUserStoreWithAuth();
+    const { isUserAdmin, isCoordinator } = useUserStoreWithAuth();
 
     const filter = {
         query: debouncedQuery,
         limit,
         sorted,
         RSO,
+        isGPOA,
         RSOType,
         college,
     };
@@ -178,6 +243,26 @@ function useAdminActivity({
         }
     });
 
+    const {
+        mutate: preDocumentDeadlineMutate,
+        isLoading: isSettingPreDocumentDeadline,
+        isError: isErrorSettingPreDocumentDeadline,
+        isSuccess: isPreDocumentDeadlineSet,
+    } = useMutation({
+        mutationFn: preDocumentDeadlineRequest,
+        enabled: isUserAdmin || isCoordinator,
+    });
+
+    const {
+        mutate: postDocumentDeadlineMutate,
+        isLoading: isSettingPostDocumentDeadline,
+        isError: isErrorSettingPostDocumentDeadline,
+        isSuccess: isPostDocumentDeadlineSet,
+    } = useMutation({
+        mutationFn: postDocumentDeadlineRequest,
+        enabled: isUserAdmin || isCoordinator,
+    });
+
     return {
         // fetch admin activities
         adminPaginatedActivities,
@@ -199,6 +284,18 @@ function useAdminActivity({
         isRejectingActivity,
         isErrorRejectingActivity,
         isActivityRejected,
+
+        // set pre-document deadline
+        preDocumentDeadlineMutate,
+        isSettingPreDocumentDeadline,
+        isErrorSettingPreDocumentDeadline,
+        isPreDocumentDeadlineSet,
+
+        // set post-document deadline
+        postDocumentDeadlineMutate,
+        isSettingPostDocumentDeadline,
+        isErrorSettingPostDocumentDeadline,
+        isPostDocumentDeadlineSet,
     }
 
 }

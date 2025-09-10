@@ -14,3 +14,4 @@ export { default as ReusableDropdown } from './ReusableDropdown';
 export { default as ActivityCard } from './ActivityCard';
 export { default as Badge } from './Badge';
 export { default as OTPInput } from './OTPInput';
+export { default as FormCard } from './FormCard';

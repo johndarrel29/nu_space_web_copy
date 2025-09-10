@@ -1,13 +1,71 @@
 import React, { useState } from "react";
-import { ActivityCard, Searchbar, ReusableDropdown, Button, ActivitySkeleton, DropdownSearch } from "../../../components";
+import Select from 'react-select';
+import {
+  ActivityCard, Searchbar, ReusableDropdown, Button, ActivitySkeleton, DropdownSearch, CloseButton
+} from "../../../components";
 import { useActivities, useUser, useRSO, useAdminActivity, useRSOActivities } from "../../../hooks";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import DefaultPicture from "../../../assets/images/default-picture.png";
 import { useUserStoreWithAuth } from '../../../store';
+import { motion, AnimatePresence } from "framer-motion";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
+import dayjs from "dayjs";
+import { toast } from "react-toastify";
 
 // fix the rso path first to manipulate the activity data.
 // system enhancement: use isLoading to make loading animation when fetching or filtering activities
+
+const DropIn = {
+  hidden: {
+    opacity: 0,
+    y: "100vh",
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: "100vh",
+    transition: {
+      duration: 0.3,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
+const Backdrop = ({ children, ...props }) => {
+  return (
+    <motion.div
+      {...props}
+      className="fixed inset-0 bg-black bg-opacity-30"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// const CloseButton = ({ onClick }) => {
+//   return (
+//     <button
+//       onClick={onClick}
+//       className="text-gray-500 hover:text-gray-700"
+//     >
+//       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+//       </svg>
+//     </button>
+//   );
+// };
 
 export default function MainDocuments() {
 
@@ -23,8 +81,15 @@ export default function MainDocuments() {
   const [RSOType, setRSOType] = useState("All");
   const [college, setCollege] = useState("All");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [gpoa, setGPOA] = useState({
+    value: "", label: "All"
+  });
   const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
   const [documentError, setDocumentError] = useState(null);
+  const [isDeadlineModalOpen, setIsDeadlineModalOpen] = useState(false);
+  const [preDocDeadline, setPreDocDeadline] = useState(null);
+  const [postDocDeadline, setPostDocDeadline] = useState(null);
+  const [selectedActivityId, setSelectedActivityId] = useState(null);
 
   // revised rso route
   const {
@@ -54,12 +119,25 @@ export default function MainDocuments() {
     isAdminActivitiesLoading,
     isAdminActivitiesError,
     isAdminActivitiesFetching,
+
+    // set pre-document deadline
+    preDocumentDeadlineMutate,
+    isSettingPreDocumentDeadline,
+    isErrorSettingPreDocumentDeadline,
+    isPreDocumentDeadlineSet,
+
+    // set post-document deadline
+    postDocumentDeadlineMutate,
+    isSettingPostDocumentDeadline,
+    isErrorSettingPostDocumentDeadline,
+    isPostDocumentDeadlineSet,
   } = useAdminActivity({
     debouncedQuery,
     sorted,
     RSO,
     RSOType,
     college,
+    isGPOA: gpoa.value,
   });
 
   const {
@@ -95,27 +173,8 @@ export default function MainDocuments() {
     }
   }, [adminError, null, user?.role]);
 
-  // useEffect(() => {
-  //   const loadActivities = async () => {
-  //     try {
-  //       const result = await fetchActivity();
-  //       console.log("Fetched Activities:", result);
-  //     } catch (err) {
-  //       console.error("Error fetching activities:", err);
-  //     }
-  //   };
-
-  //   loadActivities();
-  // }, [fetchActivity]);
-
-  // useEffect(() => {
-  //   if (isUserRSORepresentative) {
-  //     refetchLocalActivities();
-  //   }
-  // }, [isUserRSORepresentative, refetchLocalActivities]);
-
   const handleCreate = () => {
-    navigate("activity-action", {
+    navigate("/activities/form-selection", {
       state: {
         mode: "create",
       },
@@ -186,6 +245,16 @@ export default function MainDocuments() {
     });
   }
 
+  const handleGPOA = (value) => {
+    if (value === "All") {
+      setGPOA({ value: "All", label: "All" });
+    } else if (value === "GPOA Activities") {
+      setGPOA({ value: true, label: "GPOA Activities" });
+    } else if (value === "Non-GPOA Activities") {
+      setGPOA({ value: false, label: "Non-GPOA Activities" });
+    }
+  }
+
   const activitiesToShow =
     isUserRSORepresentative ?
       (activityLocalData || [])
@@ -217,9 +286,61 @@ export default function MainDocuments() {
       (isUserAdmin || isCoordinator) ? allActivities :
         [];
 
-  console.log("user role:", user.role);
-  console.log("activitiesToShow:", activitiesToShow?.length > 0);
-  console.log("allActivities:", allActivities);
+  const handleDateSelected = () => {
+
+
+
+    // Log the deadline states from the modal
+    console.log('Pre Document Deadline:', preDocDeadline ? dayjs(preDocDeadline).toISOString() : null);
+    console.log('Post Document Deadline:', postDocDeadline ? dayjs(postDocDeadline).toISOString() + " id: " + selectedActivityId : null);
+
+    if (preDocDeadline) {
+      preDocumentDeadlineMutate({
+        activityId: selectedActivityId,
+        preDocumentDeadline: dayjs(preDocDeadline).toISOString(),
+      },
+        {
+          onSuccess: () => {
+            console.log('Pre-document deadline updated successfully');
+            toast.success('Pre-document deadline updated successfully');
+            // clear the select state and the date state
+            setSelectedActivityId(null);
+            setPreDocDeadline(null);
+            setPostDocDeadline(null);
+          },
+          onError: (error) => {
+            console.error('Error updating pre-document deadline:', error);
+            toast.error(error.message || 'Error updating pre-document deadline');
+          }
+        }
+      );
+    }
+    if (postDocDeadline) {
+      postDocumentDeadlineMutate({
+        activityId: selectedActivityId,
+        postDocumentDeadline: dayjs(postDocDeadline).toISOString(),
+      },
+        {
+          onSuccess: () => {
+            toast.success('Post-document deadline updated successfully');
+            // clear the select state and the date state
+            setSelectedActivityId(null);
+            setPreDocDeadline(null);
+            setPostDocDeadline(null);
+          },
+          onError: (error) => {
+            console.error('Error updating post-document deadline:', error);
+            toast.error(error.message || 'Error updating post-document deadline');
+          }
+        }
+      );
+    }
+  }
+
+  const activityOptions = activitiesToShow.map((activity) => ({
+    value: activity._id,
+    label: activity.Activity_name,
+  }));
 
   return (
     <div className="w-full">
@@ -240,6 +361,18 @@ export default function MainDocuments() {
           </div>
         )}
       </div>
+
+      {/* Deadline Button */}
+      {(isUserAdmin || isCoordinator) && (
+        <div className="w-full flex justify-end mb-4">
+          <Button onClick={() => setIsDeadlineModalOpen(true)}>
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="size-4 fill-white" viewBox="0 0 640 640"><path d="M320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z" /></svg>
+              Set Activity Deadline
+            </div>
+          </Button>
+        </div>
+      )}
 
       {/* Search and Filter Section */}
       <div className="mb-6">
@@ -304,6 +437,19 @@ export default function MainDocuments() {
               className="overflow-hidden transition-all duration-300 border-b border-slate-200 pl-1 pr-1"
             >
               <div className="grid grid-cols-1 sm:grid-cols-3 py-2 gap-2">
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="RSO" className="text-sm font-medium text-gray-600">
+                    GPOA
+                  </label>
+                  <ReusableDropdown
+                    icon={true}
+                    options={["All", "GPOA Activities", "Non-GPOA Activities"]}
+                    showAllOption={false}
+                    onChange={(e) => handleGPOA(e.target.value)}
+                    value={gpoa.label || "All"}
+                    buttonClass="border-primary  text-primary "
+                  />
+                </div>
                 <div className="flex flex-col gap-1">
                   <label htmlFor="RSO" className="text-sm font-medium text-gray-600">
                     Sort By
@@ -392,7 +538,7 @@ export default function MainDocuments() {
                       Activity_name={activity.Activity_name}
                       Activity_description={activity.Activity_description}
                       RSO_acronym={activity.RSO_id?.RSO_acronym || "N/A"}
-                      Activity_date_status={activity.Activity_date_status}
+                      // Activity_date_status={activity.Activity_date_status}
                       //user imageUrl if rso_representative role
                       Activity_image={
                         isUserRSORepresentative ? activity?.imageUrl || DefaultPicture :
@@ -402,7 +548,7 @@ export default function MainDocuments() {
                       onClick={handleActivityClick}
                       Activity_datetime={handleDateTime(activity?.Activity_start_datetime) || "N/A"}
                       Activity_place={activity?.Activity_place}
-                      statusColor={activity?.Activity_status}
+                      Activity_approval_status={activity?.Activity_approval_status}
                     />
                   ))}
                 </div>
@@ -440,6 +586,95 @@ export default function MainDocuments() {
             )
 
       }
+
+      {/* Activity Deadline Modal */}
+      <AnimatePresence>
+        {isDeadlineModalOpen && (
+          <>
+            {/* Modal for setting activity deadlines */}
+            <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30" />
+            <motion.div
+              className="fixed inset-0 z-50 w-screen overflow-auto"
+              variants={DropIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-8 w-1/3">
+                  <div className='flex justify-between items-center mb-6'>
+                    <h2 className="text-lg font-medium text-[#312895]">Set Activity Deadlines</h2>
+                    <CloseButton onClick={() => setIsDeadlineModalOpen(false)} />
+                  </div>
+                  {/* Deadline fields */}
+                  <div className='space-y-4'>
+                    <div className="w-full">
+                      <div className="mb-4 w-full">
+                        <label htmlFor="activity-select" className="block text-sm font-medium text-gray-700">Select Activity</label>
+                        <Select
+                          onChange={(selectedOption) => setSelectedActivityId(selectedOption ? selectedOption.value : null)}
+                          options={activityOptions} />
+                      </div>
+                      <table className="w-full">
+                        <tbody>
+                          <tr>
+                            <td className="py-4 pr-8 text-gray-700 text-sm">Pre Document Deadline</td>
+                            <td className="py-4">
+                              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DateTimePicker
+                                  value={preDocDeadline}
+                                  onChange={setPreDocDeadline}
+                                  className="w-full"
+                                  slotProps={{
+                                    textField: {
+                                      fullWidth: true,
+                                      size: 'small',
+                                      variant: 'outlined'
+                                    }
+                                  }}
+                                />
+                              </LocalizationProvider>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-4 pr-8 text-gray-700 text-sm">Post Document Deadline</td>
+                            <td className="py-4">
+                              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DateTimePicker
+                                  value={postDocDeadline}
+                                  onChange={setPostDocDeadline}
+                                  className="w-full"
+                                  slotProps={{
+                                    textField: {
+                                      fullWidth: true,
+                                      size: 'small',
+                                      variant: 'outlined'
+                                    }
+                                  }}
+                                />
+                              </LocalizationProvider>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  {/* Button to log deadlines */}
+                  <div className="flex justify-end mt-8 gap-3">
+                    <Button
+                      onClick={() => handleDateSelected()}
+                      style="primary"
+                    >
+                      Set Deadlines
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

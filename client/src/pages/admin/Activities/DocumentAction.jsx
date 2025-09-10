@@ -165,6 +165,7 @@ function DocumentAction() {
   }, [success, navigate]);
 
   const handleSubmit = async (e) => {
+    console.log("Submitting form with activityData:", activityData, "selectedForm:", selectedForm);
     e.preventDefault();
 
     const changedFields = {};
@@ -174,6 +175,12 @@ function DocumentAction() {
       console.log("Original data:", originalData);
       console.log("Current activity data:", activityData);
 
+      // check Activity_image
+      if (originalData.Activity_image === activityData.Activity_image) {
+        console.log("Activity image unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_image = activityData.Activity_image;
+      }
 
       // Check Activity_name
       if (originalData.Activity_name === activityData.Activity_name) {
@@ -247,6 +254,7 @@ function DocumentAction() {
       const formsChanged = originalFormsUsed.length !== storeFormsUsed.length || originalFormsUsed.some((id, idx) => id !== storeFormsUsed[idx]);
       if (formsChanged) {
         changedFields.formsUsed = storeFormsUsed;
+        console.log("formsused comparison from original data", originalFormsUsed, "to store", storeFormsUsed);
         console.log("FormsUsed changed, will update this field. ", selectedForm);
       } else {
         console.log("FormsUsed unchanged, skipping update for this field.");
@@ -258,6 +266,11 @@ function DocumentAction() {
       }
     }
 
+    // block GPOA edit if changed
+    if (changedFields.Activity_GPOA) {
+      toast.error("GPOA status cannot be changed once set.");
+      return;
+    }
 
     if (activityData?.Activity_description === "" || activityData?.Activity_description === null) {
       setDescriptionError("Description is required");
@@ -327,7 +340,7 @@ function DocumentAction() {
             onSuccess: (data) => {
               console.log("Activity created successfully:", data);
               toast.success("Activity created successfully!");
-              navigate(-1);
+              navigate("/activities");
             },
             onError: (error) => {
               console.error("Error creating activity:", error);
@@ -366,7 +379,7 @@ function DocumentAction() {
           console.log("Activity deleted successfully");
           toast.success("Activity deleted successfully");
           setDeleteModalOpen(false);
-          navigate('/documents');
+          navigate('/activities');
         },
         onError: (error) => {
           console.error("Error deleting activity:", error);
@@ -630,7 +643,7 @@ function DocumentAction() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Select a Form for the Activity</label>
               <Button
-                onClick={() => navigate("/activities/form-selection")}
+                onClick={() => navigate("/activities/form-selection", { state: isEdit ? { mode: "edit" } : { mode: "create" } })}
                 style={"secondary"}>
                 <span className='text-sm truncate max-w-xs'>
                   {/* Selected {activityData?.formsUsed?.map((forms) => forms.title).join(", ") || "None"} */}

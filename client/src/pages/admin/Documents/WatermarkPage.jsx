@@ -17,7 +17,8 @@ export default function WaterMarkPage() {
     const [watermark, setWatermark] = useState(null);
 
     console.log("url:", url);
-    const pdfUrl = (`http://localhost:5000/api/admin/documents/pdf/${documentId}`);
+    // const pdfUrl = (`http://localhost:5000/api/admin/documents/pdf/${documentId}`);
+    const pdfUrl = (`${process.env.REACT_APP_BASE_URL}/api/admin/documents/pdf/${documentId}`);
 
     const { data: pdfData, isLoading, isError } = useQuery({
         queryKey: ['pdf', documentId],

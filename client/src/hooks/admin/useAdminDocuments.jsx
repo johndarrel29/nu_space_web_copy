@@ -443,7 +443,7 @@ function useAdminDocuments({
     templateSearch = ""
 } = {}) {
     const { user } = useAuth();
-    const { isUserAdmin } = useUserStoreWithAuth();
+    const { isUserAdmin, isCoordinator } = useUserStoreWithAuth();
     const queryClient = useQueryClient();
 
     console.log("received documentid ", documentId)
@@ -468,11 +468,11 @@ function useAdminDocuments({
     }
 
     useEffect(() => {
-        if (!isUserAdmin) {
+        if (!isUserAdmin || isCoordinator) {
             console.log("not admin detected. removing documents query")
             queryClient.removeQueries(['documents']);
         }
-    }, [isUserAdmin, queryClient]);
+    }, [isUserAdmin, queryClient, isCoordinator]);
 
     const {
         data: documentTemplate,
@@ -484,7 +484,7 @@ function useAdminDocuments({
     } = useQuery({
         queryKey: ["documentTemplate", templateFilters],
         queryFn: fetchDocumentTemplate,
-        enabled: isUserAdmin,
+        enabled: isUserAdmin || isCoordinator,
     });
 
     const {
@@ -505,7 +505,7 @@ function useAdminDocuments({
         },
         // enabled: isUserAdmin,
         enabled: (() => {
-            const isEnabled = isUserAdmin;
+            const isEnabled = isUserAdmin || isCoordinator;
             console.log("Query enabled:", isEnabled);
             return isEnabled;
         })(),

@@ -8,7 +8,7 @@ import Skeleton from "react-loading-skeleton";
 import { useLocation, useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
-import { useUserStoreWithAuth, useDocumentStore, selectedRSOStore, useDocumentIdStore, selectedRSOStatusStore } from '../../store';
+import { useUserStoreWithAuth, useDocumentStore, selectedRSOStore, useDocumentIdStore, selectedRSOStatusStore, useActivityStatusStore } from '../../store';
 import { useAuth } from "../../context/AuthContext";
 import whiteLogoText from "../../assets/images/NUSpace_new.png";
 import blueLogoText from "../../assets/images/NUSpace_blue.png";
@@ -33,6 +33,7 @@ function MainLayout({ children }) {
   const documentId = useDocumentStore((state) => state.documentId);
   const rsoID = selectedRSOStore((state) => state.selectedRSO);
   const rsoStatus = selectedRSOStatusStore((state) => state.selectedRSOStatus);
+  const activityStatus = useActivityStatusStore((state) => state.activityStatus);
 
   const {
     // approve activity
@@ -216,9 +217,9 @@ function MainLayout({ children }) {
     }
   }
 
-  const handleRejectDocument = (remark) => {
+  const handleRejectDocument = () => {
     try {
-      rejectActivityMutate({ activityId: documentId, remark }, {
+      rejectActivityMutate({ activityId: documentId, remark: rejectRemark }, {
         onSuccess: () => {
           console.log("Document rejected successfully");
           toast.success("Document rejected successfully");
@@ -644,13 +645,13 @@ function MainLayout({ children }) {
             </div>
 
             {/* Page Content */}
-            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${(isActivityDetailsPage || (isRSODetailsPage && rsoStatus !== "recognized")) ? 'mb-24' : ''}`}>
+            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${((isActivityDetailsPage && activityStatus !== "approved") || (isRSODetailsPage && rsoStatus !== "recognized")) ? 'mb-24' : ''}`}>
               {children}
             </div>
           </main>
 
           {/* Reject/ approve bottom nav button */}
-          {(isActivityDetailsPage || (isRSODetailsPage && rsoStatus !== "recognized")) && (
+          {((isActivityDetailsPage && activityStatus !== "approved") || (isRSODetailsPage && rsoStatus !== "recognized")) && (
             <div className="w-full py-6 bg-white fixed bottom-0 z-40 mt-auto flex items-center justify-center gap-4 border-t border-mid-gray">
               {isActivityDetailsPage && (
                 <Button
