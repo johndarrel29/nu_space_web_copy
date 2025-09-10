@@ -39,17 +39,20 @@ function RSODetails() {
     isRSODetailLoading,
     isRSODetailError,
     rsoDetailError,
-    refetchRSODetail
+    refetchRSODetail,
+
   } = useAdminRSO({ rsoID });
 
 
 
   // set the RSOID to store in useRSOStore
   const setSelectedRSO = selectedRSOStore((state) => state.setSelectedRSO);
+  const setSelectedRSOStatus = selectedRSOStatusStore((state) => state.setSelectedRSOStatus);
 
   useEffect(() => {
     setSelectedRSO(rsoID);
-  }, [rsoID, setSelectedRSO]);
+    setSelectedRSOStatus(rsoDetailData?.data?.RSO_recognition_status?.status || "");
+  }, [rsoID, setSelectedRSO, rsoDetailData]);
 
   console.log("user id to send to admin activity:", rsoID);
   console.log("data for this page:", {

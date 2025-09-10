@@ -8,7 +8,7 @@ import Skeleton from "react-loading-skeleton";
 import { useLocation, useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
-import { useUserStoreWithAuth, useDocumentStore, selectedRSOStore, useDocumentIdStore } from '../../store';
+import { useUserStoreWithAuth, useDocumentStore, selectedRSOStore, useDocumentIdStore, selectedRSOStatusStore } from '../../store';
 import { useAuth } from "../../context/AuthContext";
 import whiteLogoText from "../../assets/images/NUSpace_new.png";
 import blueLogoText from "../../assets/images/NUSpace_blue.png";
@@ -32,6 +32,8 @@ function MainLayout({ children }) {
   const activityId = params.activityId;
   const documentId = useDocumentStore((state) => state.documentId);
   const rsoID = selectedRSOStore((state) => state.selectedRSO);
+  const rsoStatus = selectedRSOStatusStore((state) => state.selectedRSOStatus);
+
   const {
     // approve activity
     isApprovingActivity,
@@ -174,7 +176,7 @@ function MainLayout({ children }) {
   const showViewOnlyBanner = !isUserProfileLoading && !!recognitionStatus && recognitionStatus !== "recognized";
 
   // Add this variable for activity details page
-  const isActivityDetailsPage = location.pathname.startsWith('/documents/') && activityId && (isUserAdmin || isCoordinator);
+  const isActivityDetailsPage = location.pathname.startsWith('/activities/') && activityId && (isUserAdmin || isCoordinator);
   const isRSODetailsPage = location.pathname.startsWith('/rsos/rso-details') && (isUserAdmin || isCoordinator);
 
   const handleDocumentApproval = () => {
@@ -642,13 +644,13 @@ function MainLayout({ children }) {
             </div>
 
             {/* Page Content */}
-            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${(isActivityDetailsPage || isRSODetailsPage) ? 'mb-24' : ''}`}>
+            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${(isActivityDetailsPage || (isRSODetailsPage && rsoStatus !== "recognized")) ? 'mb-24' : ''}`}>
               {children}
             </div>
           </main>
 
           {/* Reject/ approve bottom nav button */}
-          {(isActivityDetailsPage || isRSODetailsPage) && (
+          {(isActivityDetailsPage || (isRSODetailsPage && rsoStatus !== "recognized")) && (
             <div className="w-full py-6 bg-white fixed bottom-0 z-40 mt-auto flex items-center justify-center gap-4 border-t border-mid-gray">
               {isActivityDetailsPage && (
                 <Button

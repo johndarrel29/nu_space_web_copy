@@ -20,11 +20,25 @@ export default function Forms() {
     const [formToDelete, setFormToDelete] = useState(null);
     const [selectedFormName, setSelectedFormName] = useState(""); // new state
     const [formToDisplay, setFormToDisplay] = useState(null);
+    const preSelectedForm = useSelectedFormStore(state => state.selectedForm);
+    const [selectedForms, setSelectedForms] = useState({
+        feedbackForm: "",
+        preActForm: "",
+    });
     const { isUserRSORepresentative } = useUserStoreWithAuth();
     const [filters, setFilters] = useState({
         search: "",
         formType: "All",
     });
+
+    useEffect(() => {
+        if (preSelectedForm) {
+            setSelectedForms({
+                feedbackForm: preSelectedForm.feedbackForm || "",
+                preActForm: preSelectedForm.preActForm || "",
+            });
+        }
+    }, [preSelectedForm]);
 
     useEffect(() => {
         if (searchQuery && searchQuery.length >= 3) {
@@ -33,8 +47,6 @@ export default function Forms() {
             setFilters(prev => ({ ...prev, search: "" }))
         )
     }, [searchQuery]);
-
-    console.log("formToDisplay:", formToDisplay);
 
     const {
         allForms,
@@ -48,14 +60,17 @@ export default function Forms() {
         isDeletingForm,
         isDeletingFormError,
         deleteFormError
-    } = useAdminCentralizedForms(filters);
+    } = useAdminCentralizedForms({ filters });
 
     const {
         rsoFormsTemplate,
         isLoadingRSOFormsTemplate,
         isErrorRSOFormsTemplate,
         errorRSOFormsTemplate,
-    } = useRSOForms(filters);
+    } = useRSOForms({
+        search: filters.search,
+        formType: filters.formType,
+    });
 
     console.log("RSO Forms Template:", rsoFormsTemplate);
 
@@ -66,16 +81,6 @@ export default function Forms() {
             setFormToDisplay(allForms);
         }
     }, [isUserRSORepresentative, rsoFormsTemplate, allForms]);
-
-    // Sample data - this would typically come from an API
-    const sampleForms = [
-        { id: 1, title: "RSO Registration Form", category: "Registration", createdAt: "2023-12-10", status: "Published" },
-        { id: 2, title: "Event Request Form", category: "Events", createdAt: "2023-11-25", status: "Published" },
-        { id: 3, title: "Budget Request Form", category: "Finance", createdAt: "2024-01-05", status: "Draft" },
-        { id: 4, title: "Activity Evaluation Form", category: "Assessment", createdAt: "2023-10-15", status: "Published" },
-        { id: 5, title: "Officer Information Form", category: "Registration", createdAt: "2024-02-01", status: "Draft" },
-        { id: 6, title: "Facilities Reservation Form", category: "Logistics", createdAt: "2024-01-20", status: "Published" },
-    ];
 
     useEffect(() => {
         if (isRefetchingAllForms) {
@@ -147,9 +152,40 @@ export default function Forms() {
     }
 
     const handleRSOSelectedForm = (form) => {
-        useSelectedFormStore.getState().setSelectedForm(form);
-        navigate(-1, { state: { selectedFormId: form._id } });
+        // useSelectedFormStore.getState().setSelectedForm(form);
+        // navigate(-1, { state: { selectedFormId: form._id } });
+        // Deselect if already selected
+        if (selectedForms.preActForm && form._id === selectedForms.preActForm._id) {
+            setSelectedForms(prev => ({ ...prev, preActForm: "" }));
+            return;
+        }
+        if (selectedForms.feedbackForm && form._id === selectedForms.feedbackForm._id) {
+            setSelectedForms(prev => ({ ...prev, feedbackForm: "" }));
+            return;
+        }
+
+        // allow to select feedback form first
+        if (!selectedForms.preActForm && !selectedForms.feedbackForm) {
+            setSelectedForms(prev => ({ ...prev, feedbackForm: form }));
+            return;
+        }
+
+        // double checks to prevent same form selection
+        if (form._id === selectedForms.feedbackForm._id) {
+            toast.error("You cannot select the same form for both Pre-Activity and Feedback.");
+            return;
+        } else {
+            setSelectedForms(prev => ({ ...prev, preActForm: form }));
+        }
     }
+
+    const handleSubmitSelectedForms = (forms) => {
+        useSelectedFormStore.getState().setSelectedForm(forms);
+        navigate(-1, { state: { selectedForms: forms } });
+        toast.success("Forms selected successfully!");
+    }
+
+    console.log("Selected Forms:", selectedForms);
 
     return (
         <>
@@ -159,7 +195,9 @@ export default function Forms() {
                 {/* back feature only for rsos */}
                 {isUserRSORepresentative && (
                     <div className="w-full">
-                        <Button style={"secondary"}>Go Back</Button>
+                        <Button
+                            onClick={() => navigate(-1)}
+                            style={"secondary"}>Go Back</Button>
                     </div>
                 )}
                 {!isUserRSORepresentative && (
@@ -207,6 +245,19 @@ export default function Forms() {
                 </div>
             </div>
 
+            {/* Action Required Banner for RSO Representatives */}
+            {isUserRSORepresentative && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-6 py-4 shadow-sm flex items-center gap-3 mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
+                    </svg>
+                    <div className="flex flex-col">
+                        <span className="text-blue-800 font-semibold text-base">Action Required</span>
+                        <span className="text-blue-700 text-sm">Please select two (2) forms for your Activity. One (1) Pre-Activity form and one (1) Feedback form.</span>
+                    </div>
+                </div>
+            )}
+
             {/* Forms Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 {formToDisplay && formToDisplay.forms && formToDisplay.forms.length > 0 ? (
@@ -224,17 +275,14 @@ export default function Forms() {
                                                 : <span className="text-gray-400">Unknown Type</span>}
                                         </span>
                                     </div>
-                                    {/* <span className={`px-2 py-1 text-xs font-semibold rounded-full ${form.status === 'Published'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                        {form.status}
-                                    </span> */}
                                 </div>
                                 <p className="text-gray-600 text-sm mt-4">Created on: {FormatDate(form.createdAt)}</p>
                                 <div className="flex justify-between mt-6 pt-4 border-t border-gray-100">
                                     <button
-                                        onClick={() => navigate(`/form-viewer`, { state: { formId: form._id } })}
+                                        onClick={() => {
+                                            navigate(`/form-viewer`, { state: { formId: form._id } })
+                                            console.log("Viewing form:", form);
+                                        }}
                                         className="text-gray-600 hover:text-gray-900 font-medium text-sm flex items-center gap-1"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -265,10 +313,23 @@ export default function Forms() {
                                             </button>
                                         </>
                                     )}
-                                    {isUserRSORepresentative && (
-                                        <Button onClick={() => handleRSOSelectedForm(form)}>
-                                            Select form
-                                        </Button>
+
+                                    {(isUserRSORepresentative) && (
+                                        <>
+                                            <Button
+                                                style={form._id === (selectedForms.feedbackForm && selectedForms.feedbackForm._id) || form._id === (selectedForms.preActForm && selectedForms.preActForm._id) ? "secondary" : "primary"}
+                                                onClick={() => handleRSOSelectedForm(form)}
+                                            >
+                                                <div className='flex gap-2 items-center'>
+                                                    {`${form._id === (selectedForms.feedbackForm && selectedForms.feedbackForm._id) ? "(Feedback)" : form._id === (selectedForms.preActForm && selectedForms.preActForm._id) ? "(Pre-Activity)" : "Select Form"}`}
+                                                    {form._id === (selectedForms.feedbackForm && selectedForms.feedbackForm._id) || form._id === (selectedForms.preActForm && selectedForms.preActForm._id) ?
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className='size-5 fill-gray-400' viewBox="0 0 640 640"><path d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM231 231C240.4 221.6 255.6 221.6 264.9 231L319.9 286L374.9 231C384.3 221.6 399.5 221.6 408.8 231C418.1 240.4 418.2 255.6 408.8 264.9L353.8 319.9L408.8 374.9C418.2 384.3 418.2 399.5 408.8 408.8C399.4 418.1 384.2 418.2 374.9 408.8L319.9 353.8L264.9 408.8C255.5 418.2 240.3 418.2 231 408.8C221.7 399.4 221.6 384.2 231 374.9L286 319.9L231 264.9C221.6 255.5 221.6 240.3 231 231z" /></svg>
+                                                        :
+                                                        ""}
+                                                </div>
+                                            </Button>
+                                            {console.log("Selected Forms inside button:", selectedForms)}
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -288,27 +349,19 @@ export default function Forms() {
                 )}
             </div>
 
-            {/* Empty State */}
-            {/* {formToDisplay?.forms.length === 0 && (
-                <div className="bg-white rounded-lg border border-gray-300 p-10 text-center">
-                    <div className="mx-auto h-20 w-20 text-gray-400 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <h3 className="text-xl font-medium text-gray-700 mb-2">No forms found</h3>
-                    <p className="text-gray-500 mb-6">Try adjusting your search or filter to find what you're looking for.</p>
-                    <button
-                        onClick={() => navigate('/forms-builder')}
-                        className="bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-lg inline-flex items-center gap-2"
+            {/* proceed back */}
+            {selectedForms.feedbackForm && selectedForms.preActForm && isUserRSORepresentative && (
+                <div className='w-full flex justify-end'>
+                    <Button
+                        onClick={() => handleSubmitSelectedForms(selectedForms)}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
-                        Create Your First Form
-                    </button>
+                        <div className='flex gap-2 items-center'>
+                            <svg xmlns="http://www.w3.org/2000/svg" className='fill-white size-5' viewBox="0 0 640 640"><path d="M530.8 134.1C545.1 144.5 548.3 164.5 537.9 178.8L281.9 530.8C276.4 538.4 267.9 543.1 258.5 543.9C249.1 544.7 240 541.2 233.4 534.6L105.4 406.6C92.9 394.1 92.9 373.8 105.4 361.3C117.9 348.8 138.2 348.8 150.7 361.3L252.2 462.8L486.2 141.1C496.6 126.8 516.6 123.6 530.9 134z" /></svg>
+                            Confirm Selections
+                        </div>
+                    </Button>
                 </div>
-            )} */}
+            )}
 
             {/* Delete Confirmation Modal */}
             {deleteModalOpen && (

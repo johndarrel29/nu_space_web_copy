@@ -296,6 +296,27 @@ const softDeleteRSORequest = async ({ id }) => {
     }
 }
 
+const restoreRSORequest = async ({ id }) => {
+    try {
+        const token = useTokenStore.getState().getToken();
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/restoreRSO/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": token || "",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error("Error soft deleting RSO:", error);
+        throw error;
+    }
+}
+
 const hardDeleteRSORequest = async ({ id }) => {
     try {
         const token = useTokenStore.getState().getToken();
@@ -579,6 +600,25 @@ function useAdminRSO({
     });
 
     const {
+        mutate: restoreRSOMutate,
+        isLoading: isRestoreRSOLoading,
+        isSuccess: isRestoreRSOSuccess,
+        isError: isRestoreRSOError,
+        error: restoreRSOError,
+        reset: resetRestoreRSO,
+    } = useMutation({
+        mutationFn: restoreRSORequest,
+        onSuccess: () => {
+            console.log("RSO restored successfully");
+            queryClient.invalidateQueries(["rsoData"]);
+        },
+        onError: (error) => {
+            console.error("Error restoring RSO:", error);
+        },
+        enabled: isUserAdmin || isUserCoordinator,
+    });
+
+    const {
         mutate: softDeleteRSOMutate,
         isLoading: isSoftDeleteRSOLoading,
         isSuccess: isSoftDeleteRSOSuccess,
@@ -735,6 +775,14 @@ function useAdminRSO({
         isRecognizeRSOSuccess,
         isRecognizeRSOError,
         recognizeRSOError,
+
+        // for admin restore RSO
+        restoreRSOMutate,
+        isRestoreRSOLoading,
+        isRestoreRSOSuccess,
+        isRestoreRSOError,
+        restoreRSOError,
+        resetRestoreRSO,
     }
 }
 

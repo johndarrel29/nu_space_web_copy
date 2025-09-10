@@ -40,12 +40,26 @@ export default function MainRSO() {
     rsoError,
     refetchRSOData,
 
+    hardDeleteRSOMutate,
+    isHardDeleteRSOLoading,
+    isHardDeleteRSOSuccess,
+    isHardDeleteRSOError,
+    hardDeleteRSOError,
+    resetHardDeleteRSO,
+
     softDeleteRSOMutate,
     isSoftDeleteRSOLoading,
     isSoftDeleteRSOSuccess,
     isSoftDeleteRSOError,
     softDeleteRSOError,
     resetSoftDeleteRSO,
+
+    restoreRSOMutate,
+    isRestoreRSOLoading,
+    isRestoreRSOSuccess,
+    isRestoreRSOError,
+    restoreRSOError,
+    resetRestoreRSO,
   } = useAdminRSO(filters);
 
 
@@ -105,10 +119,15 @@ export default function MainRSO() {
         RSO_category: snapshot.category || '',
         RSO_college: snapshot.college || '',
         RSO_picture: org.RSO_picture || '',
+        RSO_recognition: org.RSO_recognition_status?.status || '',
         RSO_memberCount: org.RSO_members?.length || 0,
-        RSO_membershipStatus: org.RSO_membershipStatus ? "true" : "false"
+        RSO_membershipStatus: org.RSO_membershipStatus ? "true" : "false",
+        RSO_isDeleted: org.RSO_isDeleted || false,
       };
     });
+
+  // console log rso recognition
+  console.log("RSO recognition:", rsoList);
 
   console.log("search query:", searchQuery);
 
@@ -242,26 +261,49 @@ export default function MainRSO() {
     dependencies: [handleCreate]
   });
 
-  const handleActionClick = (user) => {
-    // setSelectedUser(user);
-    console.log(" selected user data ", user)
-    // navigate('rso-details', { state: { user } });
+  const handleActionClick = (user, action) => {
+    if (action?.type === "restore" && user?.RSO_isDeleted === true) {
+      restoreRSOMutate({ id: user.id }, {
+        onSuccess: (data) => {
+          console.log("RSO restored successfully:", data);
+          toast.success("RSO restored successfully!");
+        },
+        onError: (error) => {
+          console.error("Error restoring RSO:", error);
+          toast.error("Failed to restore RSO. Please try again.");
+        }
+      });
+    }
 
-    softDeleteRSOMutate({ id: user.id }, {
-      onSuccess: (data) => {
-        console.log("RSO soft deleted successfully:", data);
-        toast.success("RSO soft deleted successfully!");
-      },
-      onError: (error) => {
-        console.error("Error soft deleting RSO:", error);
-        toast.error("Failed to soft delete RSO. Please try again.");
-      }
-    });
+    if (user?.RSO_isDeleted === false) {
+      softDeleteRSOMutate({ id: user.id }, {
+        onSuccess: (data) => {
+          console.log("RSO soft deleted successfully:", data);
+          toast.success("RSO soft deleted successfully!");
+        },
+        onError: (error) => {
+          console.error("Error soft deleting RSO:", error);
+          toast.error("Failed to soft delete RSO. Please try again.");
+        }
+      });
+    } else if (user?.RSO_isDeleted === true && action?.type !== "restore") {
+      hardDeleteRSOMutate({ id: user.id }, {
+        onSuccess: (data) => {
+          console.log("RSO hard deleted successfully:", data);
+          toast.success("RSO hard deleted successfully!");
+        },
+        onError: (error) => {
+          console.error("Error hard deleting RSO:", error);
+          toast.error("Failed to hard delete RSO. Please try again.");
+        }
+      });
+    }
+
   };
 
   const handleFilter = (value) => {
     console.log("Filter value:", value);
-    if (value && value === "Soft Deleted RSOs") {
+    if (value && value === "Deleted RSOs") {
       setFilters({
         ...filters,
         isDeleted: true,
@@ -333,9 +375,9 @@ export default function MainRSO() {
         </div>
       ) : (
         <ReusableTable
-          options={["All", "Soft Deleted RSOs", "New RSOs"]}
+          options={["All", "Deleted RSOs", "New RSOs"]}
           showAllOption={false}
-          value={filters.isDeleted ? "Soft Deleted RSOs" : filters.recognitionStatus === "new_rso" ? "New RSOs" : "All"}
+          value={filters.isDeleted ? "Deleted RSOs" : filters.recognitionStatus === "new_rso" ? "New RSOs" : "All"}
           onChange={(e) => handleFilter(e.target.value)}
           columnNumber={4}
           searchQuery={searchQuery}

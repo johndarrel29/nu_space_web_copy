@@ -84,7 +84,9 @@ export default function ReusableRSODescription({ rsoDetailData }) {
                                             <span
                                                 className={`capitalize inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getRecognitionStatusColor(rsoDetailData?.data?.RSO_recognition_status?.status)}`}
                                             >
-                                                {rsoDetailData?.data?.RSO_recognition_status?.status || 'Unknown'}
+                                                {rsoDetailData?.data?.RSO_recognition_status?.status
+                                                    ? rsoDetailData.data.RSO_recognition_status.status.replace(/_/g, " ").replace(/rso/gi, "RSO")
+                                                    : 'Unknown'}
                                             </span>
                                         </div>
                                     </td>

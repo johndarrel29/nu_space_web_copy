@@ -40,12 +40,20 @@ function RSOAction() {
     isCreateError,
     resetCreate,
 
-    hardDeleteRSOMutate,
-    isHardDeleteRSOLoading,
-    isHardDeleteRSOSuccess,
-    isHardDeleteRSOError,
-    hardDeleteRSOError,
-    resetHardDeleteRSO,
+    // hardDeleteRSOMutate,
+    // isHardDeleteRSOLoading,
+    // isHardDeleteRSOSuccess,
+    // isHardDeleteRSOError,
+    // hardDeleteRSOError,
+    // resetHardDeleteRSO,
+
+
+    softDeleteRSOMutate,
+    isSoftDeleteRSOLoading,
+    isSoftDeleteRSOSuccess,
+    isSoftDeleteRSOError,
+    softDeleteRSOError,
+    resetSoftDeleteRSO,
   } = useAdminRSO({ rsoID: id });
   const {
     academicYears,
@@ -369,19 +377,20 @@ function RSOAction() {
 
   const handleDelete = async () => {
     try {
-      hardDeleteRSOMutate({ id: data.id }, {
+      softDeleteRSOMutate({ id: data.id }, {
         onSuccess: (data) => {
-          console.log("RSO hard deleted successfully:", data);
+          console.log("RSO soft deleted successfully:", data);
           navigate('..', { relative: 'path' });
-          toast.success("RSO hard deleted successfully!");
+          toast.success("RSO soft deleted successfully!");
         },
         onError: (error) => {
-          console.error("Error hard deleting RSO:", error);
-          toast.error("Failed to hard delete RSO. Please try again.");
+          console.error("Error soft deleting RSO:", error);
+          toast.error("Failed to soft delete RSO. Please try again.");
         }
       });
     } catch (error) {
-
+      console.error("Error soft deleting RSO:", error);
+      toast.error("Failed to soft delete RSO. Please try again.");
     }
 
   };
@@ -680,8 +689,8 @@ function RSOAction() {
 
       <div className='w-full h-[1px] bg-gray-200 mt-4'></div>
 
-      <div className={`w-full flex gap-2 mt-4 ` + (isEdit ? 'justify-between' : 'justify-end')}>
-        {isEdit && (
+      <div className={`w-full flex gap-2 mt-4 ` + (isEdit && (rsoDetailData?.data?.RSO_isDeleted === false) ? 'justify-between' : 'justify-end')}>
+        {isEdit && (rsoDetailData?.data?.RSO_isDeleted === false) && (
           <Button
             variant="danger"
             onClick={handleDelete}

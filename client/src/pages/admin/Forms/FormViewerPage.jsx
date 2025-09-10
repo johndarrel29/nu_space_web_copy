@@ -21,118 +21,55 @@ function FormViewerPage() {
     const { activityId, activityName, rsoId, formId } = location.state || {};
     const [formJson, setFormJson] = useState(null);
     const [loading, setLoading] = useState(true);
-    // const { formId } = useParams();
-    const [userDisplay, setUserDisplay] = useState(null);
     const [showSubmitModal, setShowSubmitModal] = useState(false);
+    const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
+
     const {
         specificForm,
         isLoadingSpecificForm,
         isErrorSpecificForm,
         specificFormError,
-    } = useAdminCentralizedForms(formId);
+    } = useAdminCentralizedForms({ formId });
     const {
         specificRSOForm,
         isLoadingSpecificRSOForm,
         isErrorSpecificRSOForm,
         errorSpecificRSOForm,
-    } = useRSOForms(formId);
-    const { isUserRSORepresentative, isUserAdmin } = useUserStoreWithAuth();
-    const {
-        adminActivitySurvey,
-        adminActivitySurveyError,
-        isadminActivitySurveyLoading,
-        isadminActivitySurveyError,
-    } = useAdminSurvey({ activityId });
-    const {
-        activitySurveys,
-        isLoadingSurveys,
-        isErrorSurveys,
-        surveysError,
-    } = useSurvey(activityId);
+    } = useRSOForms({ formId });
 
     console.log("specific form data:", specificRSOForm);
 
     useEffect(() => {
-        if (isLoadingSpecificForm) {
-            console.log("is loading ", isLoadingSpecificForm);
-            console.log("Loading specific form...");
-            setLoading(true);
-            return;
+        if (isUserAdmin || isCoordinator) {
+            if (isLoadingSpecificForm) {
+                setLoading(true);
+                return;
+            }
+            if (specificForm && specificForm.form && specificForm.form.formJSON) {
+                setFormJson(specificForm.form.formJSON || null);
+                setLoading(false);
+                return;
+            }
+        } else if (isUserRSORepresentative) {
+            if (isLoadingSpecificRSOForm) {
+                setLoading(true);
+                return;
+            }
+            if (specificRSOForm && specificRSOForm.form && specificRSOForm.form.formJSON) {
+                setFormJson(specificRSOForm.form.formJSON || null);
+                setLoading(false);
+                return;
+            }
         }
-
-        if (specificForm && specificForm.form && specificForm.form.formJSON) {
-            setFormJson(specificForm.form.formJSON);
-            console.log("Specific form loaded:", specificForm.form.formJSON);
-            setLoading(false);
-        } else if (!isLoadingSpecificForm && formId) {
+        if (!isLoadingSpecificForm && !formId) {
             toast.error('Form not found. Please check the form ID.');
             setFormJson(null);
-            console.error("Form not found:", formId);
             setLoading(false);
             navigate(-1);
-
         }
-    }, [isLoadingSpecificForm, specificForm, formId]);
+    }, [isUserAdmin, isCoordinator, isUserRSORepresentative, isLoadingSpecificForm, isLoadingSpecificRSOForm, specificForm, specificRSOForm, formId, navigate]);
 
     console.log("form id: ", formId, "the forms is ", specificForm);
-    console.log("Activity Surveys:", activitySurveys);
-    console.log("Actual survey data: ", activitySurveys?.surveys[0]?.surveyJSON);
-
-    // useEffect(() => {
-    //     if (isUserRSORepresentative) {
-    //         setUserDisplay(activitySurveys?.surveys[0]?.surveyJSON);
-    //     } else if (isUserAdmin) {
-    //         setUserDisplay(adminActivitySurvey?.surveys[0]?.surveyJSON);
-    //     } else {
-    //         console.error("User is neither RSO Representative nor Admin, redirecting to error page");
-    //         toast.error("You do not have permission to view this form.");
-    //         return navigate("/error", { replace: true });
-    //     }
-    // }, [isUserRSORepresentative, isUserAdmin, activitySurveys, adminActivitySurvey]);
-
-    // useEffect(() => {
-    //     if (adminActivitySurvey) {
-    //         console.log("Admin activity survey data:", adminActivitySurvey);
-    //     } else if (!isadminActivitySurveyLoading) {
-    //         console.log("No admin activity survey data available.");
-    //     }
-
-    //     if (isadminActivitySurveyError && adminActivitySurveyError) {
-    //         console.error("Error fetching admin activity survey:", adminActivitySurveyError);
-    //         toast.error("Failed to fetch activity survey data.");
-    //     }
-    // }, [adminActivitySurvey, adminActivitySurveyError, isadminActivitySurveyLoading, isadminActivitySurveyError]);
-
-    // const storedSurvey = userDisplay;
-
-    // useEffect(() => {
-    //     if (isLoadingSurveys) {
-    //         return;
-    //     }
-
-    //     // if (storedSurvey && !isLoadingSurveys) {
-    //     //     try {
-    //     //         // Check if storedSurvey is already an object or needs parsing
-    //     //         if (typeof storedSurvey === 'string') {
-    //     //             setFormJson(JSON.parse(storedSurvey));
-    //     //         } else {
-    //     //             // It's already an object, use it directly
-    //     //             setFormJson(storedSurvey);
-    //     //         }
-    //     //     } catch (error) {
-    //     //         console.error("Error parsing survey JSON:", error);
-    //     //         toast.error('Failed to load form. Please try again later.');
-    //     //     }
-    //     // }
-    //     if (specificForm) {
-    //         setFormJson(specificForm.form.formJSON);
-    //     } else if (!specificForm) {
-    //         // Only show error if we're done loading and there's no survey
-    //         toast.error('Form not found. Please check the form ID.');
-    //         setLoading(false);
-    //     }
-    //     setLoading(false);
-    // }, [storedSurvey, isLoadingSurveys]);
 
     const handleFormSubmit = (data) => {
         setFormJson(data);

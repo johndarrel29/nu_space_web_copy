@@ -49,6 +49,19 @@ const createActivityAPI = async (activity) => {
             if (key === "Activity_imagePreview") return;
             if (key === "Activity_image" && value instanceof File) {
                 formData.append("file", value);
+                return;
+            }
+            // Convert date fields to UTC string
+            if (key === "Activity_start_datetime" && value) {
+                formData.append(key, new Date(value).toISOString());
+                return;
+            }
+            if (key === "Activity_end_datetime" && value) {
+                formData.append(key, new Date(value).toISOString());
+                return;
+            }
+            if (Array.isArray(value)) {
+                value.forEach(v => formData.append(key, v));
             } else {
                 formData.append(key, value);
             }
@@ -79,6 +92,8 @@ const createActivityAPI = async (activity) => {
 const updateActivityAPI = async ({ activityId, updatedData }) => {
     const token = localStorage.getItem("token");
     const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
+
+    console.log("Updating activity ID:", activityId, "with data:", updatedData);
 
     const isFileUpload = updatedData?.Activity_image instanceof File;
     let body;

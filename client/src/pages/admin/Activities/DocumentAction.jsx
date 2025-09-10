@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, act } from 'react';
 import { TextInput, Button, Backdrop, CloseButton, ReusableDropdown } from '../../../components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useRSOActivities } from '../../../hooks';
@@ -86,10 +86,11 @@ function DocumentAction() {
         Activity_name: data.Activity_name || '',
         Activity_image: data.Activity_image || '',
         activityImageUrl: data.activityImageUrl || null,
-        Activity_start_datetime: data?.Activity_start_datetime ? data.Activity_start_datetime : null,
+        Activity_start_datetime: data?.Activity_start_datetime ? dayjs(data.Activity_start_datetime) : null,
         Activity_end_datetime: data?.Activity_end_datetime ? dayjs(data.Activity_end_datetime) : null,
         Activity_picturePreview: data?.activityImageUrl || DefaultPicture,
         Activity_place: data.Activity_place || '',
+        formsUsed: data.formsUsed || [],
         Activity_description: data.Activity_description || '',
         Activity_GPOA: data.Activity_GPOA ?? false,
         Activity_publicity: data.Activity_publicity ?? false,
@@ -103,6 +104,7 @@ function DocumentAction() {
       Activity_GPOA: false,
       Activity_image: '',
       Activity_place: '',
+      formsUsed: [],
       Activity_on_off_campus: '',
       Activity_publicity: false,
       Activity_start_datetime: null,
@@ -111,6 +113,25 @@ function DocumentAction() {
       Activity_picturePreview: DefaultPicture,
     };
   });
+
+  useEffect(() => {
+    const store = useSelectedFormStore.getState().selectedForm;
+    const isStoreEmpty =
+      !store ||
+      (!store.feedbackForm || !store.feedbackForm?._id) &&
+      (!store.preActForm || !store.preActForm?._id);
+
+    if (isEdit &&
+      activityData.formsUsed &&
+      activityData.formsUsed.length > 0 &&
+      isStoreEmpty
+    ) {
+      useSelectedFormStore.getState().setSelectedForm({
+        feedbackForm: activityData.formsUsed[0] || "",
+        preActForm: activityData.formsUsed[1] || "",
+      });
+    }
+  }, [isEdit, activityData.formsUsed]);
 
   let campusValue = "";
   if (activityData.Activity_on_off_campus === 'on_campus') {
@@ -220,6 +241,17 @@ function DocumentAction() {
         console.log("Activity end datetime changed, will update this field.");
       }
 
+      // Check formsUsed (compare IDs)
+      const originalFormsUsed = Array.isArray(originalData.formsUsed) ? originalData.formsUsed.map(f => f._id) : [];
+      const storeFormsUsed = [selectedForm.feedbackForm?._id, selectedForm.preActForm?._id].filter(Boolean);
+      const formsChanged = originalFormsUsed.length !== storeFormsUsed.length || originalFormsUsed.some((id, idx) => id !== storeFormsUsed[idx]);
+      if (formsChanged) {
+        changedFields.formsUsed = storeFormsUsed;
+        console.log("FormsUsed changed, will update this field. ", selectedForm);
+      } else {
+        console.log("FormsUsed unchanged, skipping update for this field.");
+      }
+
       if (Object.keys(changedFields).length === 0) {
         console.log("No changes detected, not submitting.");
         return;
@@ -255,15 +287,25 @@ function DocumentAction() {
     const apiData = {
       ...activityData,
       Activity_GPOA: activityData.Activity_GPOA.toString(),
-      Activity_datetime: activityData.Activity_datetime?.toISOString() || 'null',
+      formsUsed: selectedForm
+        ? [selectedForm.feedbackForm?._id, selectedForm.preActForm?._id].filter(Boolean)
+        : [],
+      Activity_start_datetime: activityData.Activity_start_datetime
+        ? dayjs(activityData.Activity_start_datetime).toISOString()
+        : null,
+      Activity_end_datetime: activityData.Activity_end_datetime
+        ? dayjs(activityData.Activity_end_datetime).toISOString()
+        : null,
     };
+    delete apiData.Activity_datetime;
+    delete apiData.activityImageUrl;
 
     try {
       let result;
 
       if (isEdit && data?._id) {
         // Update existing activity
-        console.log("Updating activity with ID:", data._id);
+        console.log("Updating activity with data ", changedFields);
         result = await updateActivityMutate({ activityId: data._id, updatedData: changedFields },
           {
             onSuccess: (data) => {
@@ -278,6 +320,7 @@ function DocumentAction() {
           }
         );
       } else if (isCreate) {
+        console.log("Creating new activity with data:", apiData);
 
         const created = await createActivityMutate(apiData,
           {
@@ -515,7 +558,7 @@ function DocumentAction() {
               <label className="block text-sm font-medium text-gray-700">Start Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
-                  value={dayjs(activityData.Activity_start_datetime)}
+                  value={activityData.Activity_start_datetime}
                   onChange={handleDateChangeStart}
                   className="w-full"
                   slotProps={{
@@ -588,7 +631,12 @@ function DocumentAction() {
               <label className="block text-sm font-medium text-gray-700">Select a Form for the Activity</label>
               <Button
                 onClick={() => navigate("/activities/form-selection")}
-                style={"secondary"}>Selected: {selectedForm ? selectedForm.title : "none"}</Button>
+                style={"secondary"}>
+                <span className='text-sm truncate max-w-xs'>
+                  {/* Selected {activityData?.formsUsed?.map((forms) => forms.title).join(", ") || "None"} */}
+                  Selected: {selectedForm ? selectedForm.feedbackForm?.title + ", " + selectedForm.preActForm?.title : "none"}
+                </span>
+              </Button>
             </div>
           </section>
 

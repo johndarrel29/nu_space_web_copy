@@ -376,7 +376,7 @@ export default function BackendTable({ activeTab, rsoId = "" }) {
                                             </td>
 
                                             <td className="p-3">
-                                                <span className="text-sm text-gray-600">
+                                                <span className="text-sm text-gray-600 capitalize">
                                                     {row.purpose || "N/A"}
                                                 </span>
                                             </td>

@@ -1,6 +1,6 @@
 import { TextInput, Button, ReusableTable, Backdrop, CloseButton, TabSelector } from "../../../components";
 import { useState, useEffect } from "react";
-import { useAnnouncements } from "../../../hooks";
+import { useAnnouncements, useNotification } from "../../../hooks";
 import { toast } from "react-toastify";
 import { FormatDate } from "../../../utils";
 import { useModal } from "../../../hooks";
@@ -8,11 +8,24 @@ import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 
+// populate notificationsData onto table and filtering.
 
 
 function AnnouncementsPage() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    const user = JSON.parse(localStorage.getItem("user")) || {};
+
+    const {
+        // get notifications
+        notificationsData,
+        notificationsLoading,
+        notificationsError,
+        notificationsErrorDetails
+    } = useNotification({ userId: user?.id });
+
+    console.log("Notifications Data: ", notificationsData);
+
     const {
         createAnnouncementMutate,
         isCreating,

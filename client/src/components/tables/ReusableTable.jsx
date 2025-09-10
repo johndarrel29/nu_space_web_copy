@@ -1,9 +1,7 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { ReusableDropdown, Searchbar } from "../ui";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
-import { handleDocumentStatus } from '../../utils/useDocumentStatus';
 import Badge from "../ui/Badge"
-import { CardSkeleton } from '../../components';
 import { useActivities } from "../../hooks";
 
 export default function ReusableTable({
@@ -22,7 +20,7 @@ export default function ReusableTable({
     isLoading,
     onDocumentClick,
     showFilters = true,
-    activityId = null, // Default to null if not provided
+    activityId = null,
     searchQuery,
     setSearchQuery,
 }) {
@@ -198,7 +196,7 @@ export default function ReusableTable({
                                                                 <td key={heading.id} className="p-3">
 
                                                                     {
-                                                                        ["title", "document_status", "submittedBy", "createdAt", "actions", "RSO_membershipStatus", "remove"].includes(heading.key)
+                                                                        ["title", "document_status", "submittedBy", "createdAt", "actions", "RSO_membershipStatus", "remove", "RSO_isDeleted"].includes(heading.key)
                                                                             ? (
                                                                                 <>
                                                                                     <div className="py-0">
@@ -232,18 +230,51 @@ export default function ReusableTable({
                                                                                             </div>
                                                                                         )}
                                                                                         {heading.key === "remove" && (
-                                                                                            <div
-                                                                                                onClick={(e) => {
-                                                                                                    e.stopPropagation();
-                                                                                                    if (onActionClick) {
-                                                                                                        onActionClick(row);
-                                                                                                    } else {
-                                                                                                        handleDelete(activityId, row.id);
-                                                                                                    }
-                                                                                                }}
-                                                                                                className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
-                                                                                                <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 640 640"><path d="M183.1 137.4C170.6 124.9 150.3 124.9 137.8 137.4C125.3 149.9 125.3 170.2 137.8 182.7L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7L320.5 365.3L457.9 502.6C470.4 515.1 490.7 515.1 503.2 502.6C515.7 490.1 515.7 469.8 503.2 457.3L365.8 320L503.1 182.6C515.6 170.1 515.6 149.8 503.1 137.3C490.6 124.8 470.3 124.8 457.8 137.3L320.5 274.7L183.1 137.4z" /></svg>
-                                                                                            </div>
+                                                                                            <>
+                                                                                                {row.RSO_isDeleted === true ? (
+                                                                                                    <div className="flex gap-2">
+                                                                                                        {/* restore */}
+                                                                                                        <div
+                                                                                                            onClick={(e) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                if (onActionClick) {
+                                                                                                                    onActionClick(row, { type: "restore" });
+                                                                                                                } else {
+                                                                                                                    handleDelete(activityId, row.id);
+                                                                                                                }
+                                                                                                            }}
+                                                                                                            className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
+                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 640 640"><path d="M534.6 182.6C547.1 170.1 547.1 149.8 534.6 137.3L470.6 73.3C461.4 64.1 447.7 61.4 435.7 66.4C423.7 71.4 416 83.1 416 96L416 128L256 128C150 128 64 214 64 320C64 337.7 78.3 352 96 352C113.7 352 128 337.7 128 320C128 249.3 185.3 192 256 192L416 192L416 224C416 236.9 423.8 248.6 435.8 253.6C447.8 258.6 461.5 255.8 470.7 246.7L534.7 182.7zM105.4 457.4C92.9 469.9 92.9 490.2 105.4 502.7L169.4 566.7C178.6 575.9 192.3 578.6 204.3 573.6C216.3 568.6 224 556.9 224 544L224 512L384 512C490 512 576 426 576 320C576 302.3 561.7 288 544 288C526.3 288 512 302.3 512 320C512 390.7 454.7 448 384 448L224 448L224 416C224 403.1 216.2 391.4 204.2 386.4C192.2 381.4 178.5 384.2 169.3 393.3L105.3 457.3z" /></svg>
+                                                                                                        </div>
+                                                                                                        {/* hard delete */}
+                                                                                                        <div
+                                                                                                            onClick={(e) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                if (onActionClick) {
+                                                                                                                    onActionClick(row);
+                                                                                                                }
+                                                                                                            }}
+                                                                                                            className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
+                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 640 640"><path d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z" /></svg>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <>
+                                                                                                        {/* soft delete */}
+                                                                                                        <div
+                                                                                                            onClick={(e) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                if (onActionClick) {
+                                                                                                                    onActionClick(row);
+                                                                                                                } else {
+                                                                                                                    handleDelete(activityId, row.id);
+                                                                                                                }
+                                                                                                            }}
+                                                                                                            className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
+                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 640 640"><path d="M183.1 137.4C170.6 124.9 150.3 124.9 137.8 137.4C125.3 149.9 125.3 170.2 137.8 182.7L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7L320.5 365.3L457.9 502.6C470.4 515.1 490.7 515.1 503.2 502.6C515.7 490.1 515.7 469.8 503.2 457.3L365.8 320L503.1 182.6C515.6 170.1 515.6 149.8 503.1 137.3C490.6 124.8 470.3 124.8 457.8 137.3L320.5 274.7L183.1 137.4z" /></svg>
+                                                                                                        </div></>
+                                                                                                )}
+                                                                                            </>
                                                                                         )}
                                                                                         {heading.key === "RSO_membershipStatus" && (
                                                                                             row.RSO_membershipStatus === true ? (
@@ -265,7 +296,7 @@ export default function ReusableTable({
                                                                                     </div>
 
                                                                                 </>
-                                                                            ) : ["RSO_name", "RSO_College", "picture"].includes(heading.key)
+                                                                            ) : ["RSO_name", "RSO_College", "picture", "RSO_recognition"].includes(heading.key)
                                                                                 ? (
                                                                                     // Grouping these in one <td> with custom layout
                                                                                     <div className="flex items-center space-x-3">
@@ -291,6 +322,7 @@ export default function ReusableTable({
                                                                                         <div className="flex flex-col">
                                                                                             {heading.key === "RSO_name" && (
                                                                                                 <>
+                                                                                                    <span className="text-xs text-gray-500 capitalize">{row.RSO_recognition ? row.RSO_recognition.replace(/_/g, " ").replace(/rso/gi, "RSO") : ""}</span>
                                                                                                     <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.RSO_name}</span>
                                                                                                     <span className="text-xs text-gray-500">{row.RSO_College}</span>
                                                                                                 </>

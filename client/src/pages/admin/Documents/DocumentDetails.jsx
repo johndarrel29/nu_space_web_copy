@@ -55,8 +55,10 @@ export default function DocumentDetails() {
         return `${name || ''}${u.role ? (name ? ` – ${u.role}` : u.role) : ''}` || 'N/A';
     };
 
+    const documentIsApproved = documentDetail?.document?.avp_approved === true && documentDetail?.document?.director_approved === true && documentDetail?.document?.coordinator_approved === true;
     // TODO: the document detail returns null.
     // find how the docu id is being passed on the hook
+    console.log("documentIsApproved", documentIsApproved);
 
     // Approve document functionality
     const {
@@ -90,7 +92,7 @@ export default function DocumentDetails() {
     });
 
     // Define tabs conditionally based on user role
-    const tabs = (isUserAdmin || isUserRSORepresentative)
+    const tabs = (isUserAdmin || isUserRSORepresentative) || documentIsApproved
         ? [/* Removed Details tab */ { label: "Remarks" }]
         : [{ label: "Action" }, /* Removed Details tab */ { label: "Remarks" }];
 
@@ -98,7 +100,7 @@ export default function DocumentDetails() {
 
     // If user is admin, ensure activeTab is adjusted
     useEffect(() => {
-        if ((isUserAdmin || isUserRSORepresentative) && activeTab === 0) {
+        if ((isUserAdmin || isUserRSORepresentative) || documentIsApproved && activeTab === 0) {
             // For admin users, "Action" tab doesn't exist, so adjust tab indexes
             setActiveTab(0); // Set to "Remarks" tab
         }
@@ -143,7 +145,7 @@ export default function DocumentDetails() {
 
     // Helper function to get the real tab index for non-admin users
     const getTabContent = (tabIndex) => {
-        if (isUserAdmin || isUserRSORepresentative) {
+        if ((isUserAdmin || isUserRSORepresentative) || documentIsApproved) {
             // For admin users: 0 = Remarks
             if (tabIndex === 0) return renderRemarksTab();
         } else {
@@ -258,9 +260,11 @@ export default function DocumentDetails() {
     );
 
     const renderRemarksTab = () => (
-        <div>
+        <div className="flex flex-col items-start w-full">
             {doc?.remarks && doc.remarks.trim() ? (
-                <p className="whitespace-pre-line">{doc.remarks}</p>
+                <div className="max-w-lg w-fit bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 shadow-sm text-gray-800 whitespace-pre-line">
+                    {doc.remarks}
+                </div>
             ) : (
                 <div className="flex flex-col items-center justify-center py-8">
                     <svg
@@ -527,11 +531,11 @@ export default function DocumentDetails() {
                         </div>
                         <div className="rounded border border-mid-gray bg-white p-3">
                             <div className="text-xs text-gray-500">Content Type</div>
-                            <div className="font-medium">{doc?.contentType || 'N/A'}</div>
+                            <div className="font-medium capitalize">{doc?.contentType || 'N/A'}</div>
                         </div>
                         <div className="rounded border border-mid-gray bg-white p-3 sm:col-span-2">
                             <div className="text-xs text-gray-500">Purpose</div>
-                            <div className="font-medium">{doc?.purpose || 'N/A'}</div>
+                            <div className="font-medium capitalize">{doc?.purpose || 'N/A'}</div>
                         </div>
                     </div>
 

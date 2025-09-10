@@ -317,7 +317,7 @@ export default function Activities() {
    * Handles edit button click to navigate to edit page
    */
   const handleEditClick = () => {
-    navigate(`../document-action`, {
+    navigate(`../activity-action`, {
       state: {
         mode: "edit",
         data: activity,

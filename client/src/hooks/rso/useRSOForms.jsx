@@ -11,6 +11,8 @@ const getTemplateFormsRequest = async ({ queryKey }) => {
         if (search) queryParams.append("search", search);
         if (formType && formType !== "All") queryParams.append("formType", formType);
 
+        console.log("Fetching template forms with params:", `${process.env.REACT_APP_BASE_URL}/api/rsoRep/forms/fetch-forms?${queryParams.toString()}`);
+
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/forms/fetch-forms?${queryParams.toString()}`, {
             method: "GET",
             headers: {
@@ -31,9 +33,10 @@ const getTemplateFormsRequest = async ({ queryKey }) => {
     }
 }
 
-const getSpecificFormRequest = async (formId) => {
+const getSpecificFormRequest = async ({ queryKey }) => {
     try {
         const token = useTokenStore.getState().token;
+        const [_, formId] = queryKey;
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/forms/fetch-specific-form/${formId}`, {
             method: "GET",
             headers: {
@@ -56,10 +59,13 @@ const getSpecificFormRequest = async (formId) => {
 function useRSOForms({
     search = "",
     formType = "All",
+    formId = null,
 } = {}) {
     const { isUserRSORepresentative } = useUserStoreWithAuth();
 
-    const filters = {
+    console.log("calling useRSOForms with:", { search, formType, isUserRSORepresentative });
+
+    const filter = {
         search,
         formType,
     };
@@ -70,7 +76,7 @@ function useRSOForms({
         isError: isErrorRSOFormsTemplate,
         error: errorRSOFormsTemplate,
     } = useQuery({
-        queryKey: ["rsoFormsTemplate", filters],
+        queryKey: ["rsoFormsTemplate", filter],
         queryFn: getTemplateFormsRequest,
         refetchOnWindowFocus: false,
         enabled: !!isUserRSORepresentative, // Only run if the user is an RSO representative
@@ -82,10 +88,10 @@ function useRSOForms({
         isError: isErrorSpecificRSOForm,
         error: errorSpecificRSOForm,
     } = useQuery({
-        queryKey: ["specificForm"],
-        queryFn: () => getSpecificFormRequest(rsoFormsTemplate?.formId), // Assuming formId is available in rsoFormsTemplate
+        queryKey: ["specificForm", formId],
+        queryFn: getSpecificFormRequest,
         refetchOnWindowFocus: false,
-        enabled: !!rsoFormsTemplate?.formId, // Only run if formId is available
+        enabled: !!formId,
     });
 
     return {
