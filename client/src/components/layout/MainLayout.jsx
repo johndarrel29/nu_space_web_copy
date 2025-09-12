@@ -645,13 +645,13 @@ function MainLayout({ children }) {
             </div>
 
             {/* Page Content */}
-            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${((isActivityDetailsPage && activityStatus !== "approved") || (isRSODetailsPage && rsoStatus !== "recognized")) ? 'mb-24' : ''}`}>
+            <div className={`bg-white rounded-lg shadow-lg p-6 relative ${((isActivityDetailsPage && activityStatus !== "approved" && activityStatus !== "rejected") || (isRSODetailsPage && rsoStatus !== "recognized")) ? 'mb-24' : ''}`}>
               {children}
             </div>
           </main>
 
           {/* Reject/ approve bottom nav button */}
-          {((isActivityDetailsPage && activityStatus !== "approved") || (isRSODetailsPage && rsoStatus !== "recognized")) && (
+          {((isActivityDetailsPage && activityStatus !== "approved" && activityStatus !== "rejected") || (isRSODetailsPage && rsoStatus !== "recognized")) && (
             <div className="w-full py-6 bg-white fixed bottom-0 z-40 mt-auto flex items-center justify-center gap-4 border-t border-mid-gray">
               {isActivityDetailsPage && (
                 <Button

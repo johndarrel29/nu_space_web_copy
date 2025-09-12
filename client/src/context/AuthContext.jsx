@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext();
 
@@ -8,8 +9,6 @@ export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
     const queryClient = useQueryClient();
-
-
 
     // Check if user is already authenticated from localStorage
     useEffect(() => {
@@ -34,6 +33,7 @@ export function AuthProvider({ children }) {
                         console.warn(
                             `Token expired at: ${new Date(payload.exp * 1000).toLocaleString()}`
                         );
+                        toast.info("Session expired. Please log in again.");
                         // Token expired, clear storage
                         localStorage.removeItem("user");
                     }
@@ -42,6 +42,7 @@ export function AuthProvider({ children }) {
                         setTimeout(() => {
 
                             console.log(`Token expires in: ${expiresIn} ms`);
+                            // toast.info("Session expired. Please log in again.");
                             logout();
                         }, expiresIn);
                     }

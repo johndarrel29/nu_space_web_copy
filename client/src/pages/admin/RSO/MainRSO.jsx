@@ -121,13 +121,14 @@ export default function MainRSO() {
         RSO_picture: org.RSO_picture || '',
         RSO_recognition: org.RSO_recognition_status?.status || '',
         RSO_memberCount: org.RSO_members?.length || 0,
-        RSO_membershipStatus: org.RSO_membershipStatus ? "true" : "false",
+        RSO_membershipStatus: org.RSO_membershipStatus ? true : false,
         RSO_isDeleted: org.RSO_isDeleted || false,
       };
     });
 
   // console log rso recognition
   console.log("RSO recognition:", rsoList);
+  console.log("Table Rows:", tableRow);
 
   console.log("search query:", searchQuery);
 

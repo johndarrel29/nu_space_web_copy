@@ -6,6 +6,7 @@ import { DropIn } from "../../../animations/DropIn";
 import { FormatDate } from "../../../utils";
 import { useUserStoreWithAuth } from "../../../store";
 
+// todo: fix mapping of the json.
 
 //add error preferrably from query
 
@@ -88,55 +89,61 @@ export default function Users() {
     rsoMembers,
     isErrorFetchingMembers,
     errorFetchingMembers,
-    isRefetchingMembers
+    isRefetchingMembers,
+
+    rsoApplicants,
+    isErrorFetchingApplicants,
+    errorFetchingApplicants,
+    isRefetchingApplicants,
   } = useRSOUsers();
 
-  console.log("and the members are ", rsoMembers?.members || null);
+  console.log("and the applicants are ", rsoApplicants?.applicants?.map(applicant => ({
+    forms: applicant.answers,
+    studentInfo: applicant.studentId,
+  })) || null);
 
   const {
     membersData,
   } = useRSO();
 
+  const applicants = rsoApplicants?.applicants || [];
 
+  const tableRow = applicants.map(applicant => {
+    const applicantData = applicant || {};
+    const student = applicant.studentId || {};
+    const answersRoot = applicant.answers || {};
 
-  const tableRow = rsoMembers?.members?.map(member => ({
-    _id: member._id,
-    firstName: member.firstName,
-    lastName: member.lastName,
-    fullName: `${member.firstName} ${member.lastName}`,
-    email: member.email
-  })) || [];
+    return {
+      applicantData: applicantData,
+      studentId: student._id,
+      fullName: `${student.firstName || 'N/A'} ${student.lastName || 'N/A'}`,
+    }
+  }) || [];
+
+  console.log(" tableRow ", tableRow);
 
   function tableHeading() {
     return [
       { name: "Index", key: "index" },
       { name: "Name", key: "fullName" },
-      { name: "Email", key: "email" },
     ];
   }
 
 
   const tableRowFiltered = useMemo(() => {
-    return tableRow.filter((row) => {
-      const fullName = `${row.firstName} ${row.lastName}`.toLowerCase();
-      const email = row.email.toLowerCase();
-      // const college = row.college.toLowerCase();
-      const search = searchQuery.toLowerCase();
-
-      // Add this filtering logic
-      return search === '' ||
-        fullName.includes(search) ||
-        email.includes(search)
-      // college.includes(search);
-    }).map((row, idx) => ({
-      index: idx + 1,
-      fullName: `${row.firstName} ${row.lastName}`,
-      email: row.email,
-      // college: row.college,
-      // rsoMemberships: row.rsoMemberships,
-      // activitiesParticipated: row.activitiesParticipated,
-      id: row.id
-    }));
+    const search = (searchQuery || '').toLowerCase();
+    return tableRow
+      .filter(row => {
+        if (!search) return true;
+        const nameMatch = row.fullName.toLowerCase().includes(search);
+        return nameMatch;
+      })
+      .map((row, idx) => ({
+        index: idx + 1,
+        id: row.studentId,
+        fullName: row.fullName,
+        applicantData: row.applicantData,
+      }));
   }, [tableRow, searchQuery]);
 
   // User Info Modal State
@@ -145,15 +152,33 @@ export default function Users() {
     email: "",
     fullName: "",
     id: undefined,
-    index: 0
+    index: 0,
+    pages: [] // added
   });
 
   const handleOpenUserModal = (row) => {
+    console.log("row is ", row);
+    const rawPages = row?.applicantData?.answers?.pages || [];
+
+
+    const pages = rawPages.map((page, pIdx) => ({
+      pageIndex: pIdx,
+      title: page?.name || `Page ${pIdx + 1}`,
+      elements: (page?.elements || []).map((e, eIdx) => ({
+        elementIndex: eIdx,
+        title: e?.title || `Question ${eIdx + 1}`,
+        answer: (e?.answer && Array.isArray(e.answer))
+          ? e.answer.join(", ")
+          : (e?.answer ?? "N/A"),
+      }))
+    }));
+
     setUserModalData({
-      email: row.email || "poquizjc@students.national-u.edu.ph",
-      fullName: row.fullName || "John Darrel Poquiz",
+      email: row.email || "",
+      fullName: row.fullName || "",
       id: row.id,
-      index: row.index
+      index: row.index,
+      pages
     });
     setIsUserModalOpen(true);
   };
@@ -205,6 +230,7 @@ export default function Users() {
               options={["All", "Student", "RSO"]}
               tableRow={tableRowFiltered}
               searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
               placeholder={"Search a user"}
               onClick={handleOpenUserModal}
               tableHeading={tableHeading()}
@@ -230,39 +256,105 @@ export default function Users() {
               animate="visible"
               exit="exit"
             >
-              <div className="fixed inset-0 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-8 w-1/3">
-                  <div className='flex justify-between items-center mb-6'>
-                    <h2 className="text-lg font-medium text-[#312895]">
-                      User Information
-                    </h2>
-                    <CloseButton onClick={handleCloseUserModal} />
+              <div className="fixed inset-0 flex items-start justify-center z-50 p-8">
+                <div className="bg-white rounded-lg w-full max-w-5xl shadow-lg flex flex-col md:flex-row gap-6 p-8 max-h-[85vh] overflow-hidden">
+                  {/* Main Content: Form Review */}
+                  <div className="flex-1 flex flex-col min-h-0">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-xl font-semibold text-[#312895]">Application Review</h2>
+                    </div>
+                    {/* Scrollable responses container */}
+                    <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar max-h-[70vh]">
+                      {userModalData.pages.length === 0 && (
+                        <p className="text-sm text-gray-500">No responses available.</p>
+                      )}
+                      {/* Pages rendered as form sections */}
+                      {userModalData.pages.map((page) => (
+                        <div
+                          key={page.pageIndex}
+                          className="border border-gray-200 rounded-lg p-5 bg-white shadow-sm"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-semibold text-gray-800 capitalize">
+                              {page.title || `Untitled Page`}
+                            </h3>
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
+                              {page.elements.length} item{page.elements.length !== 1 && 's'}
+                            </span>
+                          </div>
+                          {page.elements.length === 0 && (
+                            <p className="text-sm text-gray-500 italic">No content available.</p>
+                          )}
+                          {page.elements.length > 0 && (
+                            <dl className="divide-y divide-gray-100">
+                              {page.elements.map((item, idx) => (
+                                <div
+                                  key={item.elementIndex || idx}
+                                  className="py-3 grid grid-cols-12 gap-4"
+                                >
+                                  <dt className="col-span-12 md:col-span-5 text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                                    {item.title || `Question ${idx + 1}`}
+                                  </dt>
+                                  <dd
+                                    className="col-span-12 md:col-span-7 text-sm text-gray-900 whitespace-pre-wrap break-words"
+                                    title={item.answer}
+                                  >
+                                    {item.answer === "" || item.answer === null
+                                      ? <span className="italic text-gray-400">No answer</span>
+                                      : item.answer}
+                                  </dd>
+                                </div>
+                              ))}
+                            </dl>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
                   </div>
-                  <div className='space-y-4'>
-                    <table className="w-full">
-                      <tbody>
-                        <tr>
-                          <td className="py-4 pr-8 text-gray-500">Full Name</td>
-                          <td className="py-4 font-medium">{userModalData.fullName}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-4 pr-8 text-gray-500">Email</td>
-                          <td className="py-4 font-medium">{userModalData.email}</td>
-                        </tr>
-                        <tr>
-                          <td className="py-4 pr-8 text-gray-500">Index</td>
-                          <td className="py-4 font-medium">{userModalData.index}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="flex justify-end mt-8">
-                    <Button
-                      onClick={handleCloseUserModal}
-                      style="secondary"
-                    >
-                      Close
-                    </Button>
+
+                  {/* Sidebar: Member Info + Actions */}
+                  <div className="w-full md:w-72 flex-shrink-0">
+                    <div className="w-full flex justify-end mb-4">
+                      <CloseButton onClick={handleCloseUserModal} />
+                    </div>
+                    <div className="border border-gray-200 rounded-lg p-5 space-y-6">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-700 tracking-wide mb-3">Member Info</h3>
+                        <table className="w-full text-sm">
+                          <tbody>
+                            <tr>
+                              <td className="py-2 pr-4 text-gray-500 align-top">Full Name</td>
+                              <td className="py-2 font-medium">{userModalData.fullName}</td>
+                            </tr>
+                            <tr>
+                              <td className="py-2 pr-4 text-gray-500 align-top">Applicant No.</td>
+                              <td className="py-2 font-medium">{userModalData.index}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="pt-4 border-t border-gray-200">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Action</h4>
+                        <Button
+                          onClick={() => { }}
+                          disabled
+                          className="w-full"
+                        >
+                          Approve Membership (Static)
+                        </Button>
+                        <p className="text-[11px] text-gray-500 mt-2">This action is static for now.</p>
+                      </div>
+                      <div>
+                        <Button
+                          onClick={handleCloseUserModal}
+                          style="secondary"
+                          className="w-full"
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

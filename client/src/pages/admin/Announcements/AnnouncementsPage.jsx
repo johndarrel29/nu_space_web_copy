@@ -1,9 +1,9 @@
 import { TextInput, Button, ReusableTable, Backdrop, CloseButton, TabSelector } from "../../../components";
-import { useState, useEffect } from "react";
-import { useAnnouncements, useNotification } from "../../../hooks";
+import { useState } from "react";
+import { useAnnouncements, useNotification, useModal } from "../../../hooks";
+import { useUserStoreWithAuth } from '../../../store';
 import { toast } from "react-toastify";
 import { FormatDate } from "../../../utils";
-import { useModal } from "../../../hooks";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
@@ -15,6 +15,9 @@ function AnnouncementsPage() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const user = JSON.parse(localStorage.getItem("user")) || {};
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeTab, setActiveTab] = useState(0); // added active tab state
+    const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
 
     const {
         // get notifications
@@ -49,24 +52,63 @@ function AnnouncementsPage() {
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-    // state for storing the edit title and description
-    const [editTitle, setEditTitle] = useState("");
-    const [editDescription, setEditDescription] = useState("");
-
     const fetchedAnnouncements = announcements?.RSOSpace?.announcement || [];
 
     // Store full content for viewing in the modal
-    const tableRow = fetchedAnnouncements.map((announcement) => ({
-        title: announcement.title,
+    // const tableRow = fetchedAnnouncements.map((announcement) => ({
+    //     title: announcement.title,
+    //     // Truncate content for table display (show only first 50 chars)
+    //     content: announcement.content?.length > 50
+    //         ? `${announcement.content.substring(0, 50)}...`
+    //         : announcement.content,
+    //     createdBy: announcement.createdBy,
+    //     createdAt: FormatDate(announcement.createdAt),
+    //     // Store the full data for the modal
+    //     fullData: announcement
+    // }));
+
+    const tableRow = notificationsData?.data?.map((notification) => ({
+        title: notification.title,
         // Truncate content for table display (show only first 50 chars)
-        content: announcement.content?.length > 50
-            ? `${announcement.content.substring(0, 50)}...`
-            : announcement.content,
-        createdBy: announcement.createdBy,
-        createdAt: FormatDate(announcement.createdAt),
+        message: notification.message?.length > 50
+            ? `${notification.message.substring(0, 50)}...`
+            : notification.message,
+        createdBy: notification.createdBy,
+        createdAt: FormatDate(notification.createdAt),
+        notifType: notification.data.type,
         // Store the full data for the modal
-        fullData: announcement
-    }));
+        fullData: notification
+    })) || [];
+
+    // Mock sent notifications data (tableRowSent)
+    const tableRowSent = [
+        {
+            title: 'System Maintenance',
+            message: 'Scheduled maintenance on Friday at 10 PM...',
+            createdBy: user?.firstName || 'Admin',
+            createdAt: FormatDate(new Date().toISOString()),
+            notifType: 'system',
+            fullData: { title: 'System Maintenance', content: 'Scheduled maintenance on Friday at 10 PM. Expect brief downtime.', createdBy: user?.firstName || 'Admin', createdAt: new Date().toISOString(), data: { type: 'system' } }
+        },
+        {
+            title: 'Survey Reminder',
+            message: 'Please complete the feedback survey for last event...',
+            createdBy: user?.firstName || 'Admin',
+            createdAt: FormatDate(new Date(Date.now() - 86400000).toISOString()),
+            notifType: 'reminder',
+            fullData: { title: 'Survey Reminder', content: 'Please complete the feedback survey for last event to help us improve.', createdBy: user?.firstName || 'Admin', createdAt: new Date(Date.now() - 86400000).toISOString(), data: { type: 'reminder' } }
+        },
+        {
+            title: 'New Feature Release',
+            message: 'We have released a new dashboard feature...',
+            createdBy: user?.firstName || 'Admin',
+            createdAt: FormatDate(new Date(Date.now() - 172800000).toISOString()),
+            notifType: 'update',
+            fullData: { title: 'New Feature Release', content: 'We have released a new dashboard feature to improve analytics viewing.', createdBy: user?.firstName || 'Admin', createdAt: new Date(Date.now() - 172800000).toISOString(), data: { type: 'update' } }
+        }
+    ];
+
+    const rowsToDisplay = activeTab === 0 ? tableRow : tableRowSent;
 
     const announcementHeading = [
         {
@@ -74,12 +116,12 @@ function AnnouncementsPage() {
             "name": "Title"
         },
         {
-            "key": "content",
-            "name": "Content"
+            "key": "message",
+            "name": "Message"
         },
         {
-            "key": "createdBy",
-            "name": "Created By"
+            "key": "notifType",
+            "name": "Type"
         },
         {
             "key": "createdAt",
@@ -122,65 +164,13 @@ function AnnouncementsPage() {
         );
     }
 
-    const handleAnnouncementDelete = () => {
-        if (!selectedAnnouncement) {
-            toast.error("No announcement selected for deletion.");
-            return;
-        }
-        deleteAnnouncementMutate(selectedAnnouncement._id, {
-            onSuccess: () => {
-                toast.success("Announcement deleted successfully!");
-                refetchAnnouncements();
-                closeDetailsModal();
-            },
-            onError: (error) => {
-                toast.error("Failed to delete announcement. Please try again.");
-            },
-        });
-    }
-
-    const handleAnnouncementUpdate = () => {
-        // compare the original and edited values
-        if (editTitle === selectedAnnouncement.title && editDescription === selectedAnnouncement.content) {
-            toast.info("No changes made to the announcement.");
-            return;
-        }
-
-        if (!selectedAnnouncement || !editTitle || !editDescription) {
-            setError("Please fill in all fields.");
-            return;
-        }
-
-        console.log("Updating announcement:", {
-            id: selectedAnnouncement._id,
-            title: editTitle,
-            content: editDescription,
-        });
-
-        updateAnnouncementMutate(
-            { announcementId: selectedAnnouncement._id, title: editTitle, content: editDescription },
-            {
-                onSuccess: () => {
-                    toast.success("Announcement updated successfully!");
-                    refetchAnnouncements();
-                    closeDetailsModal();
-                    setTitle("");
-                    setDescription("");
-                },
-                onError: (error) => {
-                    toast.error("Failed to update announcement. Please try again.");
-                },
-            }
-        );
-    }
-
     // listen if a user clicked a row
-    useEffect(() => {
-        if (isDetailsModalOpen && selectedAnnouncement) {
-            setEditTitle(selectedAnnouncement.title);
-            setEditDescription(selectedAnnouncement.content);
-        }
-    }, [isDetailsModalOpen, selectedAnnouncement]);
+    // useEffect(() => {
+    //     if (isDetailsModalOpen && selectedAnnouncement) {
+    //         setEditTitle(selectedAnnouncement.title);
+    //         setEditDescription(selectedAnnouncement.content);
+    //     }
+    // }, [isDetailsModalOpen, selectedAnnouncement]);
 
     const notificationTab = [
         { label: "Received" },
@@ -193,17 +183,18 @@ function AnnouncementsPage() {
                 <div className='flex justify-start md:order-2 p-2'>
                     <Button onClick={openModal}>Create an Announcement</Button>
                 </div>
-                <TabSelector tabs={notificationTab} />
+                <TabSelector tabs={notificationTab} activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
             <div >
                 <ReusableTable
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                     columnNumber={4}
                     tableHeading={announcementHeading}
-                    tableRow={tableRow}
+                    tableRow={rowsToDisplay}
                     onClick={handleRowClick}
                     isLoading={false}
                     options={["All", "Latest", "Oldest"]}
-                    searchQuery={""}
                     error={null}
                 />
             </div>
@@ -294,54 +285,54 @@ function AnnouncementsPage() {
                                 <CloseButton onClick={closeDetailsModal} />
                             </div>
 
-
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Title</h3>
-                                    <TextInput
-                                        value={editTitle}
-                                        onChange={(e) => setEditTitle(e.target.value)}
-                                    >
-                                    </TextInput>
+                                    <p className="text-base font-medium break-words">
+                                        {selectedAnnouncement.title || "—"}
+                                    </p>
                                 </div>
 
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Content</h3>
-                                    <textarea
-                                        id="Description"
-                                        rows="4"
-                                        name="announcement_description"
-                                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        placeholder="Write your announcement here"
-                                        onChange={(e) => setEditDescription(e.target.value)}
-                                        value={editDescription}
-                                        onClick={() => setError(null)}
-                                    />
+                                    <h3 className="text-sm font-medium text-gray-500">Message / Content</h3>
+                                    <p className="text-sm whitespace-pre-wrap break-words">
+                                        {selectedAnnouncement.message ||
+                                            selectedAnnouncement.content ||
+                                            "—"}
+                                    </p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-500">Created By</h3>
-                                        <p className="text-sm">{selectedAnnouncement.createdBy}</p>
+                                        <h3 className="text-sm font-medium text-gray-500">Type</h3>
+                                        <p className="text-sm capitalize">
+                                            {selectedAnnouncement?.data?.type || "—"}
+                                        </p>
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-500">Created On</h3>
-                                        <p className="text-sm">{FormatDate(selectedAnnouncement.createdAt)}</p>
+                                        <p className="text-sm">
+                                            {FormatDate(selectedAnnouncement.createdAt)}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500">Created By</h3>
+                                        <p className="text-sm">
+                                            {selectedAnnouncement.createdBy || "—"}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500">ID</h3>
+                                        <p className="text-xs text-gray-600 break-all">
+                                            {selectedAnnouncement._id || "—"}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between mt-6 gap-4">
-                                <Button
-                                    style="secondary"
-                                    onClick={handleAnnouncementDelete}
-                                >
-                                    Delete
-                                </Button>
-                                <Button
-                                    onClick={handleAnnouncementUpdate}
-                                >
-                                    Update Announcement
+                            <div className="flex justify-end mt-6">
+                                <Button style="secondary" onClick={closeDetailsModal}>
+                                    Close
                                 </Button>
                             </div>
                         </motion.div>
