@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { useQuery } from "@tanstack/react-query";
 import "../css/pdfViewer.css";
-import useTokenStore from '../store/tokenStore';
+import { useTokenStore } from "../store";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -28,7 +28,7 @@ function PDFViewer({ docId }) {
     const { data: pdfData, isLoading, error } = useQuery({
         queryKey: ['pdf', docId],
         queryFn: async () => {
-            const res = await fetch(`http://localhost:5000/api/admin/documents/pdf/${docId}`, {
+            const res = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/documents/pdf/${docId}`, {
                 headers: {
                     'Authorization': token,
                 }
@@ -58,6 +58,8 @@ function PDFViewer({ docId }) {
                     {Array.from(new Array(numPages), (_el, index) => (
                         <div key={`page_${index + 1}`} className="mb-8">
                             <Page
+                                renderTextLayer={false}
+                                renderAnnotationLayer={false}
                                 pageNumber={index + 1}
                                 width={containerWidth ? Math.min(containerWidth, maxWidth) : maxWidth}
                             />

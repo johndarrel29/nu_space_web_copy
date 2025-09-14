@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import classNames from 'classnames';
 import { useAuth } from "../context/AuthContext";
 import { useLogin, useKeyBinding } from '../hooks';
+import { useTokenStore } from '../store';
 import { TextInput, Button } from "../components";
 import style from '../css/Login.module.css';
 import User from "../assets/images/user-icon.png";
@@ -105,6 +106,11 @@ export default function MainLogin() {
                 onSuccess: (data) => {
                     if (!data?.token) {
                         throw new Error("No token received");
+                    }
+
+                    const token = data?.token || data?.data?.token;
+                    if (token) {
+                        useTokenStore.getState().setToken(token);
                     }
 
                     const tokenPart = data.token.replace('Bearer ', '');

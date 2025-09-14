@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "../../context/AuthContext";
+import { useTokenStore } from "../../store";
 
 const loginUserRequest = async ({ email, password, platform }) => {
     console.log("Login request initiated with email:", email, "and platform:", platform, "password:", password);
@@ -185,7 +186,9 @@ function useLogin() {
     } = useMutation({
         mutationFn: loginUserRequest,
         onSuccess: (data) => {
-            localStorage.setItem("token", data.token);
+            // localStorage.setItem("token", data.token);
+            useTokenStore.getState().setToken(data.token);
+
         },
         onError: (error) => {
             console.error("Error logging in:", error);

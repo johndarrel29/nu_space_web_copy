@@ -5,6 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import { FormatDate } from "../../../utils";
 import { useUserStoreWithAuth } from "../../../store";
+import { toast } from "react-toastify";
+
+// approval status fix
+// it returns rejected even if its approved
+// doesnt refetch after approving
 
 // todo: fix mapping of the json.
 
@@ -90,11 +95,19 @@ export default function Users() {
     isErrorFetchingMembers,
     errorFetchingMembers,
     isRefetchingMembers,
+    refetchMembers,
 
     rsoApplicants,
     isErrorFetchingApplicants,
     errorFetchingApplicants,
     isRefetchingApplicants,
+    refetchApplicants,
+
+    approveMembership,
+    isApprovingMembership,
+    isErrorApprovingMembership,
+    errorApprovingMembership,
+    isSuccessApprovingMembership,
   } = useRSOUsers();
 
   console.log("and the applicants are ", rsoApplicants?.applicants?.map(applicant => ({
@@ -111,11 +124,12 @@ export default function Users() {
   const tableRow = applicants.map(applicant => {
     const applicantData = applicant || {};
     const student = applicant.studentId || {};
-    const answersRoot = applicant.answers || {};
 
     return {
       applicantData: applicantData,
+      applicationId: applicantData._id,
       studentId: student._id,
+      approvalStatus: applicantData.approvalStatus || "N/A",
       fullName: `${student.firstName || 'N/A'} ${student.lastName || 'N/A'}`,
     }
   }) || [];
@@ -126,6 +140,7 @@ export default function Users() {
     return [
       { name: "Index", key: "index" },
       { name: "Name", key: "fullName" },
+      { name: "Approval Status", key: "approvalStatus" },
     ];
   }
 
@@ -143,6 +158,7 @@ export default function Users() {
         id: row.studentId,
         fullName: row.fullName,
         applicantData: row.applicantData,
+        approvalStatus: row.approvalStatus,
       }));
   }, [tableRow, searchQuery]);
 
@@ -151,6 +167,7 @@ export default function Users() {
   const [userModalData, setUserModalData] = useState({
     email: "",
     fullName: "",
+    applicationId: undefined,
     id: undefined,
     index: 0,
     pages: [] // added
@@ -177,11 +194,30 @@ export default function Users() {
       email: row.email || "",
       fullName: row.fullName || "",
       id: row.id,
+      applicationId: row.applicantData?._id || undefined,
       index: row.index,
       pages
     });
     setIsUserModalOpen(true);
   };
+
+  const handleApproveMembership = () => {
+    console.log("Approve Membership clicked for user ID:", userModalData.applicationId);
+
+    approveMembership({ id: userModalData.applicationId }, {
+      onSuccess: () => {
+        refetchApplicants();
+        // Optionally close the modal or give feedback
+        toast.success("Membership approved successfully");
+        setIsUserModalOpen(false);
+      },
+      onError: (error) => {
+        console.error("Error approving membership:", error);
+        toast.error("Failed to approve membership. Please try again.");
+      }
+
+    })
+  }
 
   const handleCloseUserModal = () => {
     setIsUserModalOpen(false);
@@ -235,7 +271,7 @@ export default function Users() {
               onClick={handleOpenUserModal}
               tableHeading={tableHeading()}
               isLoading={isRefetchingMembers}
-              columnNumber={9}
+              columnNumber={3}
             >
 
             </ReusableTable>
@@ -337,13 +373,11 @@ export default function Users() {
                       <div className="pt-4 border-t border-gray-200">
                         <h4 className="text-sm font-semibold text-gray-700 mb-2">Action</h4>
                         <Button
-                          onClick={() => { }}
-                          disabled
+                          onClick={handleApproveMembership}
                           className="w-full"
                         >
-                          Approve Membership (Static)
+                          Approve Membership
                         </Button>
-                        <p className="text-[11px] text-gray-500 mt-2">This action is static for now.</p>
                       </div>
                       <div>
                         <Button

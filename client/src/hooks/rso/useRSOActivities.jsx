@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../../context/AuthContext';
-import { useUserStoreWithAuth } from "../../store";
-import useTokenStore from "../../store/tokenStore";
+import { useUserStoreWithAuth, useTokenStore } from "../../store";
 
 const getActivityDocumentsRequest = async ({ queryKey }) => {
     try {

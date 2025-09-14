@@ -1,6 +1,5 @@
-import useTokenStore from "../../store/tokenStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useUserStoreWithAuth } from '../../store';
+import { useUserStoreWithAuth, useTokenStore } from '../../store';
 import { useEffect } from "react";
 
 const getAVPDocuments = async ({ queryKey }) => {

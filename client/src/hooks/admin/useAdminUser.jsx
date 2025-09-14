@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import useTokenStore from "../../store/tokenStore";
+import { useTokenStore } from "../../store/tokenStore";
 import { useUserStoreWithAuth } from '../../store';
 import { useAuth } from "../../context/AuthContext";
 import { useEffect } from "react";

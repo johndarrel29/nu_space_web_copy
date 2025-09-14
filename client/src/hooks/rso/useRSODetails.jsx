@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useUserStoreWithAuth } from "../../store";
+import { useUserStoreWithAuth, useTokenStore } from "../../store";
 
 // for rso fetch members (pure API helper)
 const fetchMembers = async () => {
-    const token = localStorage.getItem("token");
+    const token = useTokenStore.getState().getToken();
     const formattedToken = token?.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
     const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rso/members`, {

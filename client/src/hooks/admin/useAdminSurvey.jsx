@@ -1,9 +1,10 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../../context/AuthContext';
+import { useTokenStore } from "../../store/tokenStore";
 
 // API call function
 const getRSOActivitySurvey = async (activityId) => {
-    const token = localStorage.getItem("token");
+    const token = useTokenStore.getState().getToken();
 
     try {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rsoSurvey/activitySurvey/${activityId}`, {

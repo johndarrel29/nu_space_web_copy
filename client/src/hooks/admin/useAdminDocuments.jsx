@@ -1,8 +1,7 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from '../../context/AuthContext';
-import { useUserStoreWithAuth } from "../../store";
+import { useUserStoreWithAuth, useTokenStore } from "../../store";
 import { useEffect } from "react";
-import useTokenStore from "../../store/tokenStore";
 
 // =============API Calls
 // for admin

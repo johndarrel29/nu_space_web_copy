@@ -10,10 +10,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { toast } from 'react-toastify';
 import { useUserStoreWithAuth, useDocumentStore, useActivityStatusStore } from '../../../store';
 
-// pre and post now works
-// todo: add view results button on view click on form card
-// populate real data to the participants tab
-// populate real data to the forms used tab
+// TODO: Replace static participants and forms data with live backend data when available.
 
 export default function Activities() {
   const { user } = useAuth();
@@ -43,13 +40,11 @@ export default function Activities() {
   // State management
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [modalType, setModalType] = useState(null);
-  const [files, setFiles] = useState(null);
-  const [progress, setProgress] = useState({ started: false, pc: 0 });
-  const [msg, setMsg] = useState(null);
+  // Removed unused file upload related state (files, progress, msg)
   const [activeTab, setActiveTab] = useState(0);
-  const [titles, setTitles] = useState("");
+  // Removed unused titles state
   const [searchQuery, setSearchQuery] = useState("");
-  const [showStatusMessage, setShowStatusMessage] = useState(false);
+  // Removed unused showStatusMessage state
   const [filter, setFilter] = useState("All");
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
@@ -108,6 +103,14 @@ export default function Activities() {
   const activity = viewActivityData || {};
   console.log("Activity data:", activity);
 
+  // Ensure formsUsed is always an array to prevent runtime errors when mapping
+  const mapFormsUsed = Array.isArray(activity?.formsUsed)
+    ? activity.formsUsed
+    : activity?.formsUsed && typeof activity.formsUsed === 'object'
+      // In case backend returns an object keyed by ids instead of array
+      ? Object.values(activity.formsUsed)
+      : [];
+
   console.log("activityId:", activityId, "activityPreDocument:", activityPreDocument);
 
   useEffect(() => {
@@ -121,15 +124,7 @@ export default function Activities() {
   }, [activity.Activity_approval_status, setActivityStatus]);
 
   // Effect to handle upload status messages
-  useEffect(() => {
-    if (isCreatingSuccess || createError) {
-      setShowStatusMessage(true);
-      setShowStatusMessage(false);
-      setModalType(null);
-      setFiles(null);
-      return () => clearTimeout();
-    }
-  }, [isCreatingSuccess, createError]);
+  // Cleanup: removed effect handling showStatusMessage & file cleanup (unused UI)
 
   // Tab configuration
   const tabs = [
@@ -138,15 +133,7 @@ export default function Activities() {
     { label: "Participants" }
   ];
 
-  // Effect to clear status messages after timeout
-  useEffect(() => {
-    if (msg) {
-      const timer = setTimeout(() => {
-        setMsg(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [msg]);
+  // Removed msg timeout effect (msg state removed)
 
   // always start at top
   useEffect(() => {
@@ -194,84 +181,7 @@ export default function Activities() {
     { name: "Action", key: "actions" }
   ];
 
-  /**
-   * Handles file upload process
-   */
-  const handleFileUpload = () => {
-    if (!files) {
-      setMsg("Please select a file first!");
-      return;
-    }
-
-    const fd = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      fd.append(`file${i + 1}`, files[i]);
-    }
-
-    setMsg("Uploading file...");
-    fetch("http://httpbin.org/post", {
-      method: "POST",
-      body: fd,
-      headers: { "Custom-Header": "value" }
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Network response was not ok");
-        setMsg("File uploaded successfully!");
-        return res.json();
-      })
-      .then(data => console.log(data))
-      .catch((err) => {
-        console.error(err);
-        setMsg("File upload failed.");
-      });
-  };
-
-  /**
-   * Handles file selection from input
-   * @param {Event} e - File input change event
-   */
-  const handleFileChange = (e) => {
-    setFiles(Array.from(e.target.files));
-  };
-
-  /**
-   * Removes a file from the selected files array
-   * @param {number} index - Index of file to remove
-   */
-  const removeFile = (index) => {
-    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
-  };
-
-  /**
-   * Submits the selected files for upload
-   */
-  const handleSubmit = async () => {
-    try {
-      if (!files || files.length === 0) {
-        console.error("No file to upload or title provided.");
-        setMsg("Please select a file and provide a title.");
-        return;
-      }
-
-      console.log("Submitting document:", files, "titles:", titles);
-
-      for (let i = 0; i < files.length; i++) {
-        const fd = new FormData();
-        fd.append('files', files[i]);
-        fd.append('title', files[i].title || `Untitled ${i + 1}`);
-        fd.append('description', files[i].description || "No description provided");
-
-        console.log(`Submitting formData for file ${i + 1}:`);
-        for (const [key, value] of fd.entries()) {
-          console.log(`${key}: ${value instanceof File ? value.name : value}`);
-        }
-
-        await createActivityDoc({ activityId: activityId, formData: fd });
-      }
-    } catch (error) {
-      console.error("Error submitting document:", error);
-    }
-  };
+  // Removed legacy file upload helper functions (handleFileUpload, handleFileChange, removeFile, handleSubmit)
 
   /**
    * Handles document click to show details
@@ -553,13 +463,7 @@ export default function Activities() {
                 </svg>
                 <span className="text-off-black text-xs">{activity?.Activity_registration_total || 0} participants</span>
               </div>
-              {/* Created At Badge */}
-              {/* <div className="flex items-center bg-white border border-gray-300 rounded-full px-4 py-2 gap-2 min-w-[140px]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="size-4 fill-gray-600" viewBox="0 0 512 512">
-                  <path d="M256 0a256 256 0 1 1 0 512A256 256 0 1 1 256 0zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z" />
-                </svg>
-                <span className="text-off-black text-xs">{formatDate(activity?.createdAt)}</span>
-              </div> */}
+              {/* Removed commented Created At badge */}
             </div>
 
             <div className='w-full flex flex-col gap-4 mt-4'>
@@ -665,7 +569,7 @@ export default function Activities() {
             {activeTab === 1 && (
               <div className="w-full mt-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {staticFormsUsed.map(form => (
+                  {(mapFormsUsed || []).map(form => (
                     <div key={form._id} className="bg-white rounded-lg border border-gray-300 hover:border-gray-500 transition-shadow">
                       <div className="p-6">
                         <div className="flex justify-between items-start">
@@ -698,13 +602,13 @@ export default function Activities() {
 
             {activeTab === 2 && (
               <div className="w-full mt-4">
-                {staticParticipants.length > 0 ? (
+                {(activity?.Activity_registration_participants || []).length > 0 ? (
                   <div className="bg-white border border-gray-300 rounded-lg p-6">
                     <h3 className="text-sm font-semibold text-gray-700 mb-4">Participants</h3>
                     <ul className="space-y-2">
-                      {staticParticipants.map(p => (
-                        <li key={p.id} className="text-sm text-gray-800 border border-gray-200 rounded-md px-4 py-2 bg-gray-50">
-                          {p.name}
+                      {(activity?.Activity_registration_participants || []).map(p => (
+                        <li key={p._id} className="text-sm text-gray-800 border border-gray-200 rounded-md px-4 py-2 bg-gray-50">
+                          {p.firstName} {p.lastName}
                         </li>
                       ))}
                     </ul>

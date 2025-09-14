@@ -1,4 +1,4 @@
-import useTokenStore from "../../store/tokenStore";
+import { useTokenStore } from "../../store";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 // only enable this if the user is super admin

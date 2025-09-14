@@ -1,15 +1,12 @@
 import { TextInput, Button, ReusableTable, Backdrop, CloseButton, TabSelector } from "../../../components";
 import { useState } from "react";
-import { useAnnouncements, useNotification, useModal } from "../../../hooks";
+import { useNotification, useModal, useAdminRSO } from "../../../hooks";
+import Select from 'react-select';
 import { useUserStoreWithAuth } from '../../../store';
-import { toast } from "react-toastify";
 import { FormatDate } from "../../../utils";
-import { AnimatePresence } from "framer-motion";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
-
-// populate notificationsData onto table and filtering.
-
+import { toast } from "react-toastify";
 
 function AnnouncementsPage() {
     const [title, setTitle] = useState("");
@@ -18,33 +15,46 @@ function AnnouncementsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState(0); // added active tab state
     const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
+    const [selectedRSOs, setSelectedRSOs] = useState([]);
+
+    const {
+        rsoData,
+        isRSOLoading,
+        isRSOError,
+        rsoError,
+        refetchRSOData,
+    } = useAdminRSO();
+
+    console.log("RSO Data: ", rsoData);
 
     const {
         // get notifications
         notificationsData,
         notificationsLoading,
         notificationsError,
-        notificationsErrorDetails
+        notificationsErrorDetails,
+
+        // post notification
+        postNotification,
+        postNotificationLoading,
+        postNotificationError,
+        postNotificationErrorDetails,
+
+        // get sent notifications
+        sentNotificationsData,
+        sentNotificationsLoading,
+        sentNotificationsError,
+        sentNotificationsErrorDetails,
+
+        postSpecificRSONotification,
+        postSpecificRSONotificationLoading,
+        postSpecificRSONotificationError,
+        postSpecificRSONotificationErrorDetails,
     } = useNotification({ userId: user?.id });
 
     console.log("Notifications Data: ", notificationsData);
+    console.log("Sent Notifications Data: ", sentNotificationsData?.announcements);
 
-    const {
-        createAnnouncementMutate,
-        isCreating,
-        announcements,
-        refetchAnnouncements,
-        deleteAnnouncementMutate,
-        isDeleting,
-        isSuccessDelete,
-        isErrorDelete,
-
-        updateAnnouncementMutate,
-        isUpdating,
-        isSuccessUpdate,
-        isErrorUpdate,
-        updateError,
-    } = useAnnouncements();
     const { isOpen, openModal, closeModal } = useModal();
     const [error, setError] = useState(null);
 
@@ -52,20 +62,28 @@ function AnnouncementsPage() {
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-    const fetchedAnnouncements = announcements?.RSOSpace?.announcement || [];
-
-    // Store full content for viewing in the modal
-    // const tableRow = fetchedAnnouncements.map((announcement) => ({
-    //     title: announcement.title,
-    //     // Truncate content for table display (show only first 50 chars)
-    //     content: announcement.content?.length > 50
-    //         ? `${announcement.content.substring(0, 50)}...`
-    //         : announcement.content,
-    //     createdBy: announcement.createdBy,
-    //     createdAt: FormatDate(announcement.createdAt),
-    //     // Store the full data for the modal
-    //     fullData: announcement
-    // }));
+    // Helper to safely format createdBy which may be an array, object, string, or undefined
+    const formatCreatedBy = (createdBy) => {
+        if (Array.isArray(createdBy)) {
+            return createdBy
+                .map(c => {
+                    if (c == null) return null;
+                    if (typeof c === 'string') return c;
+                    if (typeof c === 'object') {
+                        // Try common name fields
+                        return [c.firstName, c.lastName].filter(Boolean).join(' ') || c.name || c.username || c.email || null;
+                    }
+                    return null;
+                })
+                .filter(Boolean)
+                .join(', ');
+        }
+        if (createdBy && typeof createdBy === 'object') {
+            return [createdBy.firstName, createdBy.lastName].filter(Boolean).join(' ') || createdBy.name || createdBy.username || createdBy.email || '—';
+        }
+        if (typeof createdBy === 'string') return createdBy;
+        return '—';
+    };
 
     const tableRow = notificationsData?.data?.map((notification) => ({
         title: notification.title,
@@ -73,42 +91,30 @@ function AnnouncementsPage() {
         message: notification.message?.length > 50
             ? `${notification.message.substring(0, 50)}...`
             : notification.message,
-        createdBy: notification.createdBy,
+        createdBy: formatCreatedBy(notification.createdBy),
         createdAt: FormatDate(notification.createdAt),
-        notifType: notification.data.type,
+        notifType: notification.data?.type,
         // Store the full data for the modal
         fullData: notification
     })) || [];
 
     // Mock sent notifications data (tableRowSent)
-    const tableRowSent = [
-        {
-            title: 'System Maintenance',
-            message: 'Scheduled maintenance on Friday at 10 PM...',
-            createdBy: user?.firstName || 'Admin',
-            createdAt: FormatDate(new Date().toISOString()),
-            notifType: 'system',
-            fullData: { title: 'System Maintenance', content: 'Scheduled maintenance on Friday at 10 PM. Expect brief downtime.', createdBy: user?.firstName || 'Admin', createdAt: new Date().toISOString(), data: { type: 'system' } }
-        },
-        {
-            title: 'Survey Reminder',
-            message: 'Please complete the feedback survey for last event...',
-            createdBy: user?.firstName || 'Admin',
-            createdAt: FormatDate(new Date(Date.now() - 86400000).toISOString()),
-            notifType: 'reminder',
-            fullData: { title: 'Survey Reminder', content: 'Please complete the feedback survey for last event to help us improve.', createdBy: user?.firstName || 'Admin', createdAt: new Date(Date.now() - 86400000).toISOString(), data: { type: 'reminder' } }
-        },
-        {
-            title: 'New Feature Release',
-            message: 'We have released a new dashboard feature...',
-            createdBy: user?.firstName || 'Admin',
-            createdAt: FormatDate(new Date(Date.now() - 172800000).toISOString()),
-            notifType: 'update',
-            fullData: { title: 'New Feature Release', content: 'We have released a new dashboard feature to improve analytics viewing.', createdBy: user?.firstName || 'Admin', createdAt: new Date(Date.now() - 172800000).toISOString(), data: { type: 'update' } }
-        }
-    ];
+    const tableRowSent = sentNotificationsData?.announcements?.map((notification) => ({
+        title: notification.title,
+        // Truncate content for table display (show only first 50 chars)
+        message: notification.content?.length > 50
+            ? `${notification.content.substring(0, 50)}...`
+            : notification.content,
+        createdBy: formatCreatedBy(notification.createdBy),
+        createdAt: FormatDate(notification.createdAt),
+        notifType: null,
+        // Store the full data for the modal
+        fullData: notification
+    })) || [];
 
     const rowsToDisplay = activeTab === 0 ? tableRow : tableRowSent;
+
+    console.log("selectedRSOs:", selectedRSOs);
 
     const announcementHeading = [
         {
@@ -120,13 +126,13 @@ function AnnouncementsPage() {
             "name": "Message"
         },
         {
+            "key": "createdAt",
+            "name": "Date"
+        },
+        {
             "key": "notifType",
             "name": "Type"
         },
-        {
-            "key": "createdAt",
-            "name": "Date"
-        }
     ];
 
     // Handle row click to show details modal
@@ -146,50 +152,82 @@ function AnnouncementsPage() {
             setError("Please fill in all fields.");
             return;
         }
-        // Here you would typically send the announcement data to your backend
-        console.log("Announcement created:", { title, description });
-        createAnnouncementMutate({ title, content: description },
-            {
-                onSuccess: () => {
-                    toast.success("Announcement created successfully!");
-                    setTitle("");
-                    refetchAnnouncements();
-                    closeModal();
-                    setDescription("");
-                },
-                onError: (error) => {
-                    alert("Failed to create announcement. Please try again.");
-                },
-            }
-        );
+
+        if (selectedRSOs.length === 0) {
+            postNotification({ title, content: description },
+                {
+                    onSuccess: () => {
+                        toast.success("Announcement created successfully!");
+                        console.log("Notification posted successfully");
+                        // Reset form + close
+                        setTitle("");
+                        setDescription("");
+                        closeModal();
+                    },
+                    onError: (err) => {
+                        setError(err.message || "Failed to create announcement.");
+                        toast.error(`Error: ${err.message || "Failed to create announcement."}`);
+                    }
+                }
+            );
+        } else {
+            postSpecificRSONotification({ title, content: description, rsoIds: selectedRSOs },
+                {
+                    onSuccess: () => {
+                        toast.success("Announcement created successfully!");
+                        console.log("RSO-specific notification posted successfully");
+                        // Reset form + close
+                        setTitle("");
+                        setDescription("");
+                        setSelectedRSOs([]);
+                        closeModal();
+                    },
+                    onError: (err) => {
+                        setError(err.message || "Failed to create announcement.");
+                        toast.error(`Error: ${err.message || "Failed to create announcement."}`);
+                    }
+                }
+            );
+        }
+    };
+
+    const notificationTab =
+        (isUserAdmin || isCoordinator) ?  // Only Admins and Coordinators can see "Sent" tab
+            [
+                { label: "Received" },
+                { label: "Sent" }
+            ] : [
+                { label: "Received" }
+            ];
+
+    // TEMP: Using mock RSO options for testing instead of live API data
+    // Restore original mapping below when backend is ready:
+    const rsos = rsoData?.rsos?.map((rso) => ({
+        value: rso.rsoId || rso.id,
+        label: rso.RSO_snapshot?.name || 'Unnamed RSO'
+    })) || [];
+
+    const handleSelectedRSOs = (selectedOptions) => {
+        console.log("Selected RSOs:", selectedOptions);
+        // You can store selected RSOs in state if needed
+        setSelectedRSOs(selectedOptions.map(option => option.value));
     }
-
-    // listen if a user clicked a row
-    // useEffect(() => {
-    //     if (isDetailsModalOpen && selectedAnnouncement) {
-    //         setEditTitle(selectedAnnouncement.title);
-    //         setEditDescription(selectedAnnouncement.content);
-    //     }
-    // }, [isDetailsModalOpen, selectedAnnouncement]);
-
-    const notificationTab = [
-        { label: "Received" },
-        { label: "Sent" }
-    ]
 
     return (
         <>
             <div className="flex flex-col md:flex-row justify-between mb-4">
-                <div className='flex justify-start md:order-2 p-2'>
-                    <Button onClick={openModal}>Create an Announcement</Button>
-                </div>
+                {(isUserAdmin || isCoordinator) && (
+                    <div className='flex justify-start md:order-2 p-2'>
+                        <Button onClick={openModal}>Create an Announcement</Button>
+                    </div>
+                )}
                 <TabSelector tabs={notificationTab} activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
             <div >
                 <ReusableTable
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
-                    columnNumber={4}
+                    columnNumber={3}
                     tableHeading={announcementHeading}
                     tableRow={rowsToDisplay}
                     onClick={handleRowClick}
@@ -218,6 +256,15 @@ function AnnouncementsPage() {
                                 <CloseButton onClick={closeModal} />
                             </div>
                             <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500">Select RSO</h3>
+                                    <Select
+                                        isMulti
+                                        className="basic-multi-select"
+                                        onChange={handleSelectedRSOs}
+                                        options={rsos} />
+
+                                </div>
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Title</h3>
                                     <TextInput
@@ -256,9 +303,8 @@ function AnnouncementsPage() {
                                 </Button>
                                 <Button
                                     onClick={handleNotification}
-                                    disabled={isCreating}
                                 >
-                                    {isCreating ? "Creating..." : "Create Announcement"}
+                                    Create Announcement
                                 </Button>
                             </div>
                         </motion.div>
@@ -318,7 +364,7 @@ function AnnouncementsPage() {
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-500">Created By</h3>
                                         <p className="text-sm">
-                                            {selectedAnnouncement.createdBy || "—"}
+                                            {formatCreatedBy(selectedAnnouncement.createdBy)}
                                         </p>
                                     </div>
                                     <div>

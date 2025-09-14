@@ -4,6 +4,22 @@ import DefaultPicture from "../../assets/images/default-profile.jpg";
 import Badge from "../ui/Badge"
 import { useActivities } from "../../hooks";
 
+// Moved the inline array into constants + helper
+const SPECIAL_HEADING_KEYS = [
+    "title",
+    "document_status",
+    "submittedBy",
+    "createdAt",
+    "actions",
+    "RSO_membershipStatus",
+    "remove",
+    "RSO_isDeleted",
+    "message",
+    "notifType",
+];
+
+const isSpecialHeadingKey = (key) => SPECIAL_HEADING_KEYS.includes(key);
+
 export default function ReusableTable({
     columnNumber,
     tableHeading,
@@ -196,14 +212,22 @@ export default function ReusableTable({
                                                                 <td key={heading.id} className="p-3">
 
                                                                     {
-                                                                        ["title", "document_status", "submittedBy", "createdAt", "actions", "RSO_membershipStatus", "remove", "RSO_isDeleted"].includes(heading.key)
+                                                                        isSpecialHeadingKey(heading.key)
                                                                             ? (
                                                                                 <>
                                                                                     <div className="py-0">
-                                                                                        {heading.key === "title" && (
+                                                                                        {(heading.key === "title") && (
                                                                                             <div className="flex items-center space-x-3">
                                                                                                 <div className="text-sm font-medium text-gray-900">{firstPostIndex + index + 1}</div>
-                                                                                                <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.title}</span>
+                                                                                                <div>
+                                                                                                    {/* <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.title}</span> */}
+
+                                                                                                    <>
+                                                                                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.title}</span>
+                                                                                                        <div className="text-xs text-gray-500 capitalize">{row.notifType ? row.notifType.replace(/_/g, " ") : ""
+                                                                                                        }</div>
+                                                                                                    </>
+                                                                                                </div>
                                                                                             </div>
                                                                                         )}
                                                                                         {heading.key === "document_status" && (
@@ -276,6 +300,12 @@ export default function ReusableTable({
                                                                                                 )}
                                                                                             </>
                                                                                         )}
+                                                                                        {heading.key === "message" && (
+                                                                                            <div className="flex flex-col">
+                                                                                                <span className="text-sm text-gray-500 dark:text-gray-400">{row.message}</span>
+                                                                                            </div>
+                                                                                        )}
+
                                                                                         {heading.key === "RSO_membershipStatus" && (
                                                                                             row.RSO_membershipStatus === true ? (
                                                                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">

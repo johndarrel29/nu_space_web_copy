@@ -350,7 +350,7 @@ export default function DocumentDetails() {
     const statusDisplay = handleDocumentStatus(doc?.document_status);
 
     return (
-        <div className="flex flex-col items-center justify-start w-full relative">
+        <div className="flex flex-col items-center justify-start w-full relative px-3 sm:px-4 lg:px-6 pb-16">
             {/* Back navigation button */}
             <div
                 onClick={handleBackClick}
@@ -365,7 +365,7 @@ export default function DocumentDetails() {
                 </svg>
             </div>
 
-            <div className="flex flex-col w-[800px] justify-center mb-4">
+            <div className="flex flex-col w-full max-w-5xl justify-center mb-6">
                 {/* Document Detail Card */}
                 <div
                     onClick={handleDocumentClick}
@@ -414,7 +414,7 @@ export default function DocumentDetails() {
                         Status
                     </h3>
                 </div>
-                <div className=" flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                     {/* Document Status */}
                     <div className={`flex items-center gap-1 py-1 px-3 rounded-full font-semibold text-xs shadow-sm
                         ${statusDisplay.label === 'Approved' ? 'bg-green-100 text-green-800 border border-green-300'
@@ -482,7 +482,7 @@ export default function DocumentDetails() {
                 {/* Key Approvals (most important) */}
                 <section className="mt-8">
                     <h3 className="text-sm font-semibold text-gray-700 mb-3">Key Approvals</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         <div className="rounded border border-mid-gray bg-white p-3 flex items-start gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" className="size-5 text-primary fill-current mt-0.5" viewBox="0 0 640 640">
                                 <path d="M240 192C240 147.8 275.8 112 320 112C364.2 112 400 147.8 400 192C400 236.2 364.2 272 320 272C275.8 272 240 236.2 240 192zM448 192C448 121.3 390.7 64 320 64C249.3 64 192 121.3 192 192C192 262.7 249.3 320 320 320C390.7 320 448 262.7 448 192z" />
@@ -516,7 +516,7 @@ export default function DocumentDetails() {
                 {/* Submission Details (second priority) */}
                 <section className="mt-6">
                     <h3 className="text-sm font-semibold text-gray-700 mb-3">Submission Details</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div className="rounded border border-mid-gray bg-white p-3">
                             <div className="text-xs text-gray-500">Submitted By</div>
                             <div className="font-medium break-words">{doc ? getUserDisplay(doc.submittedBy) : 'No User Found'}</div>
@@ -533,14 +533,14 @@ export default function DocumentDetails() {
                             <div className="text-xs text-gray-500">Content Type</div>
                             <div className="font-medium capitalize">{doc?.contentType || 'N/A'}</div>
                         </div>
-                        <div className="rounded border border-mid-gray bg-white p-3 sm:col-span-2">
+                        <div className="rounded border border-mid-gray bg-white p-3 sm:col-span-2 lg:col-span-3">
                             <div className="text-xs text-gray-500">Purpose</div>
                             <div className="font-medium capitalize">{doc?.purpose || 'N/A'}</div>
                         </div>
                     </div>
 
                     {/* Other metadata (least priority) */}
-                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         <div className="rounded border border-gray-200 bg-background p-3">
                             <div className="text-xs text-gray-500">Academic Year</div>
                             <div className="text-gray-700">{doc?.academicYear?.label || 'N/A'}</div>
@@ -557,7 +557,7 @@ export default function DocumentDetails() {
                 </section>
 
                 {/* Tab Selector */}
-                <div className="mt-8 mb-4">
+                <div className="mt-10 mb-6">
                     <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
                 </div>
 
@@ -570,7 +570,9 @@ export default function DocumentDetails() {
                 )}
 
                 {/* Tab Content */}
-                {getTabContent(activeTab)}
+                <div className="w-full">
+                    {getTabContent(activeTab)}
+                </div>
             </div>
         </div>
     );

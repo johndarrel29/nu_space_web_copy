@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../../context/AuthContext';
-import { useUserStoreWithAuth } from "../../store";
-import useTokenStore from "../../store/tokenStore";
+import { useUserStoreWithAuth, useTokenStore } from "../../store";
 
 // for rso representative
 // looks like this url is no longer available in backend

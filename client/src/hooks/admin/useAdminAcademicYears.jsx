@@ -1,4 +1,4 @@
-import useTokenStore from "../../store/tokenStore";
+import { useTokenStore } from "../../store/tokenStore";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 // API call function

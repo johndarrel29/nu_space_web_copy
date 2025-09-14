@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDashboard, useAdminUser, useRSODetails } from '../../../hooks';
 import { Button, Backdrop, CloseButton, ReportPage } from '../../../components'
 import { FormatDate } from '../../../utils';
+import formatRelativeTime from '../../../utils/formatRelativeTime';
 import { useUserStoreWithAuth } from '../../../store';
 import defaultImage from '../../../assets/images/default-picture.png';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -47,12 +48,6 @@ export default function Dashboard() {
   const reactToPrintFn = useReactToPrint({ contentRef });
 
 
-  console.log("Created Activities:", createdActivities);
-
-  console.log(isUserRSORepresentative && "documents data ", {
-    accreditation,
-    activity,
-  })
 
   const {
     rsoDetails,
@@ -71,8 +66,6 @@ export default function Dashboard() {
     isAdminProfileRefetching,
   } = useAdminUser();
 
-  console.log("admin Profile:", adminProfile)
-  console.log("RSO Details:", rsoDetails?.rso?.RSO_name)
 
   useEffect(() => {
     if (isUserRSORepresentative) {
@@ -124,14 +117,14 @@ export default function Dashboard() {
     recentActivity: isUserRSORepresentative
       ? createdActivities?.activities?.map((activity) => ({
         id: activity._id,
-        title: activity.Activity_name,
-        status: activity.status || activity.document_status,
+        title: activity.Activity_approval_status,
+        status: activity.Activity_approval_status || activity.document_status,
         date: activity.updatedAt,
       })) ?? []
       : dashboardStats?.documentList?.map((doc) => ({
         id: doc._id,
         title: doc.title,
-        status: doc.document_status,
+        status: doc.Activity_approval_status,
         date: doc.updatedAt,
       })) ?? [],
   };
@@ -323,9 +316,11 @@ export default function Dashboard() {
                   <div key={activity._id} className="flex justify-between items-center border-b border-gray-100 pb-2">
                     <div className="flex flex-col">
                       <span className="font-medium">{activity.title}</span>
-                      <span className="text-xs text-gray-500">{FormatDate(activity.updatedAt)}</span>
+                      <span className="text-xs text-gray-500">{formatRelativeTime(activity.updatedAt)}</span>
                     </div>
-                    {getStatusBadge(activity.document_status)}
+                    <h1>
+                      {getStatusBadge(activity.status || "Unknown")}
+                    </h1>
                   </div>
                 ))
               ) : (
@@ -346,7 +341,7 @@ export default function Dashboard() {
                     />
                     <div className="flex flex-col">
                       <span className="font-medium">{activity.Activity_name}</span>
-                      <span className="text-xs text-gray-500">{FormatDate(activity.updatedAt)}</span>
+                      <span className="text-xs text-gray-500">{formatRelativeTime(activity.updatedAt)}</span>
                     </div>
                   </div>
                 ))
@@ -383,52 +378,57 @@ export default function Dashboard() {
       {/* Generate Report Modal */}
       {isReportModalOpen && (
         <>
-          <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30" />
-          <div className="fixed inset-0 z-50 w-screen h-screen flex items-center justify-center">
+          {/* Backdrop with click to close */}
+          <Backdrop
+            className="fixed inset-0 z-50 bg-black/40"
+            onClick={() => setIsReportModalOpen(false)}
+          />
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Generate Report"
+            onKeyDown={(e) => { if (e.key === 'Escape') setIsReportModalOpen(false); }}
+          >
             <motion.div
-              className="bg-white rounded-lg p-0 w-full max-w-2xl shadow-lg flex flex-col"
-              style={{ minHeight: 300 }}
+              className="relative flex flex-col w-full h-full sm:h-auto sm:max-h-[95vh] sm:rounded-lg bg-white shadow-xl border border-gray-200 max-w-full md:max-w-[860px] lg:max-w-[900px]"
               variants={DropIn}
               initial="hidden"
               animate="visible"
               exit="exit"
             >
-              {/* Header: spans full width */}
-              <div className='flex justify-between items-center px-8 pt-8 pb-4 border-b border-gray-100'>
-                <h2 className="text-lg font-medium text-[#312895]">
-                  Generate Report
-                </h2>
+              {/* Sticky Header */}
+              <div className="flex items-center justify-between px-5 sm:px-8 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+                <h2 className="text-base sm:text-lg font-medium text-[#312895]">Generate Report</h2>
                 <CloseButton onClick={() => setIsReportModalOpen(false)} />
               </div>
-              {/* Static Content */}
-              <div
-                className="px-8 py-8 mx-auto w-full overflow-y-auto"
-                style={{
-                  maxWidth: '794px', // A4 width in px at 96dpi
-                  minHeight: '400px',
-                  width: '100%',
-                  maxHeight: '60vh',
-                }}
-              >
-                <div className="space-y-4">
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-6">
+                <div
+                  className="mx-auto w-full"
+                  style={{
+                    maxWidth: '794px', // Exact A4 width at 96dpi; container widened outside to remove side scroll
+                  }}
+                >
                   <ReportPage
                     reference={contentRef}
-                    reportTitle={isUserRSORepresentative ? rsoDetails?.rso?.RSO_name : "SDAO Report"}
+                    reportTitle={isUserRSORepresentative ? rsoDetails?.rso?.RSO_name : 'SDAO Report'}
                     dashboardData={stats}
                   />
                 </div>
               </div>
-              {/* Actions, always visible at bottom */}
-              <div className="w-full flex flex-col md:flex-row justify-end items-stretch px-8 py-6 gap-3 border-t border-gray-100 bg-white">
+              {/* Sticky Footer */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 px-5 sm:px-8 py-4 border-t border-gray-100 bg-white sticky bottom-0">
                 <Button
                   onClick={() => setIsReportModalOpen(false)}
                   style="secondary"
+                  className="w-full sm:w-auto"
                 >
                   Close
                 </Button>
                 <Button
                   onClick={reactToPrintFn}
-                  className="px-6 bg-[#312895] hover:bg-[#312895]/90 text-white"
+                  className="w-full sm:w-auto px-6 bg-[#312895] hover:bg-[#312895]/90 text-white"
                 >
                   Generate
                 </Button>

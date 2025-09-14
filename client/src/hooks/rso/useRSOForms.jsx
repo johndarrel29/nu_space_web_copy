@@ -1,5 +1,4 @@
-import { useUserStoreWithAuth } from "../../store";
-import useTokenStore from "../../store/tokenStore";
+import { useUserStoreWithAuth, useTokenStore } from "../../store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const getTemplateFormsRequest = async ({ queryKey }) => {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
-import useTokenStore from "../store/tokenStore";
+import { useTokenStore } from "../store";
 
 const fetchAdminDocsRequest = async () => {
     try {
