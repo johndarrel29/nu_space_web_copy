@@ -1,9 +1,10 @@
 // render this as the page then test to see if writing and dragging works.
 import interact from 'interactjs'
 import { useRef, useEffect, useState, useCallback } from 'react';
-import imageSample from '../assets/images/NUSpace_blue.png'
+// import imageSample from '../assets/images/NUSpace_blue.png'
+// import imageSample from '../assets/images/icon_yellow.png'
 
-export default function DraggableSandbox({ onUpdate }) {
+export default function DraggableSandbox({ onUpdate, imageSample }) {
     // Track dynamic width/height based on the intrinsic image size
     // Start with a desired initial height (60px) and compute width once image loads
     const DESIRED_INITIAL_HEIGHT = 60;

@@ -91,20 +91,22 @@ export default function DocumentDetails() {
         approve: false,
     });
 
-    // Define tabs conditionally based on user role
-    const tabs = (isUserAdmin || isUserRSORepresentative) || documentIsApproved
-        ? [/* Removed Details tab */ { label: "Remarks" }]
-        : [{ label: "Action" }, /* Removed Details tab */ { label: "Remarks" }];
+    // Define tabs conditionally based on user role or approval state.
+    // If coordinator has already approved (doc?.coordinator_approved), hide/disable Action tab.
+    const showOnlyRemarks = (isUserAdmin || isUserRSORepresentative) || documentIsApproved || (doc?.coordinator_approved === true);
+    const tabs = showOnlyRemarks
+        ? [{ label: "Remarks" }]
+        : [{ label: "Action" }, { label: "Remarks" }];
 
     const [activeTab, setActiveTab] = useState(0);
 
     // If user is admin, ensure activeTab is adjusted
     useEffect(() => {
-        if ((isUserAdmin || isUserRSORepresentative) || documentIsApproved && activeTab === 0) {
-            // For admin users, "Action" tab doesn't exist, so adjust tab indexes
-            setActiveTab(0); // Set to "Remarks" tab
+        if (((isUserAdmin || isUserRSORepresentative) || documentIsApproved || doc?.coordinator_approved) && activeTab > 0) {
+            // Ensure we are on the only existing tab (Remarks) if Action was removed
+            setActiveTab(0);
         }
-    }, [isUserAdmin, isUserRSORepresentative, activeTab]);
+    }, [isUserAdmin, isUserRSORepresentative, documentIsApproved, doc?.coordinator_approved, activeTab]);
 
     const handleBackClick = () => {
         navigate(-1);
@@ -145,14 +147,15 @@ export default function DocumentDetails() {
 
     // Helper function to get the real tab index for non-admin users
     const getTabContent = (tabIndex) => {
-        if ((isUserAdmin || isUserRSORepresentative) || documentIsApproved) {
-            // For admin users: 0 = Remarks
+        if ((isUserAdmin || isUserRSORepresentative) || documentIsApproved || (doc?.coordinator_approved && isCoordinator)) {
+            // Only Remarks tab available
             if (tabIndex === 0) return renderRemarksTab();
         } else {
-            // For non-admin users: 0 = Action, 1 = Remarks
+            // Action + Remarks
             if (tabIndex === 0) return renderActionTab();
             if (tabIndex === 1) return renderRemarksTab();
         }
+        return null;
     };
 
     // Rendering functions for tab content

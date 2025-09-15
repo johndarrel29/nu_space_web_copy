@@ -554,7 +554,7 @@ function DocumentAction() {
 
       <div className="flex items-center justify-center w-full">
         {/* details */}
-        <div className="space-y-6 w-full max-w-2xl">
+        <div className=" w-full max-w-2xl">
           <section className="bg-white p-6 rounded-2xl space-y-4">
             <h2 className="text-xl font-semibold text-gray-800">Basic Information</h2>
 
@@ -643,6 +643,7 @@ function DocumentAction() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Select a Form for the Activity</label>
               <Button
+                disabled={isCreate ? true : false}
                 onClick={() => navigate("/activities/form-selection", { state: isEdit ? { mode: "edit" } : { mode: "create" } })}
                 style={"secondary"}>
                 <span className='text-sm truncate max-w-xs'>
@@ -653,9 +654,8 @@ function DocumentAction() {
             </div>
           </section>
 
-          <section className="flex flex-row gap-4 items-center justify-between p-6">
+          <section className="flex flex-row justify-between px-6 items-start">
             <div>
-              <label className="block text-sm font-medium text-gray-700" htmlFor='gpoa-checkbox'>GPOA status</label>
               <div className="flex items-center space-x-3">
                 <input
                   type="checkbox"
@@ -665,13 +665,12 @@ function DocumentAction() {
                   className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
                 />
                 <label htmlFor="gpoa-checkbox" className="block text-sm font-medium text-gray-700">
-                  Is GPOA Activity
+                  Is GPOA Activity?
                 </label>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 text-right" htmlFor='publicity'>Activity Publicity</label>
               <div className="flex items-center space-x-3">
                 <input
                   type="checkbox"
@@ -681,7 +680,7 @@ function DocumentAction() {
                   className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
                 />
                 <label htmlFor="gpoa-checkbox" className="block text-sm font-medium text-gray-700">
-                  Is Public Activity
+                  Is open for all colleges?
                 </label>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useDashboard, useAdminUser, useRSODetails } from '../../../hooks';
+import { useDashboard, useAdminUser, useRSODetails, useSignature, useUserProfile } from '../../../hooks';
 import { Button, Backdrop, CloseButton, ReportPage } from '../../../components'
 import { FormatDate } from '../../../utils';
 import formatRelativeTime from '../../../utils/formatRelativeTime';
@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
 import { DropIn } from "../../../animations/DropIn";
+import { toast } from 'react-toastify';
 
 // map the data throughout the UI
 
@@ -21,6 +22,57 @@ function getRSODataLabel() {
 export default function Dashboard() {
   const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
   const navigate = useNavigate();
+  const {
+    rsoDetails,
+    isRSODetailsLoading,
+    isRSODetailsError,
+    isRSODetailsSuccess,
+  } = useRSODetails();
+
+  const {
+    // fetching admin profile
+    adminProfile,
+    isAdminProfileLoading,
+    isAdminProfileError,
+    adminProfileError,
+    refetchAdminProfile,
+    isAdminProfileRefetching,
+  } = useAdminUser();
+
+
+  const {
+    // upload mutation
+    mutateUploadSignature,
+    isUploading,
+    isUploadError,
+    uploadError,
+    uploadData,
+    // fetch query
+    signatureData,
+    isFetching,
+    isFetchError,
+    fetchError,
+    refetchSignature,
+
+    // delete mutation
+    mutateDeleteSignature,
+    isDeleting,
+    isDeleteError,
+    deleteError,
+    deleteData
+  } = useSignature({ id: adminProfile?.user?._id || null });
+
+
+  console.log("get signature data", signatureData, "with id", adminProfile?.user?._id);
+
+  const [isSignatureData, setIsSignatureData] = useState(false);
+
+  useEffect(() => {
+    if (signatureData && signatureData.data !== null) {
+      setIsSignatureData(true);
+    }
+  }, [signatureData]);
+
   const {
     adminDocs,
     isLoadingAdminDocs,
@@ -43,37 +95,30 @@ export default function Dashboard() {
     errorCreatedActivities,
   } = useDashboard();
   const [username, setUsername] = useState("");
+  const [signatureRequest, setSignatureRequest] = useState({
+    id: null, file: null
+  });
 
   const contentRef = useRef(null);
   const reactToPrintFn = useReactToPrint({ contentRef });
 
 
 
-  const {
-    rsoDetails,
-    isRSODetailsLoading,
-    isRSODetailsError,
-    isRSODetailsSuccess,
-  } = useRSODetails();
-
-  const {
-    // fetching admin profile
-    adminProfile,
-    isAdminProfileLoading,
-    isAdminProfileError,
-    adminProfileError,
-    refetchAdminProfile,
-    isAdminProfileRefetching,
-  } = useAdminUser();
 
 
   useEffect(() => {
+    if (!isUserAdmin || !isUserRSORepresentative) {
+      setSignatureRequest(prev => ({ ...prev, id: adminProfile?.user?._id || null }));
+    }
+
     if (isUserRSORepresentative) {
       setUsername(rsoDetails?.rso?.RSO_name || "RSO User");
     } else {
       setUsername(adminProfile?.user?.firstName || "Admin User");
     }
-  }, [isUserRSORepresentative, adminProfile, rsoDetails]);
+  }, [isUserRSORepresentative, adminProfile, rsoDetails, isUserAdmin]);
+
+  console.log("[Dashboard] Signature request state:", signatureRequest);
 
   // Extract dashboard stats from adminDocs if available
   const dashboardStats = adminDocs?.dashboard;
@@ -177,18 +222,79 @@ export default function Dashboard() {
 
   // Modal state for Generate Report
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  // Signature modal state
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [signatureFile, setSignatureFile] = useState(null);
+  const [signaturePreview, setSignaturePreview] = useState(null);
 
-  // Prevent background scrolling when modal is open
+  // Prevent background scroll if either modal open
   useEffect(() => {
-    if (isReportModalOpen) {
+    if (isReportModalOpen || isSignatureModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isReportModalOpen]);
+    return () => { document.body.style.overflow = ''; };
+  }, [isReportModalOpen, isSignatureModalOpen]);
+
+  const handleOpenSignature = () => {
+    setIsSignatureModalOpen(true);
+  };
+  const handleCloseSignature = () => {
+    setIsSignatureModalOpen(false);
+    setSignatureFile(null);
+    if (signaturePreview) {
+      URL.revokeObjectURL(signaturePreview);
+      setSignaturePreview(null);
+    }
+  };
+  const handleSignatureFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSignatureFile(file);
+    const url = URL.createObjectURL(file);
+    setSignaturePreview(url);
+  };
+  const handleSignatureSave = () => {
+    // TODO: integrate API upload; for now just log
+    console.log('[Signature] Saving file:', signatureFile);
+    mutateUploadSignature({ adminId: signatureRequest.id, file: signatureFile }, {
+      onSuccess: () => {
+        handleCloseSignature();
+        toast.success("Signature uploaded successfully");
+        refetchSignature();
+        refetchAdminProfile();
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to upload signature");
+        console.error("[Signature] Upload error:", error);
+      }
+    });
+  };
+
+  const handleDeleteSignature = () => {
+    if (!signatureData?.data?.signatureId) {
+      toast.error('Missing user id for deletion');
+      return;
+    }
+    mutateDeleteSignature(signatureData?.data?.signatureId, {
+      onSuccess: () => {
+        toast.success('Signature deleted');
+        setSignatureFile(null);
+        if (signaturePreview) {
+          URL.revokeObjectURL(signaturePreview);
+          setSignaturePreview(null);
+        }
+        setIsSignatureData(false);
+        refetchSignature();
+        refetchAdminProfile();
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Failed to delete signature');
+        console.error('[Signature] Delete error:', error);
+      }
+    });
+  };
 
   return (
     <div className="w-full p-4 bg-white min-h-screen">
@@ -366,11 +472,22 @@ export default function Dashboard() {
                 Upload Document
               </Button>
             )}
-            {(isUserAdmin && isCoordinator) && (
+            {(!isUserAdmin || !isUserRSORepresentative) && (
+              <Button
+                style={"secondary"}
+                disabled={false}
+                onClick={handleOpenSignature}
+              >
+                Upload Signature
+              </Button>
+            )}
+            {(isUserAdmin || isCoordinator) && (
               <Button style={"secondary"} onClick={() => navigate('/admin-documents/templates')}>
                 Create Template
               </Button>
             )}
+
+
           </div>
         </div>
       </div>
@@ -432,6 +549,171 @@ export default function Dashboard() {
                 >
                   Generate
                 </Button>
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+
+      {/* Signature Modal */}
+      {isSignatureModalOpen && (
+        <>
+          <Backdrop
+            className="fixed inset-0 z-50 bg-black/40"
+            onClick={handleCloseSignature}
+          />
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Upload Signature"
+            onKeyDown={(e) => { if (e.key === 'Escape') handleCloseSignature(); }}
+          >
+            <motion.div
+              className="relative flex flex-col w-full h-full sm:h-auto sm:max-h-[95vh] sm:rounded-lg bg-white shadow-xl border border-gray-200 max-w-full md:max-w-[520px]"
+              variants={DropIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+                <h2 className="text-base sm:text-lg font-medium text-[#312895]">Upload Signature</h2>
+                <CloseButton onClick={handleCloseSignature} />
+              </div>
+              {/* Content */}
+              {isSignatureData === true ? (
+                <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-6">
+                  <div className="space-y-5">
+                    <div className="flex flex-col items-center text-center gap-3">
+                      <h3 className="text-sm font-medium text-gray-700">Current Signature</h3>
+                      <div className="relative group border border-gray-200 bg-white rounded-md p-4 shadow-sm w-full flex flex-col items-center">
+                        <div className="w-full flex items-center justify-center bg-gray-50 rounded-md border border-dashed border-gray-300 min-h-40 py-6">
+                          {signatureData?.data?.signedUrl ? (
+                            <img
+                              src={signatureData.data.signedUrl}
+                              alt="Saved signature"
+                              className="max-h-48 object-contain select-none pointer-events-none"
+                              draggable={false}
+                            />
+                          ) : (
+                            <span className="text-xs text-gray-400">No signature available</span>
+                          )}
+                        </div>
+                        <div className="mt-4 flex flex-col sm:flex-row gap-2 w-full">
+                          <label className="cursor-pointer flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded shadow text-center">
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg"
+                              className="hidden"
+                              onChange={handleSignatureFileChange}
+                            />
+                            Replace
+                          </label>
+                          <Button
+                            style="secondary"
+                            className="flex-1 !text-red-600 border-red-200 hover:bg-red-50"
+                            disabled={isDeleting}
+                            onClick={() => handleDeleteSignature()}
+                          >
+                            {isDeleting ? 'Deleting...' : 'Delete'}
+                          </Button>
+                        </div>
+                        {signatureFile && (
+                          <div className="mt-3 w-full border-t pt-3">
+                            <p className="text-[11px] text-gray-500 mb-2 text-left">New file selected (not saved yet):</p>
+                            <div className="flex items-center gap-3">
+                              <img src={signaturePreview} alt="New signature preview" className="h-20 object-contain" />
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[11px] text-gray-600">{signatureFile.name}</span>
+                                <div className="flex gap-2">
+                                  <Button
+                                    style="secondary"
+                                    disabled={isUploading}
+                                    onClick={() => handleSignatureSave()}
+                                    className="!px-3 !py-1 text-xs"
+                                  >
+                                    {isUploading ? 'Saving...' : 'Save New'}
+                                  </Button>
+                                  <Button
+                                    style="secondary"
+                                    onClick={() => { setSignatureFile(null); if (signaturePreview) { URL.revokeObjectURL(signaturePreview); setSignaturePreview(null); } }}
+                                    className="!px-3 !py-1 text-xs"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-500 max-w-sm">You can replace or delete your stored signature. Deleting it will remove it from future document signing actions.</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-4">
+                  <p className="text-sm text-gray-600">Choose a transparent PNG of your signature. It will be stored securely and can be applied to documents.</p>
+
+                  <div className="border border-dashed border-gray-300 rounded p-4 flex flex-col items-center gap-3 bg-gray-50">
+                    {!signaturePreview && (
+                      <>
+                        <span className="text-xs text-gray-500">PNG, JPG (recommended: transparent PNG)</span>
+                        <label className="cursor-pointer px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded shadow">
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            className="hidden"
+                            onChange={handleSignatureFileChange}
+                          />
+                          Select File
+                        </label>
+                      </>
+                    )}
+                    {signaturePreview && (
+                      <div className="w-full flex flex-col items-center gap-2">
+                        <img src={signaturePreview} alt="Signature preview" className="max-h-40 object-contain" />
+                        <div className="flex gap-2">
+                          <label className="cursor-pointer px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded shadow">
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg"
+                              className="hidden"
+                              onChange={handleSignatureFileChange}
+                            />
+                            Replace
+                          </label>
+                          <Button style="secondary" onClick={() => { setSignatureFile(null); URL.revokeObjectURL(signaturePreview); setSignaturePreview(null); }}>Remove</Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <ul className="text-[11px] text-gray-500 list-disc ml-4 space-y-1">
+                    <li>Use a clear, high-contrast scan.</li>
+                    <li>Transparent background preferred.</li>
+                    <li>Max size recommendation: under 1MB.</li>
+                  </ul>
+                </div>)}
+              {/* Footer */}
+              <div className="flex flex-col sm:flex-row justify-end gap-3 px-5 sm:px-6 py-4 border-t border-gray-100 bg-white sticky bottom-0">
+                <Button
+                  onClick={handleCloseSignature}
+                  style="secondary"
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                {!isSignatureData && (
+                  <Button
+                    disabled={!signatureFile}
+                    onClick={handleSignatureSave}
+                    className="w-full sm:w-auto px-6 bg-[#312895] hover:bg-[#312895]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Save
+                  </Button>
+                )}
               </div>
             </motion.div>
           </div>

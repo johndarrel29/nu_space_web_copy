@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PDFViewer, DraggableSandbox, Button } from '../../../components';
-import watermarkImage from '../../../assets/images/NUSpace_blue.png'
+// import watermarkImage from '../../../assets/images/NUSpace_blue.png';
+import { useSignature, useAdminUser } from '../../../hooks';
+// import watermarkImage from '../../../assets/images/icon_yellow.png';
+
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { useQuery } from "@tanstack/react-query";
 import { useTokenStore } from "../../../store";
@@ -18,11 +21,41 @@ export default function WaterMarkPage() {
     const [count, setCount] = useState(0)
     const [coords, setCoords] = useState(null);
     const [watermark, setWatermark] = useState({ x: 50, y: 50, width: 100, height: 100 });
+    const [watermarkPreviewUrl, setWatermarkPreviewUrl] = useState(null);
 
-    console.log("url:", url);
+    const {
+        // fetching admin profile
+        adminProfile,
+        isAdminProfileLoading,
+        isAdminProfileError,
+        adminProfileError,
+        refetchAdminProfile,
+        isAdminProfileRefetching,
+    } = useAdminUser();
+
+    const {
+        // fetch query
+        signatureData,
+        isFetching,
+        isFetchError,
+        fetchError,
+        refetchSignature,
+    } = useSignature({ id: adminProfile?.user?._id || null });
+
+
+
+    console.log("data for watermark:", signatureData);
+
+    const watermarkImage = signatureData?.data?.signedUrl || null;
+    console.log("watermarkImage:", watermarkImage);
+
+    if (signatureData && signatureData?.data?.signedUrl === null) {
+        toast.error("No signature/watermark image available. Please create one first.");
+        navigate(-1);
+    }
+
     // const pdfUrl = (`http://localhost:5000/api/admin/documents/pdf/${documentId}`);
     const pdfUrl = (`${process.env.REACT_APP_BASE_URL}/api/admin/documents/pdf/${documentId}`);
-
 
     const { data: pdfData, isLoading, isError } = useQuery({
         queryKey: ['pdf', documentId],
@@ -40,89 +73,130 @@ export default function WaterMarkPage() {
         enabled: !!documentId && !!token,
     });
 
+    const watermarkUrl = (`${process.env.REACT_APP_BASE_URL}/api/signature/stream-signature/${adminProfile?.user?._id}`);
+    const { data: watermarkData, isLoading: isWatermarkLoading, isError: isWatermarkError } = useQuery({
+        queryKey: ['watermark', adminProfile?.user?._id],
+        queryFn: async () => {
+            const res = await fetch(watermarkUrl, {
+                headers: {
+                    'Authorization': token
+                }
+            });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || `Error: ${res.status} - ${res.statusText}`);
+            }
+            return res.blob();
+        },
+        enabled: !!adminProfile && !!token,
+    });
+
+    useEffect(() => {
+        if (!watermarkData) return setWatermarkPreviewUrl(null);
+
+        const url = URL.createObjectURL(watermarkData);
+        setWatermarkPreviewUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [watermarkData]);
+
+    console.log("watermarkData:", watermarkData ? true : false);
+
     async function createPdf() {
-        // load base PDF
-        // const existingPdfBytes = await fetch(pdfData).then(res => res.arrayBuffer());
+        if (!pdfData) { toast.error("PDF not loaded yet."); return; }
+        if (!watermarkData) { toast.error("No signature/watermark image available."); return; }
+
         const existingPdfBytes = await pdfData.arrayBuffer();
         const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
-        // embed watermark image
-        const pngBytes = await fetch(watermarkImage).then(res => res.arrayBuffer());
-        const pngImage = await pdfDoc.embedPng(pngBytes);
+        // --- Get image bytes from watermarkData (already a Blob) ---
+        let imageBytes;
+        let mime = watermarkData.type || '';
+        try {
+            imageBytes = await watermarkData.arrayBuffer();
+        } catch (e) {
+            console.error('[Watermark] Failed reading blob arrayBuffer', e);
+            toast.error('Could not read watermark image.');
+            return;
+        }
+
+        // Optional: PNG signature sniff (first 8 bytes)
+        const isPngSignature = (() => {
+            if (imageBytes.byteLength < 8) return false;
+            const sig = new Uint8Array(imageBytes.slice(0, 8));
+            // 89 50 4E 47 0D 0A 1A 0A
+            return sig[0] === 0x89 && sig[1] === 0x50 && sig[2] === 0x4E &&
+                sig[3] === 0x47 && sig[4] === 0x0D && sig[5] === 0x0A &&
+                sig[6] === 0x1A && sig[7] === 0x0A;
+        })();
+
+        // Decide embed method
+        let embeddedImage;
+        try {
+            if (mime.includes('png') || (mime === '' && isPngSignature)) {
+                embeddedImage = await pdfDoc.embedPng(imageBytes);
+            } else if (mime.includes('jpeg') || mime.includes('jpg')) {
+                embeddedImage = await pdfDoc.embedJpg(imageBytes);
+            } else if (isPngSignature) {
+                embeddedImage = await pdfDoc.embedPng(imageBytes);
+            } else {
+                // Try PNG then JPG fallback
+                try {
+                    embeddedImage = await pdfDoc.embedPng(imageBytes);
+                } catch {
+                    embeddedImage = await pdfDoc.embedJpg(imageBytes);
+                }
+            }
+        } catch (err) {
+            console.error('[Watermark] Embedding failed. MIME:', mime, err);
+            toast.error('Unsupported watermark image format.');
+            return;
+        }
 
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
-
         const { width: pdfWidth, height: pdfHeight } = firstPage.getSize();
 
-        // get rendered pdf size in browser (use CSS size, not canvas pixel buffer)
-        // const renderedPdfElement = document.querySelector('.react-pdf__Page__canvas');
-        // const rect = renderedPdfElement?.getBoundingClientRect();
         const renderedPdfElement = document.querySelector('.react-pdf__Page__canvas');
         const rect = renderedPdfElement?.getBoundingClientRect();
         const renderedCssWidth = rect?.width || pdfWidth;
         const renderedCssHeight = rect?.height || pdfHeight;
 
-        // Find the rendered PDF canvas
-
-
         if (!watermark) {
-            console.warn('[Watermark] No watermark rectangle set – skipping overlay. Drag the box before exporting.');
-            toast.error("Please position the watermark box before applying the watermark.");
+            toast.error('Place the watermark box first.');
             return;
-
-        } else {
-            // Scale from screen (CSS pixels) to PDF coordinate space
-            const scaleX = pdfWidth / renderedCssWidth;
-            const scaleY = pdfHeight / renderedCssHeight;
-
-            // Convert top-left origin (browser) to bottom-left (PDF)
-            const pdfX = watermark.x * scaleX;
-            const pdfY = pdfHeight - (watermark.y + watermark.height) * scaleY;
-
-            const drawWidth = watermark.width * scaleX;
-            const drawHeight = watermark.height * scaleY;
-
-
-            // Debug information
-            console.log("[Exporting to PDF]");
-            console.log("Browser box (raw):", watermark);
-            console.log("PDF page size:", { pdfWidth, pdfHeight });
-            console.log("Screen size:", { renderedCssWidth, renderedCssHeight });
-            console.log("Mapped PDF coords:", { x: pdfX, y: pdfY, width: drawWidth, height: drawHeight });
-
-            console.log("[Watermark comparison]", {
-                browserBox: watermark,
-                pdfBox: { pdfX, pdfY, drawWidth, drawHeight },
-                pdfPage: { pdfWidth, pdfHeight },
-                screen: { renderedCssWidth, renderedCssHeight }
-            });
-
-            // Skip if computed dimensions are invalid
-            // if (drawWidth > 0 && drawHeight > 0 && pdfX >= 0 && pdfY >= 0 && pdfX <= pdfWidth && pdfY <= pdfHeight) {
-            //     firstPage.drawImage(pngImage, {
-            //         x: pdfX,
-            //         y: pdfY,
-            //         width: drawWidth,
-            //         height: drawHeight,
-            //         opacity: 1, // subtle watermark
-            //     });
-            // Draw watermark
-            if (drawWidth > 0 && drawHeight > 0) {
-                firstPage.drawImage(pngImage, {
-                    x: pdfX,
-                    y: pdfY,
-                    width: drawWidth,
-                    height: drawHeight,
-                    opacity: 1,
-                });
-            } else {
-                console.warn('[Watermark] Skipping draw – calculated position outside page bounds.');
-            }
         }
-        console.log("[Browser watermark box]", watermark);
-        const pdfBytes = await pdfDoc.save();
-        download(pdfBytes, "mayWatermark.pdf", "application/pdf");
+
+        const scaleX = pdfWidth / renderedCssWidth;
+        const scaleY = pdfHeight / renderedCssHeight;
+
+        const pdfX = watermark.x * scaleX;
+        const pdfY = pdfHeight - (watermark.y + watermark.height) * scaleY;
+        const drawWidth = watermark.width * scaleX;
+        const drawHeight = watermark.height * scaleY;
+
+        console.log('[Export → PDF]', {
+            mime,
+            isPngSignature,
+            browserBox: watermark,
+            pdfCoords: { x: pdfX, y: pdfY, width: drawWidth, height: drawHeight }
+        });
+
+        if (drawWidth <= 0 || drawHeight <= 0) {
+            toast.error('Invalid watermark size.');
+            return;
+        }
+
+        firstPage.drawImage(embeddedImage, {
+            x: pdfX,
+            y: pdfY,
+            width: drawWidth,
+            height: drawHeight,
+            opacity: 1
+        });
+
+        const out = await pdfDoc.save();
+        download(out, 'watermarked.pdf', 'application/pdf');
+        toast.success('Watermark applied.');
     }
 
     function download(data, filename, type) {
@@ -207,7 +281,7 @@ export default function WaterMarkPage() {
                 <div className='w-full md:flex-1 flex justify-center items-start overflow-auto rounded border border-gray-700 bg-black/40 relative'>
                     <div className='w-full max-w-full md:max-w-[900px] flex justify-center relative'>
                         <PDFViewer docId={documentId} />
-                        <DraggableSandbox onUpdate={setWatermark} />
+                        <DraggableSandbox onUpdate={setWatermark} imageSample={watermarkPreviewUrl} />
                     </div>
                 </div>
                 <div className='w-full md:w-64 flex-shrink-0 relative'>

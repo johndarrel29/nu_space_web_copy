@@ -230,7 +230,7 @@ export default function AdminTemplates() {
     ];
 
     return (
-        <div className="flex flex-col items-center justify-start w-full relative">
+        <div className="flex flex-col items-center justify-start w-full relative min-h-[100vh]">
             {/* Back navigation button */}
             <div
                 onClick={handleBackClick}
