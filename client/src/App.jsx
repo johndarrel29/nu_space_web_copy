@@ -107,6 +107,7 @@ function App() {
             ) : (
               <SkeletonTheme baseColor="#e0e0e0" highlightColor="#f5f5f5">
                 <Routes>
+                  {!isOnline && <Route path="*" element={<ErrorPage />} />}
                   <Route path="/" element={<Login />}>
                     <Route index element={<MainLogin />} />
                     <Route path="password-action" element={<PasswordAction />} />
