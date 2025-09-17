@@ -13,6 +13,8 @@ const fetchAllForms = async ({ queryKey }) => {
         if (search) queryParams.append("search", search);
         if (formType && formType !== "All") queryParams.append("formType", formType);
 
+        console.log("Fetching forms with params:", queryParams.toString());
+
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/forms/fetch-all-centralized-forms?${queryParams.toString()}`, {
             headers: {
                 "Content-Type": "application/json",

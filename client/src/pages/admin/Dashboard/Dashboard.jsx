@@ -20,7 +20,7 @@ function getRSODataLabel() {
 }
 
 export default function Dashboard() {
-  const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
+  const { isUserRSORepresentative, isUserAdmin, isCoordinator, isAVP, isDirector } = useUserStoreWithAuth();
   const navigate = useNavigate();
   const {
     rsoDetails,
@@ -93,6 +93,16 @@ export default function Dashboard() {
     isLoadingCreatedActivities,
     isErrorCreatedActivities,
     errorCreatedActivities,
+
+    RSOMembers,
+    isLoadingRSOMembers,
+    isErrorRSOMembers,
+    errorRSOMembers,
+
+    RSOApplicants,
+    isLoadingRSOApplicants,
+    isErrorRSOApplicants,
+    errorRSOApplicants
   } = useDashboard();
   const [username, setUsername] = useState("");
   const [signatureRequest, setSignatureRequest] = useState({
@@ -103,7 +113,7 @@ export default function Dashboard() {
   const reactToPrintFn = useReactToPrint({ contentRef });
 
 
-
+  console.log("rso user members", RSOMembers, "with applicants", RSOApplicants, "new revised activities", createdActivities);
 
 
   useEffect(() => {
@@ -136,10 +146,10 @@ export default function Dashboard() {
       : dashboardStats?.recentlyApprovedDocuments ?? 0,
     documentsByType: {
       activities: isUserRSORepresentative
-        ? activity?.data?.allPreDocs ?? 0
+        ? RSOApplicants?.totalApplicants ?? 0
         : dashboardStats?.documentsByType?.activities ?? 0,
       recognition: isUserRSORepresentative
-        ? activity?.data?.allPostDocs ?? 0
+        ? RSOMembers?.totalRSOMembers ?? 0
         : dashboardStats?.documentsByType?.recognition ?? 0,
       renewal: isUserRSORepresentative
         ? activity?.data?.renewal ?? 0
@@ -150,19 +160,19 @@ export default function Dashboard() {
     },
     documentsByStatus: {
       approved: isUserRSORepresentative
-        ? activity?.data?.approvedDocuments ?? 0
+        ? createdActivities?.metadata?.totalApprovedActivities ?? 0
         : dashboardStats?.approvedDocuments ?? 0,
       pending: isUserRSORepresentative
-        ? activity?.data?.pendingDocuments ?? 0
+        ? createdActivities?.metadata?.totalPendingActivities ?? 0
         : dashboardStats?.pendingDocuments ?? 0,
       rejected: isUserRSORepresentative
-        ? activity?.data?.rejectedDocuments ?? 0
+        ? createdActivities?.metadata?.totalRejectedActivities ?? 0
         : dashboardStats?.rejectedDocuments ?? 0,
     },
     recentActivity: isUserRSORepresentative
       ? createdActivities?.activities?.map((activity) => ({
         id: activity._id,
-        title: activity.Activity_approval_status,
+        title: activity.Activity_name,
         status: activity.Activity_approval_status || activity.document_status,
         date: activity.updatedAt,
       })) ?? []
@@ -179,18 +189,24 @@ export default function Dashboard() {
     totalDocuments: isUserRSORepresentative
       ? "Total Accreditation Documents"
       : "Total Documents",
+    documentsByTypeTitle: isUserRSORepresentative
+      ? "Membership Data"
+      : "Documents by Type",
     pendingApproval: isUserRSORepresentative
       ? "Pending Accreditation Documents"
       : "Pending Approval",
     recentlyApproved: isUserRSORepresentative
       ? "Rejected Accreditation Documents"
       : "Recently Approved",
+    documentsByStatusTitle: isUserRSORepresentative
+      ? "Activities"
+      : "Documents by Status",
     documentsByType: {
       activities: isUserRSORepresentative
-        ? "Pre Documents"
+        ? "Applicants"
         : "Activities",
       recognition: isUserRSORepresentative
-        ? "Post Documents"
+        ? "Members"
         : "Recognition",
       renewal: "Renewal",
       other: "Other",
@@ -354,32 +370,32 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Documents by Type - Spans 2 columns */}
         <div className="bg-white border border-blue-100 shadow rounded-lg p-5 md:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">{isUserRSORepresentative ? "Activity Documents by Type" : "Documents by Type"}</h2>
+          <h2 className="text-lg font-semibold mb-4">{isUserRSORepresentative ? "RSO Membership Data" : "Documents by Type"}</h2>
           <div className='flex items-center gap-4'>
             {/* Activities */}
             <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex-1">
               <div className="text-xs capitalize">
                 {isUserRSORepresentative ?
-                  activity ? "Pre Documents" : "loading"
+                  activity ? "Applicants" : "loading"
                   : dashboardStats?.documentsByType?.activities ? "Activities" : "loading"}
               </div>
               <div className="text-xl font-bold">
                 {
                   isUserRSORepresentative ?
-                    activity?.data?.allPreDocs ?? "0"
+                    RSOApplicants?.totalApplicants ?? "0"
                     : dashboardStats?.documentsByType?.activities ?? "0"}
               </div>
             </div>
-            {/* Recognition */}
+            {/* Recognition/ Members */}
             <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex-1">
               <div className="text-xs capitalize">
                 {isUserRSORepresentative ?
-                  activity ? "Post Documents" : "loading"
+                  activity ? "Members" : "loading"
                   : dashboardStats?.documentsByType?.recognition ? "Recognition" : "loading"}
               </div>
               <div className="text-xl font-bold">
                 {isUserRSORepresentative ?
-                  activity?.data?.allPostDocs ?? "0"
+                  RSOMembers?.totalRSOMembers ?? "0"
                   : dashboardStats?.documentsByType?.recognition ?? "0"}
               </div>
             </div>
@@ -387,26 +403,26 @@ export default function Dashboard() {
         </div>
         {/* Documents by Status - Vertical stacked */}
         <div className="bg-white border border-blue-100 shadow rounded-lg p-5">
-          <h2 className="text-lg font-semibold mb-4">{isUserRSORepresentative ? "Activity Documents" : "Documents by Status"}</h2>
+          <h2 className="text-lg font-semibold mb-4">{isUserRSORepresentative ? "Activities" : "Documents by Status"}</h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="capitalize text-gray-600">approved</span>
               <span className="font-semibold text-green-700">
                 {
-                  isUserRSORepresentative ? activity?.data?.approvedDocuments ?? "0" :
+                  isUserRSORepresentative ? createdActivities?.metadata?.totalApprovedActivities ?? "0" :
                     dashboardStats?.approvedDocuments ?? "0"}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="capitalize text-gray-600">pending</span>
               <span className="font-semibold">
-                {isUserRSORepresentative ? activity?.data?.pendingDocuments ?? "0" : dashboardStats?.pendingDocuments ?? "0"}
+                {isUserRSORepresentative ? createdActivities?.metadata?.totalPendingActivities ?? "0" : dashboardStats?.pendingDocuments ?? "0"}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="capitalize text-gray-600">rejected</span>
               <span className="font-semibold text-red-700">
-                {isUserRSORepresentative ? activity?.data?.rejectedDocuments ?? "0" : dashboardStats?.rejectedDocuments ?? "0"}
+                {isUserRSORepresentative ? createdActivities?.metadata?.totalRejectedActivities ?? "0" : dashboardStats?.rejectedDocuments ?? "0"}
               </span>
             </div>
           </div>
@@ -472,7 +488,7 @@ export default function Dashboard() {
                 Upload Document
               </Button>
             )}
-            {(!isUserAdmin || !isUserRSORepresentative) && (
+            {(isCoordinator || isAVP || isDirector) && (
               <Button
                 style={"secondary"}
                 disabled={false}
@@ -531,6 +547,7 @@ export default function Dashboard() {
                     reference={contentRef}
                     reportTitle={isUserRSORepresentative ? rsoDetails?.rso?.RSO_name : 'SDAO Report'}
                     dashboardData={stats}
+                    statsTitle={statsTitle}
                   />
                 </div>
               </div>

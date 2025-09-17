@@ -2,7 +2,7 @@ import Sidebar from "./Sidebar";
 import style from "../../css/Sidebar.module.css";
 import { Breadcrumb, Button, Backdrop, SidebarButton } from "../../components";
 import { use, useEffect, useRef, useState } from "react";
-import { useUserProfile, useRSODetails, useAdminActivity, useAdminRSO } from "../../hooks";
+import { useUserProfile, useRSODetails, useAdminActivity, useAdminRSO, useOnlineStatus } from "../../hooks";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 import Skeleton from "react-loading-skeleton";
 import { useLocation, useParams } from "react-router-dom";
@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 function MainLayout({ children }) {
   // Navigation & auth
   const navigate = useNavigate();
+  const isOnline = useOnlineStatus();
   const { user, logout } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -622,6 +623,21 @@ function MainLayout({ children }) {
                   <div className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="fill-yellow-800 size-4" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24l0 112c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-112c0-13.3 10.7-24 24-24zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z" /></svg>
                     Document has been submitted for review. You can view the document but cannot edit it until it is approved.
+                  </div>
+                </h1>
+              </div>
+            </div>
+          )}
+
+          {/* Offline Notification */}
+          {!isOnline && (
+            <div className="fixed top-16 md:left-[4%] bg-white w-full h-8  z-30">
+              <div className="flex items-center justify-center h-full bg-red-100 text-red-800">
+                <h1 className="text-sm font-semibold">
+                  <div className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="fill-red-800 size-4" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24l0 112c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-112c0-13.3 10.7-24 24-24zM224 352a32
+  32 0 1 1 64 0 32 32 0 1 1 -64 0z" /></svg>
+                    You are currently offline. Some features may be unavailable.
                   </div>
                 </h1>
               </div>

@@ -62,7 +62,10 @@ export default function Forms() {
         isDeletingForm,
         isDeletingFormError,
         deleteFormError
-    } = useAdminCentralizedForms({ filters });
+    } = useAdminCentralizedForms({
+        search: filters.search,
+        formType: filters.formType,
+    });
 
     const {
         rsoFormsTemplate,
@@ -83,6 +86,8 @@ export default function Forms() {
             setFormToDisplay(allForms);
         }
     }, [isUserRSORepresentative, rsoFormsTemplate, allForms]);
+
+    console.log("Form to Display:", formToDisplay, "from ", isUserRSORepresentative ? "RSO Forms" : "All Forms");
 
     useEffect(() => {
         if (isRefetchingAllForms) {

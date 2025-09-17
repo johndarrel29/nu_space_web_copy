@@ -8,10 +8,11 @@ import MainRegister from './pages/MainRegister';
 import ErrorPage from './pages/ErrorPage';
 import { ThemeProvider } from '@material-tailwind/react';
 import PreLoader from './components/Preloader';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
+import { safeInitMaterialTailwind } from './utils'
 import { Document, MainDocument } from './pages/rso';
 import { AnnouncementsPage, DetailsParent, WaterMarkPage, Forms, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOParent, Users, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
@@ -24,6 +25,7 @@ import { onMessage } from 'firebase/messaging';
 import { toast } from 'react-toastify';
 import { useSelectedFormStore } from './store';
 import { useLocation } from 'react-router-dom';
+import { useOnlineStatus } from './hooks';
 
 // refactor the app content
 
@@ -43,10 +45,21 @@ function AppContent() {
 
 function App() {
   const [loading, setLoading] = useState(true);
+  const isOnline = useOnlineStatus();
+  const hasMTInitedRef = useRef(false);
 
   useEffect(() => {
-    initMaterialTailwind();
-  }, []);
+    if (!isOnline || hasMTInitedRef.current) return;
+    (async () => {
+      try {
+        await safeInitMaterialTailwind();
+        hasMTInitedRef.current = true;
+      } catch (e) {
+        console.warn("Material Tailwind init failed (will retry when online):", e);
+        hasMTInitedRef.current = false;
+      }
+    })();
+  }, [isOnline]);
 
   useEffect(() => {
     generateToken();
@@ -56,6 +69,11 @@ function App() {
       toast.info(payload.notification.body);
     });
   }, [generateToken]);
+
+  // Initialize Material Tailwind safely
+  useEffect(() => {
+    safeInitMaterialTailwind();
+  }, []);
 
   useEffect(() => {
     // Simulate loading time (same as GSAP animation delay in Preloader.js)
@@ -259,3 +277,4 @@ Removed routes:
 - requirements subroute under documents/:activityId
 - review subroute under documents/:activityId
 */
+

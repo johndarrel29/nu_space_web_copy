@@ -68,6 +68,8 @@ function RSODetails() {
     }
   }, [rsoDetailData]);
 
+  console.log("members ", rsoDetailData?.data?.RSO_members);
+
   // admin activity route
   const {
     adminPaginatedActivities,
@@ -195,6 +197,7 @@ function RSODetails() {
   const tabs = [
     { label: "Requirements" },
     { label: "Activities" },
+    { label: "Members" },
   ]
 
   console.log("filtered documents: ", rsoDocuments);
@@ -216,6 +219,16 @@ function RSODetails() {
   const handleEditClick = () => {
     navigate(`/rsos/rso-action`, { state: { mode: "edit", data: user, from: user.RSO_name, id: rsoID } });
   }
+
+  // Static members list (placeholder until backend integration)
+  const staticMembers = [
+    { id: 'm1', name: 'Juan Dela Cruz', role: 'President' },
+    { id: 'm2', name: 'Maria Santos', role: 'Vice President' },
+    { id: 'm3', name: 'Carlos Reyes', role: 'Secretary' },
+    { id: 'm4', name: 'Ana Lopez', role: 'Treasurer' },
+    { id: 'm5', name: 'Jose Garcia', role: 'Member' },
+    { id: 'm6', name: 'Lara Mendoza', role: 'Member' },
+  ];
 
   return (
     <div className="bg-white min-h-screen ">
@@ -371,6 +384,30 @@ function RSODetails() {
                 <p className="text-gray-500">No activities available.</p>
               </div>
             )
+          )}
+
+          {activeTab === 2 && (
+            <div className="w-full mt-4">
+              {rsoDetailData?.data?.RSO_members?.length > 0 ? (
+                <div className="bg-white border border-gray-300 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Members</h3>
+                  <ul className="divide-y divide-gray-200">
+                    {rsoDetailData?.data?.RSO_members?.map(m => (
+                      <li key={m._id} className="py-2 text-sm text-gray-800">
+                        {m.firstName} {m.lastName}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20h6M3 20h5v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 000 7.75" />
+                  </svg>
+                  <span className="text-lg font-medium text-gray-700">No members to display.</span>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div >

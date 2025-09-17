@@ -105,6 +105,54 @@ const fetchCreatedActivityRequest = async () => {
     }
 }
 
+const fetchMembersRequest = async () => {
+    try {
+        const token = useTokenStore.getState().token;
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/dashboard/members`, {
+            method: "GET",
+            headers: {
+                Authorization: token,
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching members data:", error.message);
+        throw error;
+    }
+}
+
+const fetchApplicantsRequest = async () => {
+    try {
+        const token = useTokenStore.getState().token;
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/dashboard/membership-applicants`, {
+            method: "GET",
+            headers: {
+                Authorization: token,
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching applicants data:", error.message);
+        throw error;
+    }
+}
+
 
 
 const useDashboard = () => {
@@ -149,6 +197,26 @@ const useDashboard = () => {
         queryFn: fetchCreatedActivityRequest
     });
 
+    const {
+        data: RSOMembers,
+        isLoading: isLoadingRSOMembers,
+        isError: isErrorRSOMembers,
+        error: errorRSOMembers
+    } = useQuery({
+        queryKey: ['RSOMembers'],
+        queryFn: fetchMembersRequest
+    });
+
+    const {
+        data: RSOApplicants,
+        isLoading: isLoadingRSOApplicants,
+        isError: isErrorRSOApplicants,
+        error: errorRSOApplicants
+    } = useQuery({
+        queryKey: ['RSOApplicants'],
+        queryFn: fetchApplicantsRequest
+    });
+
     return {
         adminDocs,
         isLoadingAdminDocs,
@@ -169,6 +237,16 @@ const useDashboard = () => {
         isLoadingCreatedActivities,
         isErrorCreatedActivities,
         errorCreatedActivities,
+
+        RSOMembers,
+        isLoadingRSOMembers,
+        isErrorRSOMembers,
+        errorRSOMembers,
+
+        RSOApplicants,
+        isLoadingRSOApplicants,
+        isErrorRSOApplicants,
+        errorRSOApplicants
     };
 }
 

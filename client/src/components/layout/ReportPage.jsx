@@ -1,5 +1,6 @@
 import React from "react";
 import { FormatDate } from '../../utils';
+import { useUserStoreWithAuth } from '../../store';
 
 const a4Style = {
     width: "210mm",
@@ -31,11 +32,12 @@ const ReportPage = ({ reference, reportTitle, dashboardData, statsTitle = {} }) 
     const documentsByType = dashboardData?.documentsByType || {};
     const documentsByStatus = dashboardData?.documentsByStatus || {};
     const recentActivity = dashboardData?.recentActivity || [];
+    const { isUserRSORepresentative, isUserAdmin, isCoordinator, isAVP, isDirector } = useUserStoreWithAuth();
 
     return (
         <div style={a4Style} ref={reference}>
             <div style={headerStyle}>
-                <h1 style={{ margin: 0, fontSize: "2em" }}>{reportTitle}</h1>
+                <h1 style={{ margin: 0, fontSize: "2em" }}>{reportTitle} Report</h1>
                 <p style={{ margin: 0, fontSize: "1em", color: "#666" }}>Date: {today}</p>
             </div>
             {/* Summary Section */}
@@ -83,14 +85,19 @@ const ReportPage = ({ reference, reportTitle, dashboardData, statsTitle = {} }) 
                             <td style={{ padding: "4px" }}>{statsTitle.documentsByType?.recognition || "Recognition"}</td>
                             <td style={{ padding: "4px" }}>{documentsByType.recognition ?? 0}</td>
                         </tr>
-                        <tr>
-                            <td style={{ padding: "4px" }}>{statsTitle.documentsByType?.renewal || "Renewal"}</td>
-                            <td style={{ padding: "4px" }}>{documentsByType.renewal ?? 0}</td>
-                        </tr>
-                        <tr>
-                            <td style={{ padding: "4px" }}>{statsTitle.documentsByType?.other || "Other"}</td>
-                            <td style={{ padding: "4px" }}>{documentsByType.other ?? 0}</td>
-                        </tr>
+                        {!isUserRSORepresentative && (
+                            <>
+                                <tr>
+                                    <td style={{ padding: "4px" }}>{statsTitle.documentsByType?.renewal || "Renewal"}</td>
+                                    <td style={{ padding: "4px" }}>{documentsByType.renewal ?? 0}</td>
+                                </tr>
+                                <tr>
+                                    <td style={{ padding: "4px" }}>{statsTitle.documentsByType?.other || "Other"}</td>
+                                    <td style={{ padding: "4px" }}>{documentsByType.other ?? 0}</td>
+                                </tr>
+
+                            </>
+                        )}
                     </tbody>
                 </table>
             </div>

@@ -14,6 +14,7 @@ export { default as useAcademicYears } from './admin/useAdminAcademicYears';
 export { default as useDashboard } from './useDashboard';
 export { default as useNotification } from './useNotification';
 export { default as useSignature } from './useSignature';
+export { default as useOnlineStatus } from './useOnlineStatus';
 
 export * from './login';
 export * from './admin';
