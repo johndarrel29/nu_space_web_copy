@@ -83,7 +83,9 @@ export default function Breadcrumb({ style, unSelected }) {
                                 {isLast ? (
                                     <span className={classNames(style)}>{capitalize(path)}</span>
                                 ) : (
-                                    <Link to={routeTo} className={unSelected}>
+                                    <Link
+                                        state={documentId ? { documentId } : undefined}
+                                        to={routeTo} className={unSelected}>
                                         {capitalize(path)}
                                     </Link>
                                 )}

@@ -43,6 +43,8 @@ export default function WaterMarkPage() {
     const { isOpen, openModal, closeModal } = useModal();
     const [directorModalOpen, setDirectorModalOpen] = useState(false);
 
+    console.log("received doc  id:", documentId, url);
+
     const {
         // fetching admin profile
         adminProfile,
@@ -85,7 +87,7 @@ export default function WaterMarkPage() {
 
     if (signatureData && signatureData?.data?.signedUrl === null) {
         toast.error("No signature/watermark image available. Please create one first.");
-        navigate(-1);
+        navigate(`/admin-documents/${documentId}`, { state: { documentId, url } });
     }
 
     // const pdfUrl = (`http://localhost:5000/api/admin/documents/pdf/${documentId}`);
@@ -312,7 +314,7 @@ export default function WaterMarkPage() {
     }
 
     const handleBackClick = () => {
-        navigate(-1);
+        navigate(`/admin-documents/${documentId}`, { state: { documentId, url } });
     };
 
     if (isLoading) return (
@@ -403,6 +405,8 @@ export default function WaterMarkPage() {
         approveDocumentMutate({ documentId, formData }, {
             onSuccess: () => {
                 toast.success('Document approved successfully.');
+                // navigate to home documents page
+                navigate('/admin-documents');
             },
             onError: (error) => {
                 toast.error(`Error approving document: ${error.message || 'Unknown error'}`);

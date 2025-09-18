@@ -16,6 +16,8 @@ export default function DocumentDetails() {
     const { isUserRSORepresentative, isUserAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
     const { documentId, documentTitle, documentSize, documentType, url } = location.state || {};
 
+    console.log("Location state:", location.state);
+
     const {
         documentDetail,
         documentDetailLoading,
@@ -109,7 +111,7 @@ export default function DocumentDetails() {
     }, [isUserAdmin, isUserRSORepresentative, documentIsApproved, doc?.coordinator_approved, activeTab]);
 
     const handleBackClick = () => {
-        navigate(-1);
+        navigate("/admin-documents");
     };
 
     const handleDocumentClick = () => {
@@ -230,6 +232,7 @@ export default function DocumentDetails() {
 
             <div className="w-full flex justify-end gap-2 mt-4">
                 <Button
+                    disabled={!documentId}
                     onClick={() => handleDocumentApprove(true)}
                 >
                     <div className="flex gap-2 items-center">
