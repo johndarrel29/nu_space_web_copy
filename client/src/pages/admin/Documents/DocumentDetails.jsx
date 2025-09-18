@@ -113,11 +113,12 @@ export default function DocumentDetails() {
     };
 
     const handleDocumentClick = () => {
-        if (!isCoordinator && !isDirector && !isAVP) {
-            window.open(url, "_blank");
-        } else {
-            navigate(`/admin-documents/${documentId}/watermark`, { state: { documentId, url } });
-        }
+        // if (!isCoordinator && !isDirector && !isAVP) {
+        //     window.open(url, "_blank");
+        // } else {
+        //     navigate(`/admin-documents/${documentId}/watermark`, { state: { documentId, url } });
+        // }
+        window.open(url, "_blank");
     };
 
     const handleDirectorSwitch = (e) => {
@@ -286,6 +287,13 @@ export default function DocumentDetails() {
     );
 
     const handleDocumentApprove = (isApproved) => {
+        // disregard the mutate for now. navigate to watermark page
+        if (isApproved) {
+            navigate(`/admin-documents/${documentId}/watermark`, { state: { documentId, url } });
+            return;
+        }
+
+
         let updatedFormData = {
             ...formData,
             approve: isApproved

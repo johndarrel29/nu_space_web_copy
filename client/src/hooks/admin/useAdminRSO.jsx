@@ -68,7 +68,7 @@ const createRSO = async (newOrg) => {
 };
 
 // Update RSO function
-const updateRSO = async ({ id, updatedOrg }) => {
+const updateRSO = async ({ id, updatedOrg, academicYearId }) => {
     const token = useTokenStore.getState().getToken();
     const isFileUpload = updatedOrg.RSO_picture instanceof File;
     const formData = new FormData();
@@ -88,14 +88,17 @@ const updateRSO = async ({ id, updatedOrg }) => {
         ...(!isFileUpload && { "Content-Type": "application/json" }),
     };
 
-    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/update-rso/${id}`, {
+
+    console.log("Updating RSO ID:", id, "with data:", updatedOrg);
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/rso/update-rso/${id}/${academicYearId}`, {
         method: "PATCH",
         headers,
         body: isFileUpload ? formData : JSON.stringify(updatedOrg),
     });
 
     if (!response.ok) {
-        throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
     }
 
     return response.json();

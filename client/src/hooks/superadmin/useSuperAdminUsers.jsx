@@ -46,8 +46,8 @@ const createSDAOAccount = async (formData) => {
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || `Error: ${response.status} - ${response.statusText}`);
+            const errorData = await response.json();
+            throw new Error(errorData.errors.map(e => e.msg).join(", ") || `Error: ${response.status} - ${response.statusText}`);
         }
 
         return await response.json();

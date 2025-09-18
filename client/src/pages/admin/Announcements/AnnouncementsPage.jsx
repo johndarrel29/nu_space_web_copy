@@ -50,10 +50,21 @@ function AnnouncementsPage() {
         postSpecificRSONotificationLoading,
         postSpecificRSONotificationError,
         postSpecificRSONotificationErrorDetails,
+
+        postRSONotification,
+        postRSONotificationLoading,
+        postRSONotificationError,
+        postRSONotificationErrorDetails,
+
+        rsoCreatedNotificationsData,
+        rsoCreatedNotificationsLoading,
+        rsoCreatedNotificationsError,
+        rsoCreatedNotificationsErrorDetails,
+        refetchRSOCreatedNotifications
     } = useNotification({ userId: user?.id });
 
-    console.log("Notifications Data: ", notificationsData);
-    console.log("Sent Notifications Data: ", sentNotificationsData?.announcements);
+    console.log("Notifications for rso Data: ", rsoCreatedNotificationsData);
+
 
     const { isOpen, openModal, closeModal } = useModal();
     const [error, setError] = useState(null);
@@ -112,7 +123,18 @@ function AnnouncementsPage() {
         fullData: notification
     })) || [];
 
-    const rowsToDisplay = activeTab === 0 ? tableRow : tableRowSent;
+    const tableRowRSO = Array.isArray(rsoCreatedNotificationsData?.RSOSpace)
+        ? rsoCreatedNotificationsData.RSOSpace.map(n => ({
+            title: n.title,
+            message: n.content?.length > 50 ? n.content.substring(0, 50) + '...' : n.content,
+            createdBy: formatCreatedBy(n.createdBy),
+            createdAt: FormatDate(n.createdAt),
+            notifType: n.data?.type,
+            fullData: n
+        }))
+        : [];
+
+    const rowsToDisplay = activeTab === 0 ? tableRow : isUserRSORepresentative && activeTab === 1 ? tableRowRSO : tableRowSent;
 
     console.log("selectedRSOs:", selectedRSOs);
 
@@ -153,34 +175,54 @@ function AnnouncementsPage() {
             return;
         }
 
-        if (selectedRSOs.length === 0) {
-            postNotification({ title, content: description },
-                {
-                    onSuccess: () => {
-                        toast.success("Announcement created successfully!");
-                        console.log("Notification posted successfully");
-                        // Reset form + close
-                        setTitle("");
-                        setDescription("");
-                        closeModal();
-                    },
-                    onError: (err) => {
-                        setError(err.message || "Failed to create announcement.");
-                        toast.error(`Error: ${err.message || "Failed to create announcement."}`);
+        if (isUserAdmin || isCoordinator) {
+            if (selectedRSOs.length === 0) {
+                postNotification({ title, content: description },
+                    {
+                        onSuccess: () => {
+                            toast.success("Announcement created successfully!");
+                            console.log("Notification posted successfully");
+                            // Reset form + close
+                            setTitle("");
+                            setDescription("");
+                            closeModal();
+                        },
+                        onError: (err) => {
+                            setError(err.message || "Failed to create announcement.");
+                            toast.error(`Error: ${err.message || "Failed to create announcement."}`);
+                        }
                     }
-                }
-            );
-        } else {
-            postSpecificRSONotification({ title, content: description, rsoIds: selectedRSOs },
+                );
+            } else {
+                postSpecificRSONotification({ title, content: description, rsoIds: selectedRSOs },
+                    {
+                        onSuccess: () => {
+                            toast.success("Announcement created successfully!");
+                            console.log("RSO-specific notification posted successfully");
+                            // Reset form + close
+                            setTitle("");
+                            setDescription("");
+                            setSelectedRSOs([]);
+                            closeModal();
+                        },
+                        onError: (err) => {
+                            setError(err.message || "Failed to create announcement.");
+                            toast.error(`Error: ${err.message || "Failed to create announcement."}`);
+                        }
+                    }
+                );
+            }
+        } else if (isUserRSORepresentative) {
+            postRSONotification({ title, content: description },
                 {
                     onSuccess: () => {
                         toast.success("Announcement created successfully!");
-                        console.log("RSO-specific notification posted successfully");
+                        refetchRSOCreatedNotifications();
                         // Reset form + close
                         setTitle("");
                         setDescription("");
-                        setSelectedRSOs([]);
                         closeModal();
+                        console.log("RSO representative notification posted successfully");
                     },
                     onError: (err) => {
                         setError(err.message || "Failed to create announcement.");
@@ -192,13 +234,10 @@ function AnnouncementsPage() {
     };
 
     const notificationTab =
-        (isUserAdmin || isCoordinator) ?  // Only Admins and Coordinators can see "Sent" tab
-            [
-                { label: "Received" },
-                { label: "Sent" }
-            ] : [
-                { label: "Received" }
-            ];
+        [
+            { label: "Received" },
+            { label: "Sent" }
+        ];
 
     // TEMP: Using mock RSO options for testing instead of live API data
     // Restore original mapping below when backend is ready:
@@ -216,11 +255,9 @@ function AnnouncementsPage() {
     return (
         <>
             <div className="flex flex-col md:flex-row justify-between mb-4">
-                {(isUserAdmin || isCoordinator) && (
-                    <div className='flex justify-start md:order-2 p-2'>
-                        <Button onClick={openModal}>Create an Announcement</Button>
-                    </div>
-                )}
+                <div className='flex justify-start md:order-2 p-2'>
+                    <Button onClick={openModal}>Create an Announcement</Button>
+                </div>
                 <TabSelector tabs={notificationTab} activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
             <div >
@@ -256,15 +293,16 @@ function AnnouncementsPage() {
                                 <CloseButton onClick={closeModal} />
                             </div>
                             <div className="space-y-4">
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Select RSO</h3>
-                                    <Select
-                                        isMulti
-                                        className="basic-multi-select"
-                                        onChange={handleSelectedRSOs}
-                                        options={rsos} />
-
-                                </div>
+                                {(isUserAdmin || isCoordinator) && (
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500">Select RSO</h3>
+                                        <Select
+                                            isMulti
+                                            className="basic-multi-select"
+                                            onChange={handleSelectedRSOs}
+                                            options={rsos} />
+                                    </div>
+                                )}
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Title</h3>
                                     <TextInput

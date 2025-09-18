@@ -42,8 +42,7 @@ export default function CreateUserModal({ closeModal }) {
                     closeModal();
                 },
                 onError: (error) => {
-                    toast.error(error.message || "Error creating user");
-                    console.error(error.message || "Error creating user");
+                    toast.error(`Error creating user: ${error.message}`);
                 }
             }
         );
@@ -60,6 +59,14 @@ export default function CreateUserModal({ closeModal }) {
                     exit="exit"
                 >
                     <div className=" p-6 z-10">
+                        <div>
+                            {isCreateError && (
+                                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                                    <strong className="font-bold">Error!</strong>
+                                    <span className="block sm:inline"> {createErrorMessage.message}</span>
+                                </div>
+                            )}
+                        </div>
                         <div className="flex flex-row justify-between items-center mb-8">
                             <h2 className="text-xl font-semibold">Create New Account</h2>
                             <CloseButton onClick={closeModal} />
@@ -112,6 +119,7 @@ export default function CreateUserModal({ closeModal }) {
                             <Button onClick={closeModal} className="text-off-black px-4" style="secondary">Cancel</Button>
                             <Button
                                 onClick={handleSubmit}
+                                disabled={isCreatingAccount || formData.password !== formData.confirmpassword || !formData.firstName || !formData.lastName || !formData.email || !formData.role || !formData.password || !formData.confirmpassword}
                                 className="px-4">
                                 <div className="flex flex-row space-x-2 items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="fill-white size-4"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z" /></svg>

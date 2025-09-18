@@ -359,7 +359,7 @@ function RSODetails() {
                       Activity_image={activity?.activityImageUrl}
                       Activity_registration_total={activity.Activity_registration_total}
                       onClick={handleActivityClick}
-                      Activity_datetime={handleDateTime(activity.Activity_datetime) || "N/A"}
+                      Activity_datetime={handleDateTime(activity?.Activity_start_datetime) || "N/A"}
                       Activity_place={activity.Activity_place}
                       statusColor={activity.Activity_status === 'done' ? 'bg-green-500' :
                         activity.Activity_status === 'pending' ? 'bg-[#FFCC33]' :

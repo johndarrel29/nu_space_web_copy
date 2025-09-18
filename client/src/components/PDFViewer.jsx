@@ -17,7 +17,7 @@ const options = {
 
 const maxWidth = 800;
 
-function PDFViewer({ docId }) {
+function PDFViewer({ docId, file: externalFile }) {
     const [numPages, setNumPages] = useState(null);
     const [containerWidth, setContainerWidth] = useState();
 
@@ -25,6 +25,8 @@ function PDFViewer({ docId }) {
         setNumPages(numPages);
     };
     const token = useTokenStore.getState().getToken();
+    const hasExternalFile = !!externalFile;
+
     const { data: pdfData, isLoading, error } = useQuery({
         queryKey: ['pdf', docId],
         queryFn: async () => {
@@ -38,8 +40,10 @@ function PDFViewer({ docId }) {
             }
             return res.blob();
         },
-        enabled: !!docId && !!token, // only fetch when both exist
+        enabled: !!docId && !!token && !hasExternalFile, // only fetch when both exist
     });
+
+    const documentFile = hasExternalFile ? externalFile : pdfData;
 
     if (isLoading) return <p>Loading PDF...</p>;
     if (error) return <p>Error loading PDF</p>;
@@ -51,7 +55,7 @@ function PDFViewer({ docId }) {
                 <Document
                     // file="/docSample.pdf"
                     // file={docId}
-                    file={pdfData}
+                    file={documentFile}
                     onLoadSuccess={onDocumentLoadSuccess}
                     options={options}
                 >

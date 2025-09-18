@@ -113,6 +113,57 @@ const postSpecificRSONotificationRequest = async ({ rsoIds, title, content }) =>
     }
 }
 
+const postRSONotificationRequest = async ({ title, content }) => {
+    try {
+        const token = useTokenStore.getState().token;
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/announcements/createAnnouncement`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: token,
+            },
+            body: JSON.stringify({ title, content }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error creating specific RSO notification:", error);
+        throw error;
+    }
+}
+
+const getRSOCreatedNotificationsRequest = async () => {
+    try {
+        const token = useTokenStore.getState().token;
+
+        const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/rsoRep/announcements/getAnnouncement`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: token,
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching RSO created notifications:", error);
+        throw error;
+    }
+}
+
 function useNotification({ userId } = {}) {
     const queryClient = useQueryClient();
 
@@ -160,6 +211,26 @@ function useNotification({ userId } = {}) {
         },
     });
 
+    const {
+        mutate: postRSONotification,
+        isLoading: postRSONotificationLoading,
+        isError: postRSONotificationError,
+        error: postRSONotificationErrorDetails,
+    } = useMutation({
+        mutationFn: postRSONotificationRequest,
+    });
+
+    const {
+        data: rsoCreatedNotificationsData,
+        isLoading: rsoCreatedNotificationsLoading,
+        isError: rsoCreatedNotificationsError,
+        error: rsoCreatedNotificationsErrorDetails,
+        refetch: refetchRSOCreatedNotifications,
+    } = useQuery({
+        queryKey: ['rsoCreatedNotificationsData'],
+        queryFn: getRSOCreatedNotificationsRequest,
+    });
+
     return {
         // get notifications
         notificationsData,
@@ -184,6 +255,19 @@ function useNotification({ userId } = {}) {
         postSpecificRSONotificationLoading,
         postSpecificRSONotificationError,
         postSpecificRSONotificationErrorDetails,
+
+        // post RSO notification (for RSO representatives)
+        postRSONotification,
+        postRSONotificationLoading,
+        postRSONotificationError,
+        postRSONotificationErrorDetails,
+
+        // get RSO created notifications (for RSO representatives)
+        rsoCreatedNotificationsData,
+        rsoCreatedNotificationsLoading,
+        rsoCreatedNotificationsError,
+        rsoCreatedNotificationsErrorDetails,
+        refetchRSOCreatedNotifications,
     }
 }
 

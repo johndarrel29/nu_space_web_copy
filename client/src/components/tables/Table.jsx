@@ -181,14 +181,30 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
         // Fixed delete logic - call the function directly
         if (isUserAdmin) {
           // Call deleteStudentAccount directly
-          await deleteStudentAccount(_id);
-          console.log("User deleted successfully");
-          toast.success("User deleted successfully");
+          await deleteStudentAccount(_id, {
+            onSuccess: () => {
+              closeModal();
+              console.log("User deleted successfully");
+              toast.success("User deleted successfully");
+            },
+            onError: (error) => {
+              console.error("Error deleting user:", error);
+              toast.error("Error deleting user");
+            }
+          });
         } else if (isSuperAdmin) {
           // Call deleteAdminAccount directly
-          await deleteAdminAccount(_id);
-          console.log("User deleted successfully");
-          toast.success("User deleted successfully");
+          await deleteAdminAccount(_id, {
+            onSuccess: () => {
+              closeModal();
+              console.log("Admin account deleted successfully");
+              toast.success("Admin account deleted successfully");
+            },
+            onError: (error) => {
+              console.error("Error deleting admin account:", error);
+              toast.error("Error deleting admin account");
+            }
+          });
         } else {
           throw new Error("No valid delete function available");
         }

@@ -163,6 +163,7 @@ function useAdminUser() {
         mutationFn: updateUserRequest,
         onSuccess: () => {
             console.log("User updated successfully");
+            refetchUsersData();
             // refetch();
         },
         onError: (error) => {
@@ -181,6 +182,7 @@ function useAdminUser() {
         mutationFn: deleteUserRequest,
         onSuccess: () => {
             console.log("User deleted successfully");
+            refetchUsersData();
         },
         onError: (error) => {
             console.error("Error deleting user:", error);

@@ -129,7 +129,7 @@ export default function PasswordAction() {
                         },
                         onError: (error) => {
                             console.error("Error changing password:", error);
-                            toast.error(error.message || "Failed to change password");
+                            toast.error(error.details.error || "Failed to change password");
                         }
                     });
             }

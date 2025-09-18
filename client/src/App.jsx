@@ -112,7 +112,7 @@ function App() {
                     <Route index element={<MainLogin />} />
                     <Route path="password-action" element={<PasswordAction />} />
                     <Route path="email-action" element={<EmailAction />} />
-                    <Route path="register" element={<MainRegister />} />
+                    {/* <Route path="register" element={<MainRegister />} /> */}
                   </Route>
 
                   {/* Protected routes for authenticated users */}

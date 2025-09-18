@@ -49,14 +49,14 @@ const approveCoordinatorDocument = async ({ formData, documentId }) => {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/coordinator/documents/approveDocument/${documentId}`, {
             method: "PATCH",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: token || "",
             },
-            body: JSON.stringify(formData)
+            body: formData
         });
 
         if (!response.ok) {
-            throw new Error(`Error approving document: ${response.statusText}`);
+            const errorData = await response.json(); // try to read the server's message
+            throw new Error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
         }
 
         return await response.json();

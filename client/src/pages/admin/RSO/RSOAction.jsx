@@ -25,7 +25,7 @@ function RSOAction() {
   const navigate = useNavigate();
   const { mode, data, from, id } = location.state || {};
   // decommission this after implementing useAdminRSO
-  const { createRSO, updateRSO, deleteRSO, loading, updateError, createError, success } = useRSO();
+  const { createRSO, updateRSO, deleteRSO, loading, createError, success } = useRSO();
   const {
     rsoDetailData,
     isRSODetailLoading,
@@ -54,6 +54,14 @@ function RSOAction() {
     isSoftDeleteRSOError,
     softDeleteRSOError,
     resetSoftDeleteRSO,
+
+    updateRSOMutate,
+    isUpdating,
+    isUpdateSuccess,
+    isUpdateError,
+    updateError,
+    resetUpdate,
+
   } = useAdminRSO({ rsoID: id });
   const {
     academicYears,
@@ -75,7 +83,7 @@ function RSOAction() {
   const [error, setError] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
   const [tagError, setTagError] = useState("");
-  const [rsoStatus, setRsoStatus] = useState(false);
+  // Removed deprecated rsoStatus state (was tied to RSO_status field)
 
 
   //file manipulaion
@@ -85,9 +93,6 @@ function RSOAction() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [readyCropper, setReadyCropper] = useState(false);
 
-  console.log("fetching years list:", academicYears?.years?.map(year => year.label));
-
-  console.log("details data ", rsoDetailData, " with id: ", id);
 
   const isEdit = mode === 'edit';
   const isCreate = mode === 'create';
@@ -139,12 +144,14 @@ function RSOAction() {
         RSO_category: rsoDetailData?.data?.RSO_snapshot?.category || "",
         RSO_tags: rsoDetailData?.data?.RSOid?.RSO_tags || [],
         RSO_College: rsoDetailData?.data?.RSO_snapshot?.college || "",
-        RSO_status: rsoDetailData?.data?.RSO_status ?? false,
+        // RSO_status removed
         RSO_description: rsoDetailData?.data?.RSO_snapshot?.description || "",
         RSO_picture: rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || null,
         RSO_picturePreview: rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || DefaultPicture,
         RSO_probationary: rsoDetailData?.data?.RSO_snapshot?.probationary || false,
-        RSO_academicYear: rsoDetailData?.data?.academicYear || "", // <-- add this field
+        RSO_academicYear: rsoDetailData?.data?.academicYear || "",
+        academicYearId: rsoDetailData?.data?.academicYear || "",
+
       });
       { console.log("RSO details data for tags:", rsoDetailData?.data?.RSOid?.RSO_tags) }
 
@@ -167,6 +174,8 @@ function RSOAction() {
 
 
 
+
+
   const handleOptions = ['CCIT', 'CBA', 'COA', 'COE', 'CAH', 'CEAS', 'CTHM'];
   const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest', 'Office Aligned Organization'];
 
@@ -177,13 +186,16 @@ function RSOAction() {
     RSO_category: "",
     RSO_tags: [],
     RSO_college: "",
-    RSO_status: false,
+    // RSO_status removed from initial form state
     RSO_description: "",
+    RSO_probationary: false,
     RSO_picture: null,
     RSO_picturePreview: DefaultPicture,
     RSO_academicYear: "", // Label for display
     academicYearId: "", // ID for submission
   });
+
+  console.log("formData:", formData);
 
   const fileInputRef = useRef(null);
 
@@ -263,6 +275,21 @@ function RSOAction() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const originalUrl = rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || null;
+
+    const pictureUnchanged = (() => {
+      // If user produced a File, it's definitely a change
+      if (formData.RSO_picture instanceof File) return false;
+      // If both are strings, normalize and compare
+      if (typeof formData.RSO_picture === 'string' && typeof originalUrl === 'string') {
+        // Optional: strip query params from signed URLs to compare base path
+        const stripQuery = url => url.split('?')[0];
+        return stripQuery(formData.RSO_picture) === stripQuery(originalUrl);
+      }
+      // Null vs null = unchanged
+      return formData.RSO_picture == null && originalUrl == null;
+    })();
+
 
     // No need to find the year object again, we already have the ID
     const payload = {
@@ -271,8 +298,66 @@ function RSOAction() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       // Use the stored academicYearId directly
-      academicYearId: formData.academicYearId || undefined,
+      // academicYearId: formData.academicYearId || null,
     };
+
+    console.log("compare formData from edit:", formData.RSO_picture, "with rsoDetailData:", rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL);
+
+
+    // go through all the fields and check one by one if the formData matches rsoDetailData
+    // if it is, remove it from the payload
+    if (isEdit && rsoDetailData) {
+      if (formData.academicYearId === (rsoDetailData?.data?.academicYear || "")) {
+        delete payload.academicYearId;
+        delete payload.RSO_academicYear;
+      }
+
+      if (formData.RSO_name === (rsoDetailData?.data?.RSOid?.RSO_name || "")) {
+        delete payload.RSO_name;
+      }
+
+      if (formData.RSO_acronym === (rsoDetailData?.data?.RSOid?.RSO_acronym || "")) {
+        delete payload.RSO_acronym;
+      }
+
+      if (formData.RSO_category === (rsoDetailData?.data?.RSOid?.RSO_category || "")) {
+        delete payload.RSO_category;
+      }
+
+      if (JSON.stringify(selectedTags) === JSON.stringify(rsoDetailData?.data?.RSOid?.RSO_tags?.map(tagObj => typeof tagObj === 'object' ? tagObj.tag : tagObj) || [])) {
+        delete payload.RSO_tags;
+      }
+      if (formData.RSO_College === (rsoDetailData?.data?.RSOid?.RSO_College || "")) {
+        delete payload.RSO_College;
+      }
+      // Removed RSO_status comparison block
+      if (formData.RSO_description === (rsoDetailData?.data?.RSO_snapshot?.description || "")) {
+        delete payload.RSO_description;
+      }
+      if (formData.RSO_probationary === (rsoDetailData?.data?.RSO_snapshot?.probationary || false)) {
+        delete payload.RSO_probationary;
+      }
+
+      // find out why they are not equal when they are the samex`
+      if (pictureUnchanged) {
+        console.log("compare formData from edit:", formData.RSO_picture, "with rsoDetailData:", rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL);
+        delete payload.RSO_picture;
+      }
+
+      // dont include RSO_picture, RSO_picturePreview, createdAt, picture, and updatedAt in payload
+
+      delete payload.RSO_picturePreview;
+      // delete payload.RSO_picture;
+      delete payload.picture;
+      delete payload.createdAt;
+      delete payload.updatedAt;
+    }
+
+    if (isEdit && !Object.keys(payload).length) {
+      console.log("type of formData.RSO_picture:", typeof rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL, "Is file?", formData.RSO_picture instanceof File);
+      toast.info("No changes made.");
+      return;
+    }
 
     // Remove display-only fields from payload
     delete payload.RSO_academicYear;
@@ -307,9 +392,22 @@ function RSOAction() {
 
     try {
       let result;
-      if (isEdit) {
-        console.log("Sending to updateRSO:", payload);
-        result = await updateRSO(data.id, payload);
+      if (isEdit && data?.id) {
+        console.log("Sending to updateRSOMutate:", payload);
+        result = await updateRSOMutate({ id: data.id, updatedOrg: payload, academicYearId: formData.academicYearId },
+          {
+            onSuccess: (data) => {
+              console.log("RSO updated successfully:", data);
+              toast.success('RSO updated successfully!');
+              navigate(-1);
+            },
+            onError: (error) => {
+              console.error("Error updating RSO:", error);
+              toast.error(error.message || "Failed to update RSO");
+              resetUpdate();
+            }
+          }
+        );
       } else if (isCreate) {
         console.log("Sending to createRSO:", payload);
         createRSOMutate(payload,
@@ -346,7 +444,7 @@ function RSOAction() {
           RSO_category: "",
           RSO_tags: "",
           RSO_College: "",
-          RSO_status: "",
+          // RSO_status removed from reset form state
           RSO_description: "",
           RSO_probationary: false,
           RSO_picture: null,
@@ -629,7 +727,6 @@ function RSOAction() {
                 onChange={(e) => {
                   const isChecked = e.target.checked;
                   console.log("Switch toggled", e.target.checked)
-                  setRsoStatus(isChecked);
                   setFormData((prev) => ({
                     ...prev,
                     RSO_probationary: isChecked,

@@ -13,7 +13,7 @@ const ProtectedRoutes = () => {
         console.log("User not authenticated, redirecting to login");
     }
 
-    return user ? <Outlet /> : !isOnline ? <Navigate to="/error" /> : <Navigate to="/" />;
+    return isOnline && user ? <Outlet /> : !isOnline ? <Navigate to="/error" /> : <Navigate to="/" />;
 }
 
 export default ProtectedRoutes;

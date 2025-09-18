@@ -15,11 +15,11 @@ function Searchbar({ placeholder, searchQuery, setSearchQuery, style, setShowSea
   });
 
   // Focus input when searchQuery changes
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [searchQuery]);
+  // useEffect(() => {
+  //   if (inputRef.current) {
+  //     inputRef.current.focus();
+  //   }
+  // }, [searchQuery]);
 
 
 

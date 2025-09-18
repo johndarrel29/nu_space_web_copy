@@ -40,29 +40,41 @@ const changeFirstPasswordRequest = async ({ email, password, newPassword, confir
     try {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/firstLogin/changePassword`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password, newPassword, confirmPassword }),
         });
 
-        const json = await response.json();
-
-        if (!response.ok) {
-            throw json;
+        // Read body once
+        let json;
+        try {
+            json = await response.json();
+        } catch (e) {
+            json = null; // non-JSON or empty body
         }
 
-        if (!json.success) {
-            throw new Error(json || "Password change failed");
+        if (!response.ok) {
+            // Throw structured error so UI can branch on fields
+            throw {
+                status: response.status,
+                message: json?.message || json?.error || "Password change failed",
+                details: json,
+            };
+        }
+
+        if (!json?.success) {
+            throw {
+                status: response.status,
+                message: json?.message || "Password change failed",
+                details: json,
+            };
         }
 
         return json;
     } catch (error) {
         console.error("Error during password change request:", error);
-        throw error; // Re-throw the error to be handled by the mutation
-
+        throw error;
     }
-}
+};
 
 const checkEmailExistsRequest = async (email) => {
     try {
@@ -152,29 +164,39 @@ const resetPasswordRequest = async ({ email, newPassword, confirmPassword, platf
     try {
         const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/reset-password`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, newPassword, confirmPassword, platform }),
         });
 
-        const json = await response.json();
-
-        if (!response.ok) {
-            throw json;
+        let json;
+        try {
+            json = await response.json();
+        } catch (e) {
+            json = null;
         }
 
-        if (!json.success) {
-            throw new Error(json || "Password reset failed");
+        if (!response.ok) {
+            throw {
+                status: response.status,
+                message: json?.message || json?.error || "Password reset failed",
+                details: json,
+            };
+        }
+
+        if (!json?.success) {
+            throw {
+                status: response.status,
+                message: json?.message || "Password reset failed",
+                details: json,
+            };
         }
 
         return json;
     } catch (error) {
         console.error("Error during password reset request:", error);
-        throw error; // Re-throw the error to be handled by the mutation
-
+        throw error;
     }
-}
+};
 
 function useLogin() {
     const {

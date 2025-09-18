@@ -16,18 +16,12 @@ import { toast } from "react-toastify";
 //add error preferrably from query
 
 // function to handle the search and filter
-const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole, openModal }) => {
+// Lightweight filter bar (search + role dropdown). Create button moved to main header banner.
+const UserFilter = memo(({ searchQuery, setSearchQuery, setSelectedRole, selectedRole }) => {
 
   const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
   return (
     <>
-      {/* button to open create user modal */}
-      {(isSuperAdmin) && (
-        <div>
-          <Button onClick={openModal}>Create User</Button>
-        </div>
-      )}
-
       {/* search query */}
       <div className="mt-4 w-full flex flex-col space-x-0 md:flex-row md:space-x-2 md:space-y-0 sm:flex-col sm:space-y-2 sm:space-x-0">
         <div className="w-full lg:w-full md:w-full">
@@ -173,6 +167,21 @@ export default function Users() {
     pages: [] // added
   });
 
+  // --- Banner stats (mirroring Activities style) ---
+  const totalApplicants = applicants.length;
+  // Attempt to derive members count; fall back gracefully
+  const totalMembers = (rsoMembers?.members && Array.isArray(rsoMembers.members))
+    ? rsoMembers.members.length
+    : (Array.isArray(rsoMembers) ? rsoMembers.length : 0);
+
+  // Reusable small stat pill (kept local for simplicity)
+  const StatPill = ({ label, value }) => (
+    <div className="min-w-[110px] px-4 py-2 rounded-md border border-gray-200 bg-white shadow-sm">
+      <p className="text-[10px] font-medium tracking-wide text-gray-500 uppercase">{label}</p>
+      <p className="text-base font-semibold text-gray-900">{value}</p>
+    </div>
+  );
+
   const handleOpenUserModal = (row) => {
     console.log("row is ", row);
     const rawPages = row?.applicantData?.answers?.pages || [];
@@ -226,11 +235,30 @@ export default function Users() {
   return (
     <>
       <div className="flex flex-col">
+        {/* --- Header Banner --- */}
+        <div className="mb-6">
+          <div className="flex justify-end gap-4 w-full">
+            {
+              isSuperAdmin && (
+                <Button onClick={openModal}>
+                  Create User
+                </Button>
+              )
+            }
+          </div>
+          {/* Mobile stats (stacked) */}
+          {(isSuperAdmin || isUserAdmin || isCoordinator) && (
+            <div className="mt-4 flex sm:hidden gap-3">
+              <StatPill label="Applicants" value={totalApplicants} />
+              <StatPill label="Members" value={totalMembers} />
+            </div>
+          )}
+        </div>
 
         {/* table for admin & super admin */}
         {(isUserAdmin || isCoordinator || isSuperAdmin) && (
           <>
-            <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery} setSelectedRole={setSelectedRole} openModal={openModal} />
+            <UserFilter searchQuery={searchQuery} setSearchQuery={setSearchQuery} setSelectedRole={setSelectedRole} />
             <Table
               searchQuery={searchQuery}
               selectedRole={selectedRole} />
