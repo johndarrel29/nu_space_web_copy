@@ -8,10 +8,16 @@ const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
     const token = useTokenStore.getState().getToken();
 
     const [_, filter] = queryKey;
-    const { limit = 12, query = "", sorted = "", RSO = "", RSOType = "", college = "", isGPOA = "All" } = filter;
+    const { limit = 12, query = "", sorted = "", RSO = "", RSOType = "", college = "", isGPOA = "All", page = 1 } = filter;
+
+    // figure out how page is being passed
 
     const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/fetch-activities`);
-    url.searchParams.set("page", pageParam);
+    if (page > 1) {
+        if (page) url.searchParams.set("page", page);
+    } else {
+        url.searchParams.set("page", pageParam);
+    }
     url.searchParams.set("limit", limit);
     if (query) url.searchParams.set("search", query);
     if (RSO) url.searchParams.set("RSO", RSO)
@@ -29,6 +35,8 @@ const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
         RSOType,
         college,
     });
+
+    console.log("url with params :", url.toString());
 
     const response = await fetch(url, {
         headers: {
@@ -48,6 +56,8 @@ const fetchAdminActivity = async ({ queryKey, pageParam = 1 }) => {
         activities: data.activities,
         hasNextPage: data.pagination?.hasNextPage,
         nextPage: data.pagination?.hasNextPage ? pageParam + 1 : undefined,
+        pagination: data.pagination,
+        totalActivities: data.pagination?.total || 0,
     }
     // return response.json();
 
@@ -183,6 +193,7 @@ function useAdminActivity({
     RSOType = "",
     college = "",
     isGPOA = "All",
+    page = 1,
 } = {}) {
     const { user } = useAuth();
     const { isUserAdmin, isCoordinator } = useUserStoreWithAuth();
@@ -195,6 +206,7 @@ function useAdminActivity({
         isGPOA,
         RSOType,
         college,
+        page,
     };
 
     const {

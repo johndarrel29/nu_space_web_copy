@@ -20,7 +20,7 @@ import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { generateToken, messaging } from './config/firebase';
+import { generateToken, messaging, initFCM } from './config/firebase';
 import { onMessage } from 'firebase/messaging';
 import { toast } from 'react-toastify';
 import { useSelectedFormStore } from './store';
@@ -61,14 +61,35 @@ function App() {
     })();
   }, [isOnline]);
 
-  useEffect(() => {
-    generateToken();
-    onMessage(messaging, (payload) => {
-      console.log('Message received. ', payload);
+  // useEffect(() => {
+  //   generateToken();
+  //   onMessage(messaging, (payload) => {
+  //     console.log('Message received. ', payload);
 
-      toast.info(payload.notification.body);
-    });
-  }, [generateToken]);
+  //     toast.info(payload.notification.body);
+  //   });
+  // }, [generateToken]);
+
+  useEffect(() => {
+    (async () => {
+      const { messaging, token } = await initFCM();
+
+      if (token) {
+        // send to backend
+      }
+
+      if (messaging) {
+        onMessage(messaging, (payload) => {
+          console.log('Message received. ', payload);
+          toast.info(payload.notification?.body || "New Notification");
+        });
+
+      } else {
+        console.warn("FCM not supported in this browser.");
+        toast.warn("Notifications are not supported on this browser.");
+      }
+    })();
+  }, []);
 
   // Initialize Material Tailwind safely
   useEffect(() => {
