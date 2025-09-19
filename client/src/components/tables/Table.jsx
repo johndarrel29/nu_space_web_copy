@@ -5,18 +5,19 @@ import { ActionModal, TableRow } from '../../components';
 import 'react-loading-skeleton/dist/skeleton.css'
 import { CardSkeleton } from '../../components';
 import { AnimatePresence } from "framer-motion";
-import { useModal, useUser } from "../../hooks";
+import { useModal, useAdminUser, useSuperAdminUsers } from "../../hooks";
 import { toast } from 'react-toastify';
-
-// fix error 403 when changing login user, then going to the table page, partially fixed
-// error 403 when role is coordinator
-// ${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchUsers:
-// error "You have no authorized access to this resource"
+import { useUserStoreWithAuth } from "../../store";
+import { useAuth } from "../../context/AuthContext";
 
 // Table Component
 const Table = React.memo(({ searchQuery, selectedRole }) => {
+
   const [mode, setMode] = useState('delete');
-  const { data, updateUserMutate, deleteUserMutate, error, refetch, isLoading } = useUser();
+  const { usersData, isUsersLoading, updateUserMutate, deleteStudentAccount, error, refetch, isLoading, refetchAdminProfile, refetchUsersData } = useAdminUser();
+  const { sdaoAccounts, createAccount, deleteAdminAccount, updateAdminRole, refetchAccounts, accountsLoading } = useSuperAdminUsers();
+
+  const { isUserRSORepresentative, isUserAdmin, isSuperAdmin, isCoordinator, isDirector, isAVP } = useUserStoreWithAuth();
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage, setPostsPerPage] = useState(10);
@@ -24,16 +25,48 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
   const { isOpen, openModal, closeModal } = useModal();
   const [success, setSuccess] = useState(false);
   const [filterError, setFilterError] = useState(null);
+  const { user } = useAuth();
+  const [tableData, setTableData] = useState([]);
 
+  console.log("admin user data", usersData);
+
+  // Effect to fetch accounts on first load
   useEffect(() => {
-    refetch();
+    const initialLoad = async () => {
+      // Wait a bit to ensure auth state is fully loaded
+      await new Promise(r => setTimeout(r, 100));
+
+      if (isUserAdmin || isCoordinator) {
+        await refetchAccounts();
+      } else if (isSuperAdmin) {
+        await refetchAdminProfile();
+      }
+    };
+
+    initialLoad();
   }, []);
 
-  console.log("Users data:", data);
+  // Effect to set table data based on user role
+  useEffect(() => {
+    if (isSuperAdmin) {
+      setTableData(sdaoAccounts?.SDAOAccounts || []);
+      return;
+    }
+    if (isUserAdmin || isCoordinator) {
+      console.log("Admin user detected, using admin hook");
+      setTableData(usersData || []);
+
+      // Use admin hook
+      console.log("Admin users:", usersData);
+      return;
+    }
+  }, [user, isSuperAdmin, isUserAdmin, sdaoAccounts, usersData, isCoordinator]);
+
+  console.log("Table Data:", tableData);
 
   // Makes the search query debounced so that it doesn't render on every key stroke
   useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
+    const handler = setTimeout(() => setDebouncedSearchQuery(searchQuery), 100);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
@@ -43,15 +76,16 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
 
   const filteredRecords = useMemo(() => {
     try {
+      console.log("users data:", tableData);
       setFilterError(null);
 
-      if (!Array.isArray(data)) {
-        console.error("Users is not an array:", data);
+      if (!Array.isArray(tableData)) {
+        console.error("Users is not an array:", tableData);
 
         return [];
       }
 
-      return data.filter(user => {
+      return tableData.filter(user => {
         const matchesSearch = ['firstName', 'lastName', 'email'].some(field =>
           typeof user[field] === 'string' && user[field].toLowerCase().includes(safeSearchQuery.toLowerCase())
         );
@@ -72,7 +106,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
       return [];
     }
 
-  }, [data, safeSearchQuery, selectedRole]);
+  }, [tableData, safeSearchQuery, selectedRole]);
 
   const records = useMemo(() => {
     const indexOfLastPost = currentPage * postsPerPage;
@@ -94,74 +128,97 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
     setSelectedUser(null);
   }, []);
 
+  // Handle confirm action received from ActionModal
   const handleConfirm = useCallback(async (_id, updatedData) => {
+    console.log("handleConfirm called with ID:", _id, "and updatedData:", updatedData);
 
     if (updatedData) {
+      console.log("updatedData role", updatedData.role)
 
       // If the role is being changed to 'student', ensure that assigned_rso is removed
       if (updatedData.role === 'student') {
-        // Don't send category data in the update request when role is student
+        console.log("the first condition has been called")
         updatedData.category = null;
         updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'student'
+        updatedData.assigned_rso = null;
       }
 
       // If the role is 'rso_representative', ensure the category is assigned to assigned_rso
       if (updatedData.role === 'rso_representative' && updatedData.category) {
+        console.log("the second condition has been called")
         updatedData.category = null;
-        // updatedData.assigned_rso = updatedData.category;
+        console.log("the updated data:", updatedData)
       }
 
-      if (updatedData.role === 'coordinator') {
-        // Don't send category data in the update request when role is coordinator
-        updatedData.category = null;
-        updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'coordinator'
+      if (!['student', 'rso_representative'].includes(updatedData.role)) {
+        console.log("the last condition has been called")
+        // only pass role
+        updatedData = { role: updatedData.role };
       }
-
-      if (updatedData.role === 'super_admin') {
-        // Don't send category data in the update request when role is super_admin
-        updatedData.category = null;
-        updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'super_admin'
-      }
-
-      if (updatedData.role === 'admin') {
-        // Don't send category data in the update request when role is admin
-        updatedData.category = null;
-        updatedData.assignedRSO = null;
-        updatedData.assigned_rso = null; // Remove assigned_rso if role is 'admin'
-      }
-
     }
 
     try {
       if (updatedData) {
-        console.log("Data being sent:", updatedData);
+        // Update logic remains the same
+        const updateUserOnRole = isUserAdmin || isCoordinator ? updateUserMutate : isSuperAdmin ? updateAdminRole : null;
+        const refetchBasedOnRole = (isUserAdmin || isCoordinator) ? refetchUsersData : isSuperAdmin ? refetchAdminProfile : null;
 
-        await updateUserMutate.mutateAsync({ userId: _id, userData: updatedData });
+        console.log("passing data: ", { userId: _id, role: updatedData.role });
 
-        toast.success("User updated successfully");
-
+        updateUserOnRole({ userId: _id, userData: updatedData }, {
+          onSuccess: () => {
+            console.log("User updated successfully");
+            toast.success("User updated successfully");
+            refetchBasedOnRole();
+            closeModal();
+          },
+          onError: (error) => {
+            console.error("Error updating user:", error);
+            toast.error("Error updating user");
+          },
+        });
       } else {
-        // Delete user
-        console.log("Deleting user with ID:", _id);
-        await deleteUserMutate.mutateAsync(_id);
-        console.log("User deleted successfully with ID:", _id);
-
-        toast.success("User deleted successfully");
+        // Fixed delete logic - call the function directly
+        if (isUserAdmin) {
+          // Call deleteStudentAccount directly
+          await deleteStudentAccount(_id, {
+            onSuccess: () => {
+              closeModal();
+              console.log("User deleted successfully");
+              toast.success("User deleted successfully");
+            },
+            onError: (error) => {
+              console.error("Error deleting user:", error);
+              toast.error("Error deleting user");
+            }
+          });
+        } else if (isSuperAdmin) {
+          // Call deleteAdminAccount directly
+          await deleteAdminAccount(_id, {
+            onSuccess: () => {
+              closeModal();
+              console.log("Admin account deleted successfully");
+              toast.success("Admin account deleted successfully");
+            },
+            onError: (error) => {
+              console.error("Error deleting admin account:", error);
+              toast.error("Error deleting admin account");
+            }
+          });
+        } else {
+          throw new Error("No valid delete function available");
+        }
       }
       // Refetch data after the operation
       setSuccess(true);
-      await refetch();
     } catch (error) {
       console.error("Error updating/deleting user:", error);
       toast.error("Error updating/deleting user");
     } finally {
-      closeModal();
+
       setSuccess(false);
     }
-  }, [refetch]);
+  }, [updateUserMutate, deleteStudentAccount, deleteAdminAccount, isUserAdmin, isSuperAdmin, updateAdminRole, closeModal]);
 
 
   const changePageNum = useCallback((page) => setPostsPerPage(Number(page)), []);
@@ -192,13 +249,10 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             onConfirm={handleConfirm}
             loading={isLoading}
             success={success}
-
           />
-
-
         )}
       </AnimatePresence>
-
+      {console.log("Filtered Records:", filteredRecords)}
 
       <div className="flex justify-between items-center mb-4">
         <span className="text-gray-700 font-semibold">
@@ -217,7 +271,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
           </select>
         </li>
       </div>
-
+      {console.log("Table Data:", tableData)}
       {error ? (
         <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center">
           <svg
@@ -238,6 +292,8 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             {typeof error === 'string' ? error : error?.message || 'An unknown error occurred'}
           </p>
         </div>
+      ) : ((isUserAdmin || isCoordinator) ? isUsersLoading : accountsLoading) ? (
+        <CardSkeleton />
       )
         : filterError ? (
           <div className="p-4 bg-red-50 text-red-600 rounded-lg flex flex-col items-center mb-4">
@@ -246,7 +302,7 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
             </p>
           </div>
         ) :
-          data?.length > 0 ? (
+          tableData?.length > 0 ? (
             <div className="w-full">
               <div className=' overflow-x-auto w-full border border-mid-gray rounded-md'>
                 <table className=" lg:min-w-full divide-y divide-gray-200 rounded-md ">
@@ -268,9 +324,11 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
                         </div>
                       </th>
                       <th scope="col" className='px-6 py-3'>
-                        <div className="flex items-center justify-center">
-                          Assigned RSO
-                        </div>
+                        {!isSuperAdmin && (
+                          <div className="flex items-center justify-center">
+                            Assigned RSO
+                          </div>
+                        )}
                       </th>
                       <th scope="col" className='px-6 py-3'>
                         <div className="flex items-center justify-center">
@@ -295,7 +353,27 @@ const Table = React.memo(({ searchQuery, selectedRole }) => {
                 </table>
               </div>
             </div>
-          ) : <CardSkeleton />}
+          ) : (
+            <div className="p-4 bg-gray-50 text-gray-500 rounded-lg flex flex-col items-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-12 w-12 text-gray-400 mb-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-gray-500 font-medium text-center max-w-md px-4">
+                No data available
+              </p>
+            </div>
+          )}
 
       <div className='w-full bottom-20 mt-4'>
         <nav>

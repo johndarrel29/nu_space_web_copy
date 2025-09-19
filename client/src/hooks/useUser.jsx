@@ -27,6 +27,7 @@ const loginUserRequest = async ({ email, password, platform }) => {
   return json;
 }
 
+// for admin registering user
 const registerUserRequest = async ({ firstName, lastName, email, password, confirmpassword, platform }) => {
   const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/createAdminAccount`, {
     method: "POST",
@@ -48,25 +49,42 @@ const registerUserRequest = async ({ firstName, lastName, email, password, confi
   return json;
 }
 
+// for admin fetching users
 const fetchUsersRequest = async () => {
-  const token = localStorage.getItem("token");
-  const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : "";
+  try {
+    console.log("Fetching users...");
+    const token = localStorage.getItem("token");
+    const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : "";
 
-  const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchUsers`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${formattedToken}`,
-    },
-  });
 
-  if (!response.ok) {
-    throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/admin/user/fetchUsers`, {
+      method: "GET",
+      headers: {
+        Authorization: token,
+
+      },
+    });
+
+    console.log("Response status users:", response.status);
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+
+    const json = await response.json();
+    // return regular data
+    console.log("Fetched users data in UseUser:", json);
+
+    return json?.students;
+
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw new Error(`Failed to fetch users: ${error.message}`);
   }
 
-  const json = await response.json();
-  return Array.isArray(json.users) ? json.users : [];
 };
 
+// for admin updating user role
 const updateUserRequest = async ({ userId, userData, userRole }) => {
   const token = localStorage.getItem("token");
   const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : "";
@@ -118,6 +136,7 @@ const updateUserRequest = async ({ userId, userData, userRole }) => {
 
 };
 
+// for admin deleting user
 const deleteUserRequest = async (userId) => {
   const token = localStorage.getItem("token");
 
@@ -141,6 +160,7 @@ const deleteUserRequest = async (userId) => {
 
 function useUser() {
   const { user } = useAuth();
+  console.log("useUser hook called with user:", user);
 
   const loginUserMutate = useMutation({
     mutationFn: loginUserRequest,
@@ -172,7 +192,7 @@ function useUser() {
   });
 
   const {
-    data,
+    data: usersData,
     isLoading,
     isError,
     error,
@@ -207,7 +227,7 @@ function useUser() {
   });
 
   return {
-    data,
+    usersData,
     loading: isLoading,
     error: isError ? error : null,
     refetch,

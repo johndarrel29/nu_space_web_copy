@@ -2,40 +2,99 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate, BrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
 import MainLogin from './pages/MainLogin';
+import PasswordAction from './pages/PasswordAction';
+import EmailAction from './pages/EmailAction';
 import MainRegister from './pages/MainRegister';
 import ErrorPage from './pages/ErrorPage';
 import { ThemeProvider } from '@material-tailwind/react';
 import PreLoader from './components/Preloader';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import ProtectedRoutes from './utils/ProtectedRoute';
 import { MainLayout } from './components';
-import { Document } from './pages/rso';
-import { AnnouncementsPage, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOManagement, UserManagement, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
+import { safeInitMaterialTailwind } from './utils'
+import { Document, MainDocument } from './pages/rso';
+import { AnnouncementsPage, DetailsParent, WaterMarkPage, Forms, FormsBuilder, FormViewerPage, Activities, Account, Dashboard, DocumentAction, Documents, MainActivities, MainDocuments, MainRSO, RSODetails, RSOParent, Users, RSOAction, AdminDocuments, AdminTemplates, DocumentDetails, MainAdmin, AcademicYear } from './pages/admin';
 import { initMaterialTailwind } from '@material-tailwind/html';
 import { SidebarProvider } from './context/SidebarContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { generateToken, messaging } from './config/firebase';
+import { generateToken, messaging, initFCM } from './config/firebase';
 import { onMessage } from 'firebase/messaging';
 import { toast } from 'react-toastify';
+import { useSelectedFormStore } from './store';
+import { useLocation } from 'react-router-dom';
+import { useOnlineStatus } from './hooks';
+
+// refactor the app content
+
+function AppContent() {
+  const location = useLocation();
+  const clearSelectedForm = useSelectedFormStore((state) => state.clearSelectedForm);
+
+  // Clear selected form when navigating away from the form selection page
+  useEffect(() => {
+    const allowedRoutes = ['/document-action', '/forms'];
+    if (!allowedRoutes.includes(location.pathname)) {
+      clearSelectedForm();
+    }
+  }, [location, clearSelectedForm]);
+
+}
 
 function App() {
   const [loading, setLoading] = useState(true);
+  const isOnline = useOnlineStatus();
+  const hasMTInitedRef = useRef(false);
 
   useEffect(() => {
-    initMaterialTailwind();
+    if (!isOnline || hasMTInitedRef.current) return;
+    (async () => {
+      try {
+        await safeInitMaterialTailwind();
+        hasMTInitedRef.current = true;
+      } catch (e) {
+        console.warn("Material Tailwind init failed (will retry when online):", e);
+        hasMTInitedRef.current = false;
+      }
+    })();
+  }, [isOnline]);
+
+  // useEffect(() => {
+  //   generateToken();
+  //   onMessage(messaging, (payload) => {
+  //     console.log('Message received. ', payload);
+
+  //     toast.info(payload.notification.body);
+  //   });
+  // }, [generateToken]);
+
+  useEffect(() => {
+    (async () => {
+      const { messaging, token } = await initFCM();
+
+      if (token) {
+        // send to backend
+      }
+
+      if (messaging) {
+        onMessage(messaging, (payload) => {
+          console.log('Message received. ', payload);
+          toast.info(payload.notification?.body || "New Notification");
+        });
+
+      } else {
+        console.warn("FCM not supported in this browser.");
+        toast.warn("Notifications are not supported on this browser.");
+      }
+    })();
   }, []);
 
+  // Initialize Material Tailwind safely
   useEffect(() => {
-    generateToken();
-    onMessage(messaging, (payload) => {
-      console.log('Message received. ', payload);
-
-      toast.info(payload.notification.body);
-    });
-  }, [generateToken]);
+    safeInitMaterialTailwind();
+  }, []);
 
   useEffect(() => {
     // Simulate loading time (same as GSAP animation delay in Preloader.js)
@@ -69,16 +128,19 @@ function App() {
             ) : (
               <SkeletonTheme baseColor="#e0e0e0" highlightColor="#f5f5f5">
                 <Routes>
+                  {!isOnline && <Route path="*" element={<ErrorPage />} />}
                   <Route path="/" element={<Login />}>
                     <Route index element={<MainLogin />} />
-                    <Route path="register" element={<MainRegister />} />
+                    <Route path="password-action" element={<PasswordAction />} />
+                    <Route path="email-action" element={<EmailAction />} />
+                    {/* <Route path="register" element={<MainRegister />} /> */}
                   </Route>
 
                   {/* Protected routes for authenticated users */}
                   <Route element={<ProtectedRoutes />}>
                     {/* RSO routes */}
                     <Route
-                      path="/document"
+                      path="/documents"
                       element={
                         <MainLayout
                           tabName="Documents"
@@ -87,7 +149,10 @@ function App() {
                           <Document />
                         </MainLayout>
                       }
-                    />
+                    >
+                      <Route index element={<MainDocument />} />
+                      <Route path=":documentId" element={<DocumentDetails />} />
+                    </Route>
 
                     {/* SDAO admin routes */}
                     <Route path="/error" element={<ErrorPage />} />
@@ -105,32 +170,34 @@ function App() {
                     />
 
                     <Route
-                      path="/user-management"
+                      path="/users"
                       element={
                         <MainLayout
                           tabName="Users"
                           headingTitle="Monitor RSO Representative and Student accounts"
                         >
-                          <UserManagement />
+                          <Users />
                         </MainLayout>
                       }
                     />
 
                     <Route
-                      path="/documents"
+                      path="/activities"
                       element={
                         <MainLayout
-                          tabName="Documents"
-                          headingTitle="Manage document approval"
+                          tabName="Activities"
+                          headingTitle="Manage Activities"
                         >
                           <Documents />
                         </MainLayout>
                       }
                     >
                       <Route index element={<MainDocuments />} />
-                      <Route path="document-action" element={<DocumentAction />} />
+                      <Route path="activity-action" element={<DocumentAction />} />
+                      <Route path="form-selection" element={<Forms />} />
                       <Route path=":activityId" element={<MainActivities />}>
                         <Route index element={<Activities />} />
+                        <Route path=":documentId" element={<DocumentDetails />} />
                       </Route>
                     </Route>
 
@@ -165,7 +232,12 @@ function App() {
                       </MainLayout>
                     }>
                       <Route index element={<MainAdmin />} />
-                      <Route path=":documentId" element={<DocumentDetails />} />
+
+                      {/* document details route */}
+                      <Route path=":documentId" element={<DetailsParent />} >
+                        <Route index element={<DocumentDetails />} />
+                        <Route path="watermark" element={<WaterMarkPage />} />
+                      </Route>
                       <Route path="templates" element={<AdminTemplates />} />
                     </Route>
 
@@ -178,18 +250,27 @@ function App() {
                       </MainLayout>
                     } />
 
+                    <Route path="/forms" element={
+                      <MainLayout
+                        tabName="Forms"
+                        headingTitle="Manage Forms"
+                      >
+                        <Forms />
+                      </MainLayout>
+                    } />
+
                     <Route path="/forms-builder" element={<FormsBuilder />} />
                     <Route path="/form-viewer" element={<FormViewerPage />} />
 
                     {/* RSO Management routes */}
                     <Route
-                      path="/rso-management"
+                      path="/rsos"
                       element={
                         <MainLayout
                           tabName="RSOs"
                           headingTitle="Manage RSO Account"
                         >
-                          <RSOManagement />
+                          <RSOParent />
                         </MainLayout>
                       }
                     >
@@ -214,7 +295,8 @@ export default App;
 Removed routes:
 - /activity-page
 - /rso-account
-- /rso-user-management
+- /rso-users
 - requirements subroute under documents/:activityId
 - review subroute under documents/:activityId
 */
+

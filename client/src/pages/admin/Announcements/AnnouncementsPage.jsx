@@ -1,34 +1,71 @@
 import { TextInput, Button, ReusableTable, Backdrop, CloseButton, TabSelector } from "../../../components";
-import { useState, useEffect } from "react";
-import { useAnnouncements } from "../../../hooks";
-import { toast } from "react-toastify";
+import { useState } from "react";
+import { useNotification, useModal, useAdminRSO } from "../../../hooks";
+import Select from 'react-select';
+import { useUserStoreWithAuth } from '../../../store';
 import { FormatDate } from "../../../utils";
-import { useModal } from "../../../hooks";
-import { AnimatePresence } from "framer-motion";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
-
-
+import { toast } from "react-toastify";
 
 function AnnouncementsPage() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const {
-        createAnnouncementMutate,
-        isCreating,
-        announcements,
-        refetchAnnouncements,
-        deleteAnnouncementMutate,
-        isDeleting,
-        isSuccessDelete,
-        isErrorDelete,
+    const user = JSON.parse(localStorage.getItem("user")) || {};
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeTab, setActiveTab] = useState(0); // added active tab state
+    const { isUserRSORepresentative, isUserAdmin, isCoordinator } = useUserStoreWithAuth();
+    const [selectedRSOs, setSelectedRSOs] = useState([]);
 
-        updateAnnouncementMutate,
-        isUpdating,
-        isSuccessUpdate,
-        isErrorUpdate,
-        updateError,
-    } = useAnnouncements();
+    const {
+        rsoData,
+        isRSOLoading,
+        isRSOError,
+        rsoError,
+        refetchRSOData,
+    } = useAdminRSO();
+
+    console.log("RSO Data: ", rsoData);
+
+    const {
+        // get notifications
+        notificationsData,
+        notificationsLoading,
+        notificationsError,
+        notificationsErrorDetails,
+
+        // post notification
+        postNotification,
+        postNotificationLoading,
+        postNotificationError,
+        postNotificationErrorDetails,
+
+        // get sent notifications
+        sentNotificationsData,
+        sentNotificationsLoading,
+        sentNotificationsError,
+        sentNotificationsErrorDetails,
+
+        postSpecificRSONotification,
+        postSpecificRSONotificationLoading,
+        postSpecificRSONotificationError,
+        postSpecificRSONotificationErrorDetails,
+
+        postRSONotification,
+        postRSONotificationLoading,
+        postRSONotificationError,
+        postRSONotificationErrorDetails,
+
+        rsoCreatedNotificationsData,
+        rsoCreatedNotificationsLoading,
+        rsoCreatedNotificationsError,
+        rsoCreatedNotificationsErrorDetails,
+        refetchRSOCreatedNotifications
+    } = useNotification({ userId: user?.id });
+
+    console.log("Notifications for rso Data: ", rsoCreatedNotificationsData);
+
+
     const { isOpen, openModal, closeModal } = useModal();
     const [error, setError] = useState(null);
 
@@ -36,24 +73,70 @@ function AnnouncementsPage() {
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-    // state for storing the edit title and description
-    const [editTitle, setEditTitle] = useState("");
-    const [editDescription, setEditDescription] = useState("");
+    // Helper to safely format createdBy which may be an array, object, string, or undefined
+    const formatCreatedBy = (createdBy) => {
+        if (Array.isArray(createdBy)) {
+            return createdBy
+                .map(c => {
+                    if (c == null) return null;
+                    if (typeof c === 'string') return c;
+                    if (typeof c === 'object') {
+                        // Try common name fields
+                        return [c.firstName, c.lastName].filter(Boolean).join(' ') || c.name || c.username || c.email || null;
+                    }
+                    return null;
+                })
+                .filter(Boolean)
+                .join(', ');
+        }
+        if (createdBy && typeof createdBy === 'object') {
+            return [createdBy.firstName, createdBy.lastName].filter(Boolean).join(' ') || createdBy.name || createdBy.username || createdBy.email || '—';
+        }
+        if (typeof createdBy === 'string') return createdBy;
+        return '—';
+    };
 
-    const fetchedAnnouncements = announcements?.RSOSpace?.announcement || [];
-
-    // Store full content for viewing in the modal
-    const tableRow = fetchedAnnouncements.map((announcement) => ({
-        title: announcement.title,
+    const tableRow = notificationsData?.data?.map((notification) => ({
+        title: notification.title,
         // Truncate content for table display (show only first 50 chars)
-        content: announcement.content?.length > 50
-            ? `${announcement.content.substring(0, 50)}...`
-            : announcement.content,
-        createdBy: announcement.createdBy,
-        createdAt: FormatDate(announcement.createdAt),
+        message: notification.message?.length > 50
+            ? `${notification.message.substring(0, 50)}...`
+            : notification.message,
+        createdBy: formatCreatedBy(notification.createdBy),
+        createdAt: FormatDate(notification.createdAt),
+        notifType: notification.data?.type,
         // Store the full data for the modal
-        fullData: announcement
-    }));
+        fullData: notification
+    })) || [];
+
+    // Mock sent notifications data (tableRowSent)
+    const tableRowSent = sentNotificationsData?.announcements?.map((notification) => ({
+        title: notification.title,
+        // Truncate content for table display (show only first 50 chars)
+        message: notification.content?.length > 50
+            ? `${notification.content.substring(0, 50)}...`
+            : notification.content,
+        createdBy: formatCreatedBy(notification.createdBy),
+        createdAt: FormatDate(notification.createdAt),
+        notifType: null,
+        // Store the full data for the modal
+        fullData: notification
+    })) || [];
+
+    const tableRowRSO = Array.isArray(rsoCreatedNotificationsData?.RSOSpace)
+        ? rsoCreatedNotificationsData.RSOSpace.map(n => ({
+            title: n.title,
+            message: n.content?.length > 50 ? n.content.substring(0, 50) + '...' : n.content,
+            createdBy: formatCreatedBy(n.createdBy),
+            createdAt: FormatDate(n.createdAt),
+            notifType: n.data?.type,
+            fullData: n
+        }))
+        : [];
+
+    const rowsToDisplay = activeTab === 0 ? tableRow : isUserRSORepresentative && activeTab === 1 ? tableRowRSO : tableRowSent;
+
+    console.log("selectedRSOs:", selectedRSOs);
 
     const announcementHeading = [
         {
@@ -61,17 +144,17 @@ function AnnouncementsPage() {
             "name": "Title"
         },
         {
-            "key": "content",
-            "name": "Content"
-        },
-        {
-            "key": "createdBy",
-            "name": "Created By"
+            "key": "message",
+            "name": "Message"
         },
         {
             "key": "createdAt",
             "name": "Date"
-        }
+        },
+        {
+            "key": "notifType",
+            "name": "Type"
+        },
     ];
 
     // Handle row click to show details modal
@@ -91,88 +174,83 @@ function AnnouncementsPage() {
             setError("Please fill in all fields.");
             return;
         }
-        // Here you would typically send the announcement data to your backend
-        console.log("Announcement created:", { title, description });
-        createAnnouncementMutate({ title, content: description },
-            {
-                onSuccess: () => {
-                    toast.success("Announcement created successfully!");
-                    setTitle("");
-                    refetchAnnouncements();
-                    closeModal();
-                    setDescription("");
-                },
-                onError: (error) => {
-                    alert("Failed to create announcement. Please try again.");
-                },
+
+        if (isUserAdmin || isCoordinator) {
+            if (selectedRSOs.length === 0) {
+                postNotification({ title, content: description },
+                    {
+                        onSuccess: () => {
+                            toast.success("Announcement created successfully!");
+                            console.log("Notification posted successfully");
+                            // Reset form + close
+                            setTitle("");
+                            setDescription("");
+                            closeModal();
+                        },
+                        onError: (err) => {
+                            setError(err.message || "Failed to create announcement.");
+                            toast.error(`Error: ${err.message || "Failed to create announcement."}`);
+                        }
+                    }
+                );
+            } else {
+                postSpecificRSONotification({ title, content: description, rsoIds: selectedRSOs },
+                    {
+                        onSuccess: () => {
+                            toast.success("Announcement created successfully!");
+                            console.log("RSO-specific notification posted successfully");
+                            // Reset form + close
+                            setTitle("");
+                            setDescription("");
+                            setSelectedRSOs([]);
+                            closeModal();
+                        },
+                        onError: (err) => {
+                            setError(err.message || "Failed to create announcement.");
+                            toast.error(`Error: ${err.message || "Failed to create announcement."}`);
+                        }
+                    }
+                );
             }
-        );
+        } else if (isUserRSORepresentative) {
+            postRSONotification({ title, content: description },
+                {
+                    onSuccess: () => {
+                        toast.success("Announcement created successfully!");
+                        refetchRSOCreatedNotifications();
+                        // Reset form + close
+                        setTitle("");
+                        setDescription("");
+                        closeModal();
+                        console.log("RSO representative notification posted successfully");
+                    },
+                    onError: (err) => {
+                        setError(err.message || "Failed to create announcement.");
+                        toast.error(`Error: ${err.message || "Failed to create announcement."}`);
+                    }
+                }
+            );
+        }
+    };
+
+    const notificationTab =
+        [
+            { label: "Received" },
+            { label: "Sent" }
+        ];
+
+    // TEMP: Using mock RSO options for testing instead of live API data
+    // Restore original mapping below when backend is ready:
+    const rsos = rsoData?.rsos?.map((rso) => ({
+        value: rso.rsoId || rso.id,
+        label: rso.RSO_snapshot?.name || 'Unnamed RSO'
+    })) || [];
+
+    const handleSelectedRSOs = (selectedOptions) => {
+        console.log("Selected RSOs:", selectedOptions);
+        // You can store selected RSOs in state if needed
+        setSelectedRSOs(selectedOptions.map(option => option.value));
     }
-
-    const handleAnnouncementDelete = () => {
-        if (!selectedAnnouncement) {
-            toast.error("No announcement selected for deletion.");
-            return;
-        }
-        deleteAnnouncementMutate(selectedAnnouncement._id, {
-            onSuccess: () => {
-                toast.success("Announcement deleted successfully!");
-                refetchAnnouncements();
-                closeDetailsModal();
-            },
-            onError: (error) => {
-                toast.error("Failed to delete announcement. Please try again.");
-            },
-        });
-    }
-
-    const handleAnnouncementUpdate = () => {
-        // compare the original and edited values
-        if (editTitle === selectedAnnouncement.title && editDescription === selectedAnnouncement.content) {
-            toast.info("No changes made to the announcement.");
-            return;
-        }
-
-        if (!selectedAnnouncement || !editTitle || !editDescription) {
-            setError("Please fill in all fields.");
-            return;
-        }
-
-        console.log("Updating announcement:", {
-            id: selectedAnnouncement._id,
-            title: editTitle,
-            content: editDescription,
-        });
-
-        updateAnnouncementMutate(
-            { announcementId: selectedAnnouncement._id, title: editTitle, content: editDescription },
-            {
-                onSuccess: () => {
-                    toast.success("Announcement updated successfully!");
-                    refetchAnnouncements();
-                    closeDetailsModal();
-                    setTitle("");
-                    setDescription("");
-                },
-                onError: (error) => {
-                    toast.error("Failed to update announcement. Please try again.");
-                },
-            }
-        );
-    }
-
-    // listen if a user clicked a row
-    useEffect(() => {
-        if (isDetailsModalOpen && selectedAnnouncement) {
-            setEditTitle(selectedAnnouncement.title);
-            setEditDescription(selectedAnnouncement.content);
-        }
-    }, [isDetailsModalOpen, selectedAnnouncement]);
-
-    const notificationTab = [
-        { label: "Received" },
-        { label: "Sent" }
-    ]
 
     return (
         <>
@@ -180,17 +258,18 @@ function AnnouncementsPage() {
                 <div className='flex justify-start md:order-2 p-2'>
                     <Button onClick={openModal}>Create an Announcement</Button>
                 </div>
-                <TabSelector tabs={notificationTab} />
+                <TabSelector tabs={notificationTab} activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
             <div >
                 <ReusableTable
-                    columnNumber={4}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    columnNumber={3}
                     tableHeading={announcementHeading}
-                    tableRow={tableRow}
+                    tableRow={rowsToDisplay}
                     onClick={handleRowClick}
                     isLoading={false}
                     options={["All", "Latest", "Oldest"]}
-                    searchQuery={""}
                     error={null}
                 />
             </div>
@@ -214,6 +293,16 @@ function AnnouncementsPage() {
                                 <CloseButton onClick={closeModal} />
                             </div>
                             <div className="space-y-4">
+                                {(isUserAdmin || isCoordinator) && (
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500">Select RSO</h3>
+                                        <Select
+                                            isMulti
+                                            className="basic-multi-select"
+                                            onChange={handleSelectedRSOs}
+                                            options={rsos} />
+                                    </div>
+                                )}
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Title</h3>
                                     <TextInput
@@ -252,9 +341,8 @@ function AnnouncementsPage() {
                                 </Button>
                                 <Button
                                     onClick={handleNotification}
-                                    disabled={isCreating}
                                 >
-                                    {isCreating ? "Creating..." : "Create Announcement"}
+                                    Create Announcement
                                 </Button>
                             </div>
                         </motion.div>
@@ -281,54 +369,54 @@ function AnnouncementsPage() {
                                 <CloseButton onClick={closeDetailsModal} />
                             </div>
 
-
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Title</h3>
-                                    <TextInput
-                                        value={editTitle}
-                                        onChange={(e) => setEditTitle(e.target.value)}
-                                    >
-                                    </TextInput>
+                                    <p className="text-base font-medium break-words">
+                                        {selectedAnnouncement.title || "—"}
+                                    </p>
                                 </div>
 
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Content</h3>
-                                    <textarea
-                                        id="Description"
-                                        rows="4"
-                                        name="announcement_description"
-                                        className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                        placeholder="Write your announcement here"
-                                        onChange={(e) => setEditDescription(e.target.value)}
-                                        value={editDescription}
-                                        onClick={() => setError(null)}
-                                    />
+                                    <h3 className="text-sm font-medium text-gray-500">Message / Content</h3>
+                                    <p className="text-sm whitespace-pre-wrap break-words">
+                                        {selectedAnnouncement.message ||
+                                            selectedAnnouncement.content ||
+                                            "—"}
+                                    </p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-500">Created By</h3>
-                                        <p className="text-sm">{selectedAnnouncement.createdBy}</p>
+                                        <h3 className="text-sm font-medium text-gray-500">Type</h3>
+                                        <p className="text-sm capitalize">
+                                            {selectedAnnouncement?.data?.type || "—"}
+                                        </p>
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-500">Created On</h3>
-                                        <p className="text-sm">{FormatDate(selectedAnnouncement.createdAt)}</p>
+                                        <p className="text-sm">
+                                            {FormatDate(selectedAnnouncement.createdAt)}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500">Created By</h3>
+                                        <p className="text-sm">
+                                            {formatCreatedBy(selectedAnnouncement.createdBy)}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-500">ID</h3>
+                                        <p className="text-xs text-gray-600 break-all">
+                                            {selectedAnnouncement._id || "—"}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between mt-6 gap-4">
-                                <Button
-                                    style="secondary"
-                                    onClick={handleAnnouncementDelete}
-                                >
-                                    Delete
-                                </Button>
-                                <Button
-                                    onClick={handleAnnouncementUpdate}
-                                >
-                                    Update Announcement
+                            <div className="flex justify-end mt-6">
+                                <Button style="secondary" onClick={closeDetailsModal}>
+                                    Close
                                 </Button>
                             </div>
                         </motion.div>

@@ -6,3 +6,5 @@ export { default as SidebarLogo } from './SidebarLogo';
 // export { default as LoadingAnimation } from './LoadingAnixmation';
 export { default as CardSkeleton } from './CardSkeleton';
 export { default as ActivitySkeleton } from './ActivitySkeleton';
+export { default as ReportPage } from './ReportPage';
+export { default as ReusableRSODescription } from './ReusableRSODescription';

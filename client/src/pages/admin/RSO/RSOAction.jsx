@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { tabSelector, Button, TextInput, ReusableDropdown, Backdrop, CloseButton } from '../../../components'
 import TagSelector from '../../../components/TagSelector';
-import { useTagSelector, useRSO, useAcademicYears } from '../../../hooks';
+import { useTagSelector, useRSO, useAcademicYears, useAdminRSO } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
 import DefaultPicture from '../../../assets/images/default-profile.jpg';
@@ -12,6 +12,8 @@ import Switch from '@mui/material/Switch';
 
 // make the academicYears an object so that the display is label while when clicked, the selected value is an id
 
+// todo: academic year not showing the correct data from edit data
+// allow acad year dropdown to read id and display label
 
 
 // file manipulation
@@ -19,7 +21,48 @@ import Cropper from "react-easy-crop";
 import getCroppedImg from '../../../utils/cropImage';
 
 function RSOAction() {
-  const { createRSO, updateRSO, deleteRSO, loading, updateError, createError, success } = useRSO();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { mode, data, from, id } = location.state || {};
+  // decommission this after implementing useAdminRSO
+  const { createRSO, updateRSO, deleteRSO, loading, createError, success } = useRSO();
+  const {
+    rsoDetailData,
+    isRSODetailLoading,
+    isRSODetailError,
+    rsoDetailError,
+    refetchRSODetail,
+
+    // for admin create RSO
+    createRSOMutate,
+    isCreating,
+    isCreateSuccess,
+    isCreateError,
+    resetCreate,
+
+    // hardDeleteRSOMutate,
+    // isHardDeleteRSOLoading,
+    // isHardDeleteRSOSuccess,
+    // isHardDeleteRSOError,
+    // hardDeleteRSOError,
+    // resetHardDeleteRSO,
+
+
+    softDeleteRSOMutate,
+    isSoftDeleteRSOLoading,
+    isSoftDeleteRSOSuccess,
+    isSoftDeleteRSOError,
+    softDeleteRSOError,
+    resetSoftDeleteRSO,
+
+    updateRSOMutate,
+    isUpdating,
+    isUpdateSuccess,
+    isUpdateError,
+    updateError,
+    resetUpdate,
+
+  } = useAdminRSO({ rsoID: id });
   const {
     academicYears,
     academicYearsLoading,
@@ -29,9 +72,7 @@ function RSOAction() {
     isRefetchingAcademicYears,
     isAcademicYearsFetched
   } = useAcademicYears();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { mode, data, from } = location.state || {};
+
   const [showSearch, setShowSearch] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedTag, setSelectedTag] = useState("");
@@ -42,7 +83,7 @@ function RSOAction() {
   const [error, setError] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
   const [tagError, setTagError] = useState("");
-  const [rsoStatus, setRsoStatus] = useState(false);
+  // Removed deprecated rsoStatus state (was tied to RSO_status field)
 
 
   //file manipulaion
@@ -51,8 +92,6 @@ function RSOAction() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [readyCropper, setReadyCropper] = useState(false);
-
-  console.log("fetching years list:", academicYears?.years?.map(year => year.label));
 
 
   const isEdit = mode === 'edit';
@@ -87,33 +126,37 @@ function RSOAction() {
   }, [isEdit]);
 
   // make sure the two data are the same
-  const academicYearOptions = academicYears?.years?.map(year => ({
-    label: year.label,
-    value: year.id
-  })) || [];
+  // const academicYearOptions = academicYears?.years?.map(year => ({
+  //   label: year.label,
+  //   value: year.id
+  // })) || [];
 
-  const options = academicYears?.years?.map(year => year?.years) || [];
+  const academicYearOptions = academicYears?.years?.map(year => year.label) || [];
+
+  const options = academicYears?.years || [];
 
   useEffect(() => {
-    if (isEdit && data) {
+    if (isEdit && rsoDetailData) {
       setFormData({
-        RSO_name: data.RSO_name || "",
-        RSO_acronym: data.RSO_acronym || "",
-        picture: data.picture || null,
-        RSO_category: data.RSO_category || "",
-        RSO_tags: data.RSO_tags || [],
-        RSO_College: data.RSO_College || "",
-        RSO_status: data.RSO_status ?? false,
-        RSO_description: data.RSO_description || "",
-        RSO_picture: data.RSO_picture || null,
-        RSO_picturePreview: data.picture || DefaultPicture,
-        RSO_forms: data.RSO_forms || "",
-        RSO_probationary: data.RSO_probationary || false,
-        RSO_academicYear: data.RSO_academicYear || "", // <-- add this field
-      });
+        RSO_name: rsoDetailData?.data?.RSO_snapshot?.name || "",
+        RSO_acronym: rsoDetailData?.data?.RSO_snapshot?.acronym || "",
+        picture: rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || null,
+        RSO_category: rsoDetailData?.data?.RSO_snapshot?.category || "",
+        RSO_tags: rsoDetailData?.data?.RSOid?.RSO_tags || [],
+        RSO_College: rsoDetailData?.data?.RSO_snapshot?.college || "",
+        // RSO_status removed
+        RSO_description: rsoDetailData?.data?.RSO_snapshot?.description || "",
+        RSO_picture: rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || null,
+        RSO_picturePreview: rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || DefaultPicture,
+        RSO_probationary: rsoDetailData?.data?.RSO_snapshot?.probationary || false,
+        RSO_academicYear: rsoDetailData?.data?.academicYear || "",
+        academicYearId: rsoDetailData?.data?.academicYear || "",
 
-      if (data.RSO_tags?.length) {
-        const tagStrings = data.RSO_tags.map(tagObj =>
+      });
+      { console.log("RSO details data for tags:", rsoDetailData?.data?.RSOid?.RSO_tags) }
+
+      if (rsoDetailData?.data?.RSOid?.RSO_tags?.length) {
+        const tagStrings = rsoDetailData?.data?.RSOid?.RSO_tags.map(tagObj =>
           typeof tagObj === 'object' ? tagObj.tag : tagObj
         );
         setSelectedTags(tagStrings);
@@ -131,8 +174,10 @@ function RSOAction() {
 
 
 
+
+
   const handleOptions = ['CCIT', 'CBA', 'COA', 'COE', 'CAH', 'CEAS', 'CTHM'];
-  const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest']
+  const handleOptionsCategory = ['Professional & Affiliates', 'Professional', 'Special Interest', 'Office Aligned Organization'];
 
   const [RSO_picture, setRSOPicture] = useState(null);
   const [formData, setFormData] = useState({
@@ -141,12 +186,16 @@ function RSOAction() {
     RSO_category: "",
     RSO_tags: [],
     RSO_college: "",
-    RSO_status: false,
+    // RSO_status removed from initial form state
     RSO_description: "",
+    RSO_probationary: false,
     RSO_picture: null,
     RSO_picturePreview: DefaultPicture,
-    RSO_academicYear: "", // <-- add this field
+    RSO_academicYear: "", // Label for display
+    academicYearId: "", // ID for submission
   });
+
+  console.log("formData:", formData);
 
   const fileInputRef = useRef(null);
 
@@ -226,30 +275,94 @@ function RSOAction() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const originalUrl = rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL || null;
 
-    // Find the academic year object by label
-    const selectedAcademicYear = academicYears?.years?.find(
-      (year) => year.label === formData.RSO_academicYear
-    );
+    const pictureUnchanged = (() => {
+      // If user produced a File, it's definitely a change
+      if (formData.RSO_picture instanceof File) return false;
+      // If both are strings, normalize and compare
+      if (typeof formData.RSO_picture === 'string' && typeof originalUrl === 'string') {
+        // Optional: strip query params from signed URLs to compare base path
+        const stripQuery = url => url.split('?')[0];
+        return stripQuery(formData.RSO_picture) === stripQuery(originalUrl);
+      }
+      // Null vs null = unchanged
+      return formData.RSO_picture == null && originalUrl == null;
+    })();
 
+
+    // No need to find the year object again, we already have the ID
     const payload = {
       ...formData,
       RSO_tags: selectedTags,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // Remove RSO_academicYear and add academicYearId
-      academicYearId: selectedAcademicYear ? selectedAcademicYear.id : undefined,
+      // Use the stored academicYearId directly
+      // academicYearId: formData.academicYearId || null,
     };
+
+    console.log("compare formData from edit:", formData.RSO_picture, "with rsoDetailData:", rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL);
+
+
+    // go through all the fields and check one by one if the formData matches rsoDetailData
+    // if it is, remove it from the payload
+    if (isEdit && rsoDetailData) {
+      if (formData.academicYearId === (rsoDetailData?.data?.academicYear || "")) {
+        delete payload.academicYearId;
+        delete payload.RSO_academicYear;
+      }
+
+      if (formData.RSO_name === (rsoDetailData?.data?.RSOid?.RSO_name || "")) {
+        delete payload.RSO_name;
+      }
+
+      if (formData.RSO_acronym === (rsoDetailData?.data?.RSOid?.RSO_acronym || "")) {
+        delete payload.RSO_acronym;
+      }
+
+      if (formData.RSO_category === (rsoDetailData?.data?.RSOid?.RSO_category || "")) {
+        delete payload.RSO_category;
+      }
+
+      if (JSON.stringify(selectedTags) === JSON.stringify(rsoDetailData?.data?.RSOid?.RSO_tags?.map(tagObj => typeof tagObj === 'object' ? tagObj.tag : tagObj) || [])) {
+        delete payload.RSO_tags;
+      }
+      if (formData.RSO_College === (rsoDetailData?.data?.RSOid?.RSO_College || "")) {
+        delete payload.RSO_College;
+      }
+      // Removed RSO_status comparison block
+      if (formData.RSO_description === (rsoDetailData?.data?.RSO_snapshot?.description || "")) {
+        delete payload.RSO_description;
+      }
+      if (formData.RSO_probationary === (rsoDetailData?.data?.RSO_snapshot?.probationary || false)) {
+        delete payload.RSO_probationary;
+      }
+
+      // find out why they are not equal when they are the samex`
+      if (pictureUnchanged) {
+        console.log("compare formData from edit:", formData.RSO_picture, "with rsoDetailData:", rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL);
+        delete payload.RSO_picture;
+      }
+
+      // dont include RSO_picture, RSO_picturePreview, createdAt, picture, and updatedAt in payload
+
+      delete payload.RSO_picturePreview;
+      // delete payload.RSO_picture;
+      delete payload.picture;
+      delete payload.createdAt;
+      delete payload.updatedAt;
+    }
+
+    if (isEdit && !Object.keys(payload).length) {
+      console.log("type of formData.RSO_picture:", typeof rsoDetailData?.data?.RSOid?.RSO_picture?.signedURL, "Is file?", formData.RSO_picture instanceof File);
+      toast.info("No changes made.");
+      return;
+    }
+
+    // Remove display-only fields from payload
     delete payload.RSO_academicYear;
 
     // Validate form data
-    if (formData.RSO_forms && !formData.RSO_forms.startsWith("https://")) {
-      setError("Registration forms link must start with https://");
-      return;
-    } else {
-      setError("");
-    }
-
     if (formData.RSO_description === "" || formData.RSO_description === null) {
       setDescriptionError("Description is required");
       return;
@@ -279,12 +392,37 @@ function RSOAction() {
 
     try {
       let result;
-      if (isEdit) {
-        console.log("Sending to updateRSO:", payload);
-        result = await updateRSO(data.id, payload);
+      if (isEdit && data?.id) {
+        console.log("Sending to updateRSOMutate:", payload);
+        result = await updateRSOMutate({ id: data.id, updatedOrg: payload, academicYearId: formData.academicYearId },
+          {
+            onSuccess: (data) => {
+              console.log("RSO updated successfully:", data);
+              toast.success('RSO updated successfully!');
+              navigate(-1);
+            },
+            onError: (error) => {
+              console.error("Error updating RSO:", error);
+              toast.error(error.message || "Failed to update RSO");
+              resetUpdate();
+            }
+          }
+        );
       } else if (isCreate) {
         console.log("Sending to createRSO:", payload);
-        result = await createRSO(payload);
+        createRSOMutate(payload,
+          {
+            onSuccess: (data) => {
+              console.log("RSO created successfully:", data);
+              toast.success('RSO created successfully!');
+              navigate(-1);
+            },
+            onError: (error) => {
+              console.error("Error creating RSO:", error);
+              toast.error(error.message || "Failed to create RSO");
+            }
+          }
+        );
       }
 
 
@@ -305,9 +443,8 @@ function RSOAction() {
           RSO_acronym: "",
           RSO_category: "",
           RSO_tags: "",
-          RSO_forms: "",
           RSO_College: "",
-          RSO_status: "",
+          // RSO_status removed from reset form state
           RSO_description: "",
           RSO_probationary: false,
           RSO_picture: null,
@@ -338,11 +475,20 @@ function RSOAction() {
 
   const handleDelete = async () => {
     try {
-      const result = await deleteRSO(data.id);
-      console.log("RSO deleted:", result);
-      navigate('..', { relative: 'path' });
+      softDeleteRSOMutate({ id: data.id }, {
+        onSuccess: (data) => {
+          console.log("RSO soft deleted successfully:", data);
+          navigate('..', { relative: 'path' });
+          toast.success("RSO soft deleted successfully!");
+        },
+        onError: (error) => {
+          console.error("Error soft deleting RSO:", error);
+          toast.error("Failed to soft delete RSO. Please try again.");
+        }
+      });
     } catch (error) {
-      console.error("Error deleting RSO:", error);
+      console.error("Error soft deleting RSO:", error);
+      toast.error("Failed to soft delete RSO. Please try again.");
     }
 
   };
@@ -471,16 +617,35 @@ function RSOAction() {
               {/* Academic Year */}
               <div className='w-full flex flex-col'>
                 <label htmlFor="RSO_academicYear" className='text-sm'>Academic Year</label>
-                <ReusableDropdown
+                <select
+                  name="RSO_academicYear"
                   id="RSO_academicYear"
-                  options={options}
-                  showAllOption={false}
-                  value={formData.RSO_academicYear || ""}
+                  value={formData.RSO_academicYear}
                   onChange={(e) => {
-                    setFormData({ ...formData, RSO_academicYear: e.target.value });
-                    console.log("Selected academic year:", e.target.value);
+                    const selectedLabel = e.target.value;
+                    const selectedYear = academicYears?.years?.find(year => year.label === selectedLabel);
+                    console.log("Academic Year selected:", selectedLabel);
+                    console.log("Selected year object:", selectedYear);
+                    console.log("Selected year ID:", selectedYear?._id);
+
+                    setFormData({
+                      ...formData,
+                      RSO_academicYear: selectedLabel,
+                      academicYearId: selectedYear?._id || ""
+                    });
                   }}
-                ></ReusableDropdown>
+                  className="bg-textfield border border-mid-gray text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                >
+                  <option value="" disabled>Select Academic Year</option>
+                  {academicYears?.years?.map((year, index) => (
+                    <option key={year.id || index} value={year.label}>
+                      {year.label}
+                    </option>
+                  ))}
+                </select>
+                {!academicYears?.years?.length && (
+                  <p className="text-red-500 text-xs mt-1">No academic years available</p>
+                )}
               </div>
             </div>
             <div className='w-full'>
@@ -536,21 +701,6 @@ function RSOAction() {
                 ></ReusableDropdown>
               </div>
 
-              <label htmlFor="RSO_forms" className='text-sm'>Registration Forms Link</label>
-              <TextInput
-                id={'RSO_forms'}
-                name={'RSO_forms'}
-                type={'text'}
-                placeholder={'Ex. https://forms.gle/....'}
-                value={formData.RSO_forms}
-                onChange={handleChange}
-              ></TextInput>
-              {error && (
-                <div className="text-red-500 text-sm mt-1">
-                  {error}
-                </div>
-              )}
-
               <div className='mt-2'>
                 <label htmlFor="large-input" className='text-sm'>Description</label>
                 <textarea
@@ -568,14 +718,15 @@ function RSOAction() {
                 )}
               </div>
               <label htmlFor="probationary" className='text-sm'>Probationary Status</label>
+
+
               <Switch
                 id='probationary'
-                checked={rsoStatus}
+                checked={formData.RSO_probationary}
                 value={formData.RSO_probationary}
                 onChange={(e) => {
                   const isChecked = e.target.checked;
                   console.log("Switch toggled", e.target.checked)
-                  setRsoStatus(isChecked);
                   setFormData((prev) => ({
                     ...prev,
                     RSO_probationary: isChecked,
@@ -635,8 +786,8 @@ function RSOAction() {
 
       <div className='w-full h-[1px] bg-gray-200 mt-4'></div>
 
-      <div className={`w-full flex gap-2 mt-4 ` + (isEdit ? 'justify-between' : 'justify-end')}>
-        {isEdit && (
+      <div className={`w-full flex gap-2 mt-4 ` + (isEdit && (rsoDetailData?.data?.RSO_isDeleted === false) ? 'justify-between' : 'justify-end')}>
+        {isEdit && (rsoDetailData?.data?.RSO_isDeleted === false) && (
           <Button
             variant="danger"
             onClick={handleDelete}

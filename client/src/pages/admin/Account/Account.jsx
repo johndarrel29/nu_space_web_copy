@@ -1,6 +1,6 @@
-import { MainLayout, Button, TextInput, Badge, Backdrop, CloseButton, TabSelector } from "../../../components";
+import { MainLayout, Button, TextInput, Badge, Backdrop, CloseButton, TabSelector, ReusableRSODescription } from "../../../components";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useUserProfile, useModal, useRSO } from "../../../hooks";
+import { useUserProfile, useModal, useRSO, useRSODetails } from "../../../hooks";
 import DefaultPicture from "../../../assets/images/default-profile.jpg";
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
@@ -31,6 +31,13 @@ export default function Account() {
     isDeleteError,
     isDeleteSuccess
   } = useUserProfile();
+
+  const {
+    rsoDetails,
+    isRSODetailsLoading,
+    isRSODetailsError,
+    isRSODetailsSuccess
+  } = useRSODetails();
 
   const {
     updateOfficerMutate,
@@ -65,6 +72,29 @@ export default function Account() {
     OfficerName: "",
     OfficerPosition: "",
   });
+
+  // make the data dynamic for rso details
+  // based from the data structure of rsoDetails from useRSODetails since the component is used in other places as well
+
+  const rsoDetailData = {
+    data: {
+      RSO_snapshot: {
+        category: rsoDetails?.rso?.RSO_category || "",
+        probationary: rsoDetails?.rso?.RSO_probationary || false,
+      },
+      RSOid: {
+        RSO_tags: rsoDetails?.rso?.RSO_tags || [],
+        RSO_description: rsoDetails?.rso?.RSO_description || "",
+        RSO_acronym: rsoDetails?.rso?.RSO_acronym || "",
+        RSO_College: rsoDetails?.rso?.RSO_College || "",
+        RSO_assignedUsers: rsoDetails?.rso?.RSO_assignedUsers || [],
+      },
+      RSO_totalMembers: rsoDetails?.rso?.yearlyData?.RSO_totalMembers || 0,
+      RSO_recognition_status: {
+        status: rsoDetails?.rso?.yearlyData?.RSO_recognition_status?.status || "Unknown"
+      },
+    }
+  }
 
   useEffect(() => {
     refetchUserProfile();
@@ -101,8 +131,8 @@ export default function Account() {
   // Set profile data based on user role
   useEffect(() => {
     if (user?.role === 'rso_representative') {
-      console.log("User is RSO representative, setting profile to  ", userProfile);
-      setProfileData(userProfile?.rso);
+      console.log("User is RSO representative, setting profile to  ", rsoDetails?.rso);
+      setProfileData(rsoDetails?.rso);
     } else if (user?.role === 'admin' || user?.role === 'coordinator' || user?.role === 'super_admin') {
       console.log("User is admin, coordinator or super admin, setting profile to ", userProfile.user);
       setProfileData(userProfile.user);
@@ -331,7 +361,7 @@ export default function Account() {
                   {console.log("profileData?.RSO_Officers", profileData?.RSO_Officers)}
                   {
 
-                    profileData?.RSO_Officers?.map((officer, index) => {
+                    profileData?.yearlyData?.RSO_Officers?.map((officer, index) => {
                       return (
                         <>
                           <div
@@ -365,67 +395,13 @@ export default function Account() {
                 </div>
               )}
 
-              {console.log("user category", userProfile)}
               {activeTab === 1 && (
-                <div className="space-y-6 p-6 shadow-sm">
-
-                  <div className="space-y-2">
-                    <h2 className="text-lg font-medium">
-                      {profileData?.RSO_category}
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      {profileData?.RSO_description}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col md:flex-row items-start justify-center gap-6 gap-8">
-                    <div className="flex flex-col items-start ">
-                      <h2 className="text-sm text-gray-600">Logged in user:</h2>
-                      <h1 className="text-md font-semibold">{user?.firstName} {user?.lastName}
-                      </h1>
-                    </div>
-                    <div className="flex flex-col items-start ">
-                      <h2 className="text-sm text-gray-600">Popularity Score</h2>
-                      <h1 className="text-md font-semibold">{Math.floor(profileData?.RSO_popularityScore)}
-                      </h1>
-                    </div>
-                    <div className="flex flex-col items-start ">
-                      <h2 className="text-sm text-gray-600">RSO Forms</h2>
-                      <h1 className="text-md font-semibold">{profileData?.RSO_forms}
-                      </h1>
-                    </div>
-                  </div>
-
-
-                  <div>
-                    <p className="text-sm italic">
-                      {profileData?.RSO_visibility === false
-                        ? "RSO is not visible"
-                        : "RSO is visible"}
-                    </p>
-                  </div>
+                <div>
+                  <ReusableRSODescription rsoDetailData={rsoDetailData} />
                 </div>
               )}
             </>
-          )}
-          {(isAdmin || isSuperAdmin) && (
-            <>
-              <TabSelector tabs={adminTabs} activeTab={activeTab} onTabChange={setActiveTab}></TabSelector>
-              {activeTab === 0 && (
-                <div className="space-y-6 p-6 shadow-sm">
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600">
-                      Manage your admin account details here.
-                    </p>
-                  </div>
 
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="w-full h-48 bg-mid-gray rounded-md "></div>
-                    <div className="w-full h-48 bg-mid-gray rounded-md "></div>
-                  </div>
-                </div>
-              )}
-            </>
           )}
         </div>
       </div>

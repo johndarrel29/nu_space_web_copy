@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { TabSelector, ReusableTable, Button, CloseButton } from "../../../components";
 import { DropIn } from "../../../animations/DropIn";
 import useSearchQuery from "../../../hooks/useSearchQuery";
-import { useRSO, useKeyBinding } from "../../../hooks";
+import { useRSO, useKeyBinding, useAdminRSO } from "../../../hooks";
 import { FormatDate, useNotification } from "../../../utils";
 import Switch from '@mui/material/Switch';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -16,32 +16,52 @@ import timezone from 'dayjs/plugin/timezone';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
-
-// getRSO succesfully connects to backend but not fetching the data correctly
-// fixed: nagend na ang yearly data kaya nawala na
-
-// TODO: find out the where the UI error from table is coming from
-// Update the mapping of data to the new fields from the backend
-// Update the RSO data structure to match the new backend response
-
+import { CardSkeleton } from '../../../components';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const tabs = [
-  { label: "All" },
-  { label: "Professional" },
-  { label: "Professional & Affiliates" },
-  { label: "Special Interest" },
-];
 
 export default function MainRSO() {
   const navigate = useNavigate();
-  const { notification, handleNotification } = useNotification();
   const { searchQuery, setSearchQuery } = useSearchQuery();
-  const { token } = useAuth();
+  const [filters, setFilters] = useState({
+    isDeleted: false,
+    recognitionStatus: "",
+    search: "",
+    category: "All",
+  });
 
-  console.log("Token after refresh:", token);
+  // Admin RSO Hooks
+  const {
+    rsoData,
+    isRSOLoading,
+    isRSOError,
+    rsoError,
+    refetchRSOData,
+
+    hardDeleteRSOMutate,
+    isHardDeleteRSOLoading,
+    isHardDeleteRSOSuccess,
+    isHardDeleteRSOError,
+    hardDeleteRSOError,
+    resetHardDeleteRSO,
+
+    softDeleteRSOMutate,
+    isSoftDeleteRSOLoading,
+    isSoftDeleteRSOSuccess,
+    isSoftDeleteRSOError,
+    softDeleteRSOError,
+    resetSoftDeleteRSO,
+
+    restoreRSOMutate,
+    isRestoreRSOLoading,
+    isRestoreRSOSuccess,
+    isRestoreRSOError,
+    restoreRSOError,
+    resetRestoreRSO,
+  } = useAdminRSO(filters);
+
 
   // RSO data and operations
   const {
@@ -51,15 +71,26 @@ export default function MainRSO() {
     fetchData,
     createRSO,
     updateRSO,
-    RSOData,
+    // rsoData,
     fetchWebRSOError,
     updateMembershipDateMutate,
     membershipDateData,
     closeMembershipDateMutate,
   } = useRSO();
 
+  const tabs = [
+    { label: "All" },
+    { label: "Professional" },
+    { label: "Professional & Affiliates" },
+    { label: "Special Interest" },
+    { label: "Office Aligned Organization" }
+  ];
+
+  const activeTabIndex = tabs.findIndex(tab => tab.label === filters.category);
+
+
   // State management
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(activeTabIndex);
   const [sort, setSort] = useState("All");
   const [selectedUser, setSelectedUser] = useState(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -67,41 +98,60 @@ export default function MainRSO() {
   const [date, setDate] = useState(new Date());
   const [membershipEndDate, setMembershipEndDate] = useState(null);
 
-  console.log("RSO Data:", RSOData);
+  // todo: add archive section to show isDeleted = true data
 
   // Process RSO data for table
-  const rsoList = RSOData?.rsos ?? [];
+  const rsoList = rsoData?.rsos ?? [];
   console.log("Processed RSO List:", rsoList);
-  const tableRow = rsoList.map((org) => {
-    const snapshot = org.RSO_snapshot || {};
+  console.log("rso membership status: ", rsoList.map(org => org.RSO_membershipStatus));
 
-    return {
-      id: org._id,
-      RSO_name: snapshot.name || '',
-      RSO_acronym: snapshot.acronym || '',
-      RSO_category: snapshot.category || '',
-      RSO_college: snapshot.college || '',
-      RSO_picture: org.RSO_picture || '',
-      RSO_memberCount: org.RSO_members?.length || 0,
+  const tableRow = rsoList
+    .filter(org => org.rsoId != null)
+    .map((org) => {
+      const snapshot = org.RSO_snapshot || {};
 
-      // old fields, can be removed later
+      // snapshot will remain but some of the details are from the first layer
+      // on rso detail, use id to show details
+      return {
+        id: org.rsoId || null,
+        RSO_name: snapshot.name || '',
+        RSO_acronym: snapshot.acronym || '',
+        RSO_category: snapshot.category || '',
+        RSO_college: snapshot.college || '',
+        RSO_picture: org.RSO_picture || '',
+        RSO_recognition: org.RSO_recognition_status?.status || '',
+        RSO_memberCount: org.RSO_members?.length || 0,
+        RSO_membershipStatus: org.RSO_membershipStatus ? true : false,
+        RSO_isDeleted: org.RSO_isDeleted || false,
+      };
+    });
 
-      // id: snapshot._id,
-      // RSO_name: snapshot.RSO_name?.replace(/\s+/g, ' ').trim() || '',
-      // RSO_acronym: snapshot.RSO_acronym || '',
-      // RSO_description: snapshot.RSO_description || '',
-      // RSO_tags: snapshot.RSO_tags || [],
-      // RSO_category: snapshot.RSO_category || '',
-      // RSO_College: snapshot.RSO_College || '',
-      // RSO_totalMembers: snapshot.RSO_totalMembers || 0,
-      // RSO_membershipStatus: snapshot.RSO_membershipStatus || '',
-      // RSO_status: snapshot.RSO_status || false,
-      // RSO_picture: snapshot.RSO_picture || '',
-      // picture: snapshot.picture || '',
-      // RSO_memberCount: snapshot.RSO_members ? snapshot.RSO_members.length : snapshot.RSO_totalMembers || 0,
-      // RSO_popularityScoreCount: snapshot.RSO_popularityScore > 0 ? snapshot.RSO_popularityScore : 0,
-    };
-  });
+  // console log rso recognition
+  console.log("RSO recognition:", rsoList);
+  console.log("Table Rows:", tableRow);
+
+  console.log("search query:", searchQuery);
+
+  useEffect(() => {
+    if (searchQuery.length > 0) {
+      console.log("is refetching data...", isRSOLoading);
+
+      // delay for 500ms before setting the search filter
+      const timer = setTimeout(() => {
+        setFilters({
+          ...filters,
+          search: searchQuery
+        });
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setFilters({
+        ...filters,
+        search: ""
+      });
+    }
+  }, [searchQuery]);
 
   // Filter and sort organizations
   const filteredOrgs = () => {
@@ -147,6 +197,7 @@ export default function MainRSO() {
   // Handlers
   const handleSelectedUser = (user) => {
     setSelectedUser(user);
+    console.log(" selected user data ", user)
     navigate('rso-details', { state: { user } });
   };
 
@@ -211,6 +262,76 @@ export default function MainRSO() {
     dependencies: [handleCreate]
   });
 
+  const handleActionClick = (user, action) => {
+    if (action?.type === "restore" && user?.RSO_isDeleted === true) {
+      restoreRSOMutate({ id: user.id }, {
+        onSuccess: (data) => {
+          console.log("RSO restored successfully:", data);
+          toast.success("RSO restored successfully!");
+        },
+        onError: (error) => {
+          console.error("Error restoring RSO:", error);
+          toast.error("Failed to restore RSO. Please try again.");
+        }
+      });
+    }
+
+    if (user?.RSO_isDeleted === false) {
+      softDeleteRSOMutate({ id: user.id }, {
+        onSuccess: (data) => {
+          console.log("RSO soft deleted successfully:", data);
+          toast.success("RSO soft deleted successfully!");
+        },
+        onError: (error) => {
+          console.error("Error soft deleting RSO:", error);
+          toast.error("Failed to soft delete RSO. Please try again.");
+        }
+      });
+    } else if (user?.RSO_isDeleted === true && action?.type !== "restore") {
+      hardDeleteRSOMutate({ id: user.id }, {
+        onSuccess: (data) => {
+          console.log("RSO hard deleted successfully:", data);
+          toast.success("RSO hard deleted successfully!");
+        },
+        onError: (error) => {
+          console.error("Error hard deleting RSO:", error);
+          toast.error("Failed to hard delete RSO. Please try again.");
+        }
+      });
+    }
+
+  };
+
+  const handleFilter = (value) => {
+    console.log("Filter value:", value);
+    if (value && value === "Deleted RSOs") {
+      setFilters({
+        ...filters,
+        isDeleted: true,
+        recognitionStatus: ""
+      });
+      return;
+    }
+
+    if (value && value === "New RSOs") {
+      setFilters({
+        ...filters,
+        recognitionStatus: "new_rso",
+        isDeleted: false
+      });
+      return;
+    }
+
+    if (value && value === "All") {
+      setFilters({
+        ...filters,
+        isDeleted: false,
+        recognitionStatus: ""
+      });
+      return;
+    }
+  }
+
   return (
     <>
       <div className="flex flex-col items-start lg:flex-row lg:justify-between lg:items-center">
@@ -231,10 +352,10 @@ export default function MainRSO() {
             </svg>
           </div>
         </div>
-        <TabSelector tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabSelector tabs={tabs} activeTab={activeTabIndex} onTabChange={(tabIndex) => setFilters({ ...filters, category: tabs[tabIndex].label })} />
       </div>
-
-      <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
+      {/* Membership Status */}
+      {/* <div className="flex items-center gap-6 w-full justify-start bg-white border border-mid-gray p-6 rounded-md mt-4">
         <div className="flex items-center gap-2">
           <div className={`w-3 h-3 rounded-full ${membershipEndDate ? 'bg-green-500' : 'bg-red-500'}`}></div>
           <h1 className="text-gray-700 font-medium">Membership Status: <span className={`font-semibold ${membershipEndDate ? 'text-green-600' : 'text-red-600'}`}>{membershipEndDate ? "Active" : "Inactive"}</span></h1>
@@ -248,24 +369,35 @@ export default function MainRSO() {
             <h1 className="text-gray-700 font-medium">End Date: <span className="font-semibold text-gray-900">{membershipEndDate}</span></h1>
           </div>
         )}
-      </div>
-      {console.log("fetchWebRSOError:", fetchWebRSOError)}
+      </div> */}
+      {isRSOLoading ? (
+        <div className="flex items-center justify-center py-4">
+          <CardSkeleton></CardSkeleton>
+        </div>
+      ) : (
+        <ReusableTable
+          options={["All", "Deleted RSOs", "New RSOs"]}
+          showAllOption={false}
+          value={filters.isDeleted ? "Deleted RSOs" : filters.recognitionStatus === "new_rso" ? "New RSOs" : "All"}
+          onChange={(e) => handleFilter(e.target.value)}
+          columnNumber={4}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          tableHeading={[
+            { id: 1, name: "RSO Name", key: "RSO_name" },
+            { id: 2, name: "RSO Category", key: "RSO_category" },
+            { id: 3, name: "Membership Status", key: "RSO_membershipStatus" },
+            { id: 4, name: "Action", key: "remove" },
+          ]}
+          tableRow={tableRow}
+          onClick={handleSelectedUser}
+          onActionClick={handleActionClick}
+          error={fetchWebRSOError}
+          isLoading={loading}
 
-      <ReusableTable
-        options={["All", "A-Z", "Most Popular"]}
-        showAllOption={false}
-        value={sort}
-        onChange={(e) => setSort(e.target.value)}
-        columnNumber={3}
-        tableHeading={[
-          { id: 1, name: "RSO Name", key: "RSO_name" },
-          { id: 2, name: "RSO Category", key: "RSO_category" },
-        ]}
-        tableRow={filteredOrgs()}
-        onClick={handleSelectedUser}
-        error={fetchWebRSOError}
-        isLoading={loading}
-      />
+
+        />
+      )}
 
       <AnimatePresence>
         {isSettingsModalOpen && (

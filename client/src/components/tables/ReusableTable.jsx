@@ -1,9 +1,24 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { ReusableDropdown, Searchbar } from "../ui";
 import DefaultPicture from "../../assets/images/default-profile.jpg";
 import Badge from "../ui/Badge"
-import { CardSkeleton } from '../../components';
 import { useActivities } from "../../hooks";
+
+// Moved the inline array into constants + helper
+const SPECIAL_HEADING_KEYS = [
+    "title",
+    "document_status",
+    "submittedBy",
+    "createdAt",
+    "actions",
+    "RSO_membershipStatus",
+    "remove",
+    "RSO_isDeleted",
+    "message",
+    "notifType",
+];
+
+const isSpecialHeadingKey = (key) => SPECIAL_HEADING_KEYS.includes(key);
 
 export default function ReusableTable({
     columnNumber,
@@ -21,9 +36,10 @@ export default function ReusableTable({
     isLoading,
     onDocumentClick,
     showFilters = true,
-    activityId = null, // Default to null if not provided
+    activityId = null,
+    searchQuery,
+    setSearchQuery,
 }) {
-    const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [postsPerPage, setPostsPerPage] = useState(10);
     const [showSearch, setShowSearch] = useState(false);
@@ -46,6 +62,8 @@ export default function ReusableTable({
         });
     });
 
+
+
     const handleDelete = (activityId, documentId) => {
         if (activityId && documentId) {
             console.log("passing id: ", activityId, " and doc id ", documentId);
@@ -60,10 +78,10 @@ export default function ReusableTable({
         if (badge === "pending") {
             return <Badge style="primary" text={"Pending"} />
         }
-        if (badge === "Approved") {
+        if (badge === "approved") {
             return <Badge style="success" text={"Approved"} />
         }
-        if (badge === "Rejected") {
+        if (badge === "rejected") {
             return <Badge style="error" text={"Rejected"} />
         }
     }
@@ -155,7 +173,7 @@ export default function ReusableTable({
                             <div className="overflow-x-auto">
                                 {isLoading ? (
                                     <div className="w-full flex justify-center">
-                                        <CardSkeleton></CardSkeleton>
+                                        {/* <CardSkeleton></CardSkeleton> */}
                                     </div>
                                 )
                                     :
@@ -194,18 +212,26 @@ export default function ReusableTable({
                                                                 <td key={heading.id} className="p-3">
 
                                                                     {
-                                                                        ["title", "status", "submittedBy", "createdAt", "actions"].includes(heading.key)
+                                                                        isSpecialHeadingKey(heading.key)
                                                                             ? (
                                                                                 <>
                                                                                     <div className="py-0">
-                                                                                        {heading.key === "title" && (
+                                                                                        {(heading.key === "title") && (
                                                                                             <div className="flex items-center space-x-3">
                                                                                                 <div className="text-sm font-medium text-gray-900">{firstPostIndex + index + 1}</div>
-                                                                                                <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.title}</span>
+                                                                                                <div>
+                                                                                                    {/* <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.title}</span> */}
+
+                                                                                                    <>
+                                                                                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.title}</span>
+                                                                                                        <div className="text-xs text-gray-500 capitalize">{row.notifType ? row.notifType.replace(/_/g, " ") : ""
+                                                                                                        }</div>
+                                                                                                    </>
+                                                                                                </div>
                                                                                             </div>
                                                                                         )}
-                                                                                        {heading.key === "status" && (
-                                                                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{handleBadge(row.status)}</span>
+                                                                                        {heading.key === "document_status" && (
+                                                                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">{handleBadge(row.document_status)}</span>
                                                                                         )}
                                                                                         {heading.key === "submittedBy" && (
                                                                                             <span className="font-light text-gray-600 dark:text-white flex items-center text-xs ">{row.submittedBy}</span>
@@ -217,17 +243,90 @@ export default function ReusableTable({
                                                                                             <div
                                                                                                 onClick={(e) => {
                                                                                                     e.stopPropagation();
-                                                                                                    handleDelete(activityId, row.id);
-                                                                                                }
-                                                                                                }
+                                                                                                    if (onActionClick) {
+                                                                                                        onActionClick(row);
+                                                                                                    } else {
+                                                                                                        handleDelete(activityId, row.id);
+                                                                                                    }
+                                                                                                }}
                                                                                                 className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
                                                                                                 <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 448 512"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z" /></svg>
                                                                                             </div>
                                                                                         )}
+                                                                                        {heading.key === "remove" && (
+                                                                                            <>
+                                                                                                {row.RSO_isDeleted === true ? (
+                                                                                                    <div className="flex gap-2">
+                                                                                                        {/* restore */}
+                                                                                                        <div
+                                                                                                            onClick={(e) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                if (onActionClick) {
+                                                                                                                    onActionClick(row, { type: "restore" });
+                                                                                                                } else {
+                                                                                                                    handleDelete(activityId, row.id);
+                                                                                                                }
+                                                                                                            }}
+                                                                                                            className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
+                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 640 640"><path d="M534.6 182.6C547.1 170.1 547.1 149.8 534.6 137.3L470.6 73.3C461.4 64.1 447.7 61.4 435.7 66.4C423.7 71.4 416 83.1 416 96L416 128L256 128C150 128 64 214 64 320C64 337.7 78.3 352 96 352C113.7 352 128 337.7 128 320C128 249.3 185.3 192 256 192L416 192L416 224C416 236.9 423.8 248.6 435.8 253.6C447.8 258.6 461.5 255.8 470.7 246.7L534.7 182.7zM105.4 457.4C92.9 469.9 92.9 490.2 105.4 502.7L169.4 566.7C178.6 575.9 192.3 578.6 204.3 573.6C216.3 568.6 224 556.9 224 544L224 512L384 512C490 512 576 426 576 320C576 302.3 561.7 288 544 288C526.3 288 512 302.3 512 320C512 390.7 454.7 448 384 448L224 448L224 416C224 403.1 216.2 391.4 204.2 386.4C192.2 381.4 178.5 384.2 169.3 393.3L105.3 457.3z" /></svg>
+                                                                                                        </div>
+                                                                                                        {/* hard delete */}
+                                                                                                        <div
+                                                                                                            onClick={(e) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                if (onActionClick) {
+                                                                                                                    onActionClick(row);
+                                                                                                                }
+                                                                                                            }}
+                                                                                                            className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
+                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 640 640"><path d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z" /></svg>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <>
+                                                                                                        {/* soft delete */}
+                                                                                                        <div
+                                                                                                            onClick={(e) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                if (onActionClick) {
+                                                                                                                    onActionClick(row);
+                                                                                                                } else {
+                                                                                                                    handleDelete(activityId, row.id);
+                                                                                                                }
+                                                                                                            }}
+                                                                                                            className="rounded-full w-8 h-8 bg-white flex justify-center items-center cursor-pointer group">
+                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="fill-gray-600 size-4 group-hover:fill-off-black" viewBox="0 0 640 640"><path d="M183.1 137.4C170.6 124.9 150.3 124.9 137.8 137.4C125.3 149.9 125.3 170.2 137.8 182.7L275.2 320L137.9 457.4C125.4 469.9 125.4 490.2 137.9 502.7C150.4 515.2 170.7 515.2 183.2 502.7L320.5 365.3L457.9 502.6C470.4 515.1 490.7 515.1 503.2 502.6C515.7 490.1 515.7 469.8 503.2 457.3L365.8 320L503.1 182.6C515.6 170.1 515.6 149.8 503.1 137.3C490.6 124.8 470.3 124.8 457.8 137.3L320.5 274.7L183.1 137.4z" /></svg>
+                                                                                                        </div></>
+                                                                                                )}
+                                                                                            </>
+                                                                                        )}
+                                                                                        {heading.key === "message" && (
+                                                                                            <div className="flex flex-col">
+                                                                                                <span className="text-sm text-gray-500 dark:text-gray-400">{row.message}</span>
+                                                                                            </div>
+                                                                                        )}
+
+                                                                                        {heading.key === "RSO_membershipStatus" && (
+                                                                                            row.RSO_membershipStatus === true ? (
+                                                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                                                    </svg>
+                                                                                                    Open
+                                                                                                </span>
+                                                                                            ) : (
+                                                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                                                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                                                                    </svg>
+                                                                                                    Not open
+                                                                                                </span>
+                                                                                            )
+                                                                                        )}
                                                                                     </div>
 
                                                                                 </>
-                                                                            ) : ["RSO_name", "RSO_College", "picture"].includes(heading.key)
+                                                                            ) : ["RSO_name", "RSO_College", "picture", "RSO_recognition"].includes(heading.key)
                                                                                 ? (
                                                                                     // Grouping these in one <td> with custom layout
                                                                                     <div className="flex items-center space-x-3">
@@ -236,11 +335,11 @@ export default function ReusableTable({
                                                                                         {heading.key === "RSO_name" && (
                                                                                             <img
                                                                                                 src={
-                                                                                                    row.picture &&
-                                                                                                        !row.picture.includes("example.com")
+                                                                                                    row.RSO_picture &&
+                                                                                                        !row.RSO_picture.includes("example.com")
                                                                                                         // && 
                                                                                                         // row.picture.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) // Check if it's an image URL
-                                                                                                        ? row.picture
+                                                                                                        ? row.RSO_picture
                                                                                                         : DefaultPicture
                                                                                                 }
                                                                                                 alt={row.RSO_name}
@@ -253,6 +352,7 @@ export default function ReusableTable({
                                                                                         <div className="flex flex-col">
                                                                                             {heading.key === "RSO_name" && (
                                                                                                 <>
+                                                                                                    <span className="text-xs text-gray-500 capitalize">{row.RSO_recognition ? row.RSO_recognition.replace(/_/g, " ").replace(/rso/gi, "RSO") : ""}</span>
                                                                                                     <span className="text-sm font-semibold text-gray-900 dark:text-white">{row.RSO_name}</span>
                                                                                                     <span className="text-xs text-gray-500">{row.RSO_College}</span>
                                                                                                 </>
@@ -260,9 +360,6 @@ export default function ReusableTable({
                                                                                         </div>
                                                                                     </div>
                                                                                 ) : (
-                                                                                    // typeof row[heading.key] === 'string' && row[heading.key].match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) ? (
-                                                                                    //     <img src={row[heading.key] || row.RSO_picture} alt="table content" className="w-12 h-12 object-cover rounded-full" />
-                                                                                    //     ) : 
                                                                                     (
                                                                                         <p className="text-gray-900 dark:text-white">{row[heading.key]}</p>
                                                                                     )

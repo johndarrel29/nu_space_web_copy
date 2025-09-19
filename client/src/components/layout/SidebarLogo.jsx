@@ -1,7 +1,7 @@
 import style from "../../css/SidebarLogo.module.css";
 import whiteLogoText from "../../assets/images/NUSpace_new.png";
 import blueLogoText from "../../assets/images/NUSpace_blue.png";
-import whiteLogo from "../../assets/images/icon_white.png";
+import yellowLogo from "../../assets/images/icon_yellow.png";
 import blueLogo from "../../assets/images/icon_blue.png";
 
 import iconLogo from "../../assets/images/tab-logo.png";
@@ -23,7 +23,7 @@ function SidebarLogo({ logoStyle }) {
       {logoStyle === "collapsed" && (
         <div className={style.iconContainer}>
           <img
-            src={isUserRSORepresentative ? blueLogo : whiteLogo}
+            src={isUserRSORepresentative ? blueLogo : yellowLogo}
             alt="Logo"
             className="h-8 object-contain opacity-100 ml-0 transition-opacity duration-300 ease-in"
             draggable="false"

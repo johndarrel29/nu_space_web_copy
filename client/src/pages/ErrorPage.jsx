@@ -1,49 +1,44 @@
 import { useNavigate } from 'react-router-dom';
 import style from '../css/Login.module.css';
-import classNames from 'classnames';
-import Background from  "../assets/images/login-background.png";
-import Logo from "../assets/images/logo.png";
-import { Button, Header } from "../components";
+import { Button, Header } from '../components';
+import NoConnection from '../assets/images/no-connection.svg';
+import { useOnlineStatus } from '../hooks';
 
-
-export default function ErrorPage () {
+// Simplified ErrorPage now shows a No Internet Connection visual + button.
+export default function ErrorPage() {
     const navigate = useNavigate();
+    const isOnline = useOnlineStatus();
 
-    return(
-    <div className={classNames(style.container, style.clearfix)}>
-    <div className={`${style["left-container"]} w-full md:w-1/3 pt-6`}>
-        <div className={style.heading}>
-            <Header theme="dark" />
-        </div>
-
-        <div className={style['login-container']}>
-                <div className={style['small-text-container']}>
-                    <h1 className={style['small-text']}>Error 404</h1>
+    return (
+        <div className="w-full min-h-screen bg-gray-100 flex flex-col">
+            <div className="w-full mx-auto pt-6 px-6">
+                {/* header */}
+                <div className="flex justify-start">
+                    <Header theme="dark" />
                 </div>
+            </div>
 
+            <div className="flex-grow flex items-center justify-center px-6 pb-20">
+                {!isOnline && (
+                    <>
+                        <div className="max-w-md w-full text-center">
+                            <div className="mx-auto w-40 h-40 relative select-none">
+                                <img src={NoConnection} alt="No internet connection" className="w-full h-full object-contain drop-shadow-md" draggable="false" />
+                            </div>
 
+                            <div className="mt-8 space-y-3">
+                                <h1 className="text-2xl font-semibold text-gray-800 tracking-tight">No Internet Connection</h1>
+                                <p className="text-sm text-gray-500 leading-relaxed">It looks like you're offline. Please check your network settings or try reconnecting. Once you're back online, you can return to the dashboard.</p>
+                            </div>
 
-                <div className={style['small-text-container']}>
-                    <h1 className={style['small-text']}
-                    >Page not found</h1>
-                </div>
-
-
-                
-
-            <Button onClick={() => navigate("/dashboard")}className="w-full mt-6"> Go to Home </Button>
-            
+                            <div className="mt-10">
+                                <Button onClick={() => navigate('/dashboard' || '/')} className="w-full">Go to Home</Button>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
-    </div>
-
-    <div className={classNames(style['right-container'], 'relative')}> 
-        <img src={Background} alt="Background Image" className="w-full h-full object-cover" />
-        <img src={Logo} alt="Logo Image" draggable="false" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-80 motion-preset-focus  motion-duration-800 "/>
-    </div>
-    </div>
-
     );
-
-    
 }
 

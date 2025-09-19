@@ -1,8 +1,7 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, act } from 'react';
 import { TextInput, Button, Backdrop, CloseButton, ReusableDropdown } from '../../../components';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useActivities } from '../../../hooks';
-import Datetime from 'react-datetime';
+import { useRSOActivities } from '../../../hooks';
 import { useRef } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { DropIn } from "../../../animations/DropIn";
@@ -12,23 +11,50 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import DefaultPicture from '../../../assets/images/default-picture.png';
 import { toast } from 'react-toastify';
-
-
-// TODO: check on edit mode error
-
-// file manipulation
 import Cropper from "react-easy-crop";
 import getCroppedImg from '../../../utils/cropImage';
+import { useSelectedFormStore } from '../../../store';
+
+// TODO: replace hooks from useActivities to useRSOActivities
+
 
 function DocumentAction() {
   const location = useLocation();
   const navigate = useNavigate();
   const { mode, data, from } = location.state || {};
-  const { createActivity, updateActivity, deleteActivity, error, success, loading } = useActivities();
+  const selectedForm = useSelectedFormStore((state) => state.selectedForm);
+  const { createActivity, updateActivity, deleteActivity, error, success, loading } = useRSOActivities();
+
+  // hook for creating activity
+  const {
+    createActivityMutate,
+    isCreatingActivity,
+    isActivityCreated,
+    isActivityCreationError,
+    activityCreationError,
+
+    updateActivityMutate,
+    isUpdatingActivity,
+    isActivityUpdated,
+    isActivityUpdateError,
+    activityUpdateError,
+
+    // delete
+    deleteActivityMutate,
+    isDeletingActivity,
+    isActivityDeleted,
+    isActivityDeletionError,
+    activityDeletionError,
+  } = useRSOActivities();
+
+  console.log("the selected form is ", selectedForm);
+
+
   const fileInputRef = useRef(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [defaultImage, setDefaultImage] = useState(true);
   const [descriptionError, setDescriptionError] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false); // Add this line for modal state
 
   //file manipulaion
   const [image, setImage] = useState(null);
@@ -60,10 +86,11 @@ function DocumentAction() {
         Activity_name: data.Activity_name || '',
         Activity_image: data.Activity_image || '',
         activityImageUrl: data.activityImageUrl || null,
-        Activity_start_datetime: data?.Activity_start_datetime ? data.Activity_start_datetime : null,
+        Activity_start_datetime: data?.Activity_start_datetime ? dayjs(data.Activity_start_datetime) : null,
         Activity_end_datetime: data?.Activity_end_datetime ? dayjs(data.Activity_end_datetime) : null,
         Activity_picturePreview: data?.activityImageUrl || DefaultPicture,
         Activity_place: data.Activity_place || '',
+        formsUsed: data.formsUsed || [],
         Activity_description: data.Activity_description || '',
         Activity_GPOA: data.Activity_GPOA ?? false,
         Activity_publicity: data.Activity_publicity ?? false,
@@ -77,6 +104,7 @@ function DocumentAction() {
       Activity_GPOA: false,
       Activity_image: '',
       Activity_place: '',
+      formsUsed: [],
       Activity_on_off_campus: '',
       Activity_publicity: false,
       Activity_start_datetime: null,
@@ -85,6 +113,25 @@ function DocumentAction() {
       Activity_picturePreview: DefaultPicture,
     };
   });
+
+  useEffect(() => {
+    const store = useSelectedFormStore.getState().selectedForm;
+    const isStoreEmpty =
+      !store ||
+      (!store.feedbackForm || !store.feedbackForm?._id) &&
+      (!store.preActForm || !store.preActForm?._id);
+
+    if (isEdit &&
+      activityData.formsUsed &&
+      activityData.formsUsed.length > 0 &&
+      isStoreEmpty
+    ) {
+      useSelectedFormStore.getState().setSelectedForm({
+        feedbackForm: activityData.formsUsed[0] || "",
+        preActForm: activityData.formsUsed[1] || "",
+      });
+    }
+  }, [isEdit, activityData.formsUsed]);
 
   let campusValue = "";
   if (activityData.Activity_on_off_campus === 'on_campus') {
@@ -118,6 +165,7 @@ function DocumentAction() {
   }, [success, navigate]);
 
   const handleSubmit = async (e) => {
+    console.log("Submitting form with activityData:", activityData, "selectedForm:", selectedForm);
     e.preventDefault();
 
     const changedFields = {};
@@ -127,6 +175,12 @@ function DocumentAction() {
       console.log("Original data:", originalData);
       console.log("Current activity data:", activityData);
 
+      // check Activity_image
+      if (originalData.Activity_image === activityData.Activity_image) {
+        console.log("Activity image unchanged, skipping update for this field.");
+      } else {
+        changedFields.Activity_image = activityData.Activity_image;
+      }
 
       // Check Activity_name
       if (originalData.Activity_name === activityData.Activity_name) {
@@ -194,25 +248,29 @@ function DocumentAction() {
         console.log("Activity end datetime changed, will update this field.");
       }
 
+      // Check formsUsed (compare IDs)
+      const originalFormsUsed = Array.isArray(originalData.formsUsed) ? originalData.formsUsed.map(f => f._id) : [];
+      const storeFormsUsed = [selectedForm.feedbackForm?._id, selectedForm.preActForm?._id].filter(Boolean);
+      const formsChanged = originalFormsUsed.length !== storeFormsUsed.length || originalFormsUsed.some((id, idx) => id !== storeFormsUsed[idx]);
+      if (formsChanged) {
+        changedFields.formsUsed = storeFormsUsed;
+        console.log("formsused comparison from original data", originalFormsUsed, "to store", storeFormsUsed);
+        console.log("FormsUsed changed, will update this field. ", selectedForm);
+      } else {
+        console.log("FormsUsed unchanged, skipping update for this field.");
+      }
+
       if (Object.keys(changedFields).length === 0) {
         console.log("No changes detected, not submitting.");
         return;
       }
-
-      // If all fields are unchanged, return early
-      // if (originalData.Activity_name === activityData.Activity_name &&
-      //   originalData.Activity_description === activityData.Activity_description &&
-      //   originalData.Activity_place === activityData.Activity_place &&
-      //   originalData.Activity_GPOA === activityData.Activity_GPOA &&
-      //   originalData.Activity_publicity === activityData.Activity_publicity &&
-      //   originalData.Activity_on_off_campus === normalizedCurrentCampus &&
-      //   dayjs(originalData.Activity_start_datetime).isSame(dayjs(activityData.Activity_start_datetime)) &&
-      //   dayjs(originalData.Activity_end_datetime).isSame(dayjs(activityData.Activity_end_datetime))) {
-      //   console.log("No changes detected, not submitting.");
-      //   return;
-      // }
     }
 
+    // block GPOA edit if changed
+    if (changedFields.Activity_GPOA) {
+      toast.error("GPOA status cannot be changed once set.");
+      return;
+    }
 
     if (activityData?.Activity_description === "" || activityData?.Activity_description === null) {
       setDescriptionError("Description is required");
@@ -238,26 +296,58 @@ function DocumentAction() {
       return;
     }
 
-
-
     // Prepare the data to match the API requirement
     const apiData = {
       ...activityData,
       Activity_GPOA: activityData.Activity_GPOA.toString(),
-      Activity_datetime: activityData.Activity_datetime?.toISOString() || 'null',
+      formsUsed: selectedForm
+        ? [selectedForm.feedbackForm?._id, selectedForm.preActForm?._id].filter(Boolean)
+        : [],
+      Activity_start_datetime: activityData.Activity_start_datetime
+        ? dayjs(activityData.Activity_start_datetime).toISOString()
+        : null,
+      Activity_end_datetime: activityData.Activity_end_datetime
+        ? dayjs(activityData.Activity_end_datetime).toISOString()
+        : null,
     };
+    delete apiData.Activity_datetime;
+    delete apiData.activityImageUrl;
 
     try {
       let result;
 
-      console.log("data before uploading", apiData);
       if (isEdit && data?._id) {
         // Update existing activity
-
-        result = await updateActivity(data._id, changedFields);
+        console.log("Updating activity with data ", changedFields);
+        result = await updateActivityMutate({ activityId: data._id, updatedData: changedFields },
+          {
+            onSuccess: (data) => {
+              console.log("Activity updated successfully:", data);
+              toast.success("Activity updated successfully!");
+              navigate(-1);
+            },
+            onError: (error) => {
+              console.error("Error updating activity:", error);
+              toast.error("Error updating activity");
+            },
+          }
+        );
       } else if (isCreate) {
+        console.log("Creating new activity with data:", apiData);
 
-        const created = await createActivity(apiData);
+        const created = await createActivityMutate(apiData,
+          {
+            onSuccess: (data) => {
+              console.log("Activity created successfully:", data);
+              toast.success("Activity created successfully!");
+              navigate("/activities");
+            },
+            onError: (error) => {
+              console.error("Error creating activity:", error);
+              toast.error(error.message || "Error creating activity");
+            },
+          }
+        );
         console.log("Activity created:", created);
 
         if (created) {
@@ -274,18 +364,30 @@ function DocumentAction() {
     setHasSubmitted(true);
   };
 
-  const handleDelete = async (e) => {
+  const handleDelete = (e) => {
     e.preventDefault();
+    // Show confirmation modal instead of deleting immediately
+    setDeleteModalOpen(true);
+  };
 
-    if (window.confirm("Are you sure you want to delete this activity?")) {
-      try {
-        await deleteActivity(data._id);
-        console.log("Activity deleted");
-        navigate('..', { relative: 'path' });
-      } catch (error) {
-        console.error("Error deleting activity:", error);
+
+  const confirmDelete = async () => {
+    console.log("id to send", data._id)
+    deleteActivityMutate(data._id,
+      {
+        onSuccess: () => {
+          console.log("Activity deleted successfully");
+          toast.success("Activity deleted successfully");
+          setDeleteModalOpen(false);
+          navigate('/activities');
+        },
+        onError: (error) => {
+          console.error("Error deleting activity:", error);
+          setDeleteModalOpen(false);
+          toast.error("Error deleting activity");
+        },
       }
-    }
+    );
   }
 
   const handleImageChange = (event) => {
@@ -326,7 +428,6 @@ function DocumentAction() {
     }
   };
 
-
   const handleDateChangeStart = (newValue) => {
     setActivityData((prev) => ({
       ...prev,
@@ -342,14 +443,17 @@ function DocumentAction() {
     }));
   };
 
+  console.log("error is: ", error);
+
   useEffect(() => {
     if (success) {
       toast.success(isEdit ? "Activity updated successfully!" : "Activity created successfully!");
     } else if (error) {
       toast.error(error.message || "An error occurred. Please try again.");
-    } else if (hasSubmitted) {
-      toast.info(isEdit ? "Changes saved successfully!" : "Activity created successfully!");
     }
+    // else if (hasSubmitted) {
+    //   toast.info(isEdit ? "Changes saved successfully!" : "Activity created successfully!");
+    // }
   }, [success, error, hasSubmitted, isEdit]);
 
   const options = [
@@ -450,7 +554,7 @@ function DocumentAction() {
 
       <div className="flex items-center justify-center w-full">
         {/* details */}
-        <div className="space-y-6 w-full max-w-2xl">
+        <div className=" w-full max-w-2xl">
           <section className="bg-white p-6 rounded-2xl space-y-4">
             <h2 className="text-xl font-semibold text-gray-800">Basic Information</h2>
 
@@ -467,7 +571,7 @@ function DocumentAction() {
               <label className="block text-sm font-medium text-gray-700">Start Date</label>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
-                  value={dayjs(activityData.Activity_start_datetime)}
+                  value={activityData.Activity_start_datetime}
                   onChange={handleDateChangeStart}
                   className="w-full"
                   slotProps={{
@@ -535,11 +639,23 @@ function DocumentAction() {
                 onChange={handleCampusChange}
               ></ReusableDropdown>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Select a Form for the Activity</label>
+              <Button
+                disabled={isCreate ? true : false}
+                onClick={() => navigate("/activities/form-selection", { state: isEdit ? { mode: "edit" } : { mode: "create" } })}
+                style={"secondary"}>
+                <span className='text-sm truncate max-w-xs'>
+                  {/* Selected {activityData?.formsUsed?.map((forms) => forms.title).join(", ") || "None"} */}
+                  Selected: {selectedForm ? selectedForm.feedbackForm?.title + ", " + selectedForm.preActForm?.title : "none"}
+                </span>
+              </Button>
+            </div>
           </section>
 
-          <section className="flex flex-row gap-4 items-center justify-between p-6">
+          <section className="flex flex-row justify-between px-6 items-start">
             <div>
-              <label className="block text-sm font-medium text-gray-700" htmlFor='gpoa-checkbox'>GPOA status</label>
               <div className="flex items-center space-x-3">
                 <input
                   type="checkbox"
@@ -549,13 +665,12 @@ function DocumentAction() {
                   className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
                 />
                 <label htmlFor="gpoa-checkbox" className="block text-sm font-medium text-gray-700">
-                  Is GPOA Activity
+                  Is GPOA Activity?
                 </label>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 text-right" htmlFor='publicity'>Activity Publicity</label>
               <div className="flex items-center space-x-3">
                 <input
                   type="checkbox"
@@ -565,7 +680,7 @@ function DocumentAction() {
                   className="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500"
                 />
                 <label htmlFor="gpoa-checkbox" className="block text-sm font-medium text-gray-700">
-                  Is Public Activity
+                  Is open for all colleges?
                 </label>
               </div>
             </div>
@@ -664,7 +779,48 @@ function DocumentAction() {
         )}
       </AnimatePresence>
 
+      {/* Add the delete confirmation modal */}
+      <AnimatePresence>
+        {deleteModalOpen && (
+          <>
+            <Backdrop className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" />
+            <motion.div
+              className="fixed inset-0 z-50 w-screen overflow-auto flex items-center justify-center"
+              variants={DropIn}
+              initial="hidden"
+              animate="visible"
+              exit="exit">
 
+              <div className="bg-white rounded-lg p-6 max-w-md shadow-xl border border-gray-100">
+                <div className='flex justify-between items-center mb-4'>
+                  <h2 className='text-lg font-semibold'>Confirm Deletion</h2>
+                  <CloseButton onClick={() => setDeleteModalOpen(false)}></CloseButton>
+                </div>
+
+                <div className='py-4'>
+                  <p className="text-gray-700 mb-2">Are you sure you want to delete this activity?</p>
+                  <p className="text-gray-500 text-sm">This action cannot be undone.</p>
+                </div>
+
+                <div className='flex justify-end gap-3 mt-6'>
+                  <Button
+                    style="secondary"
+                    onClick={() => setDeleteModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    style="danger"
+                    onClick={confirmDelete}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }

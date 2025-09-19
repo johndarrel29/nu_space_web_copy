@@ -2,9 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from '../context/AuthContext';
 
-
-// fetch getrsocreatedactivities and map that to be used for the activities mapping
-
 function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college) {
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,6 +14,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         throw new Error('user role is missing. Cannot fetch profile.');
     }
 
+    // for rso
     const createActivity = useCallback(async (activity) => {
         setLoading(true);
         setError(null);
@@ -76,6 +74,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         }
     }, []);
 
+    // for rso updating activity
     const updateActivity = useCallback(async (activityId, updatedData) => {
         setLoading(true);
         setError(null);
@@ -130,6 +129,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
     }
         , []);
 
+    // for rso deleting activity
     const deleteActivity = useCallback(async (activityId) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -157,7 +157,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         }
     }, []);
 
-
+    // for rso --- no route in backend
     const fetchData = useCallback(async () => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -183,6 +183,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         }
     }, []);
 
+    // no longer used
     const fetchActivity = useCallback(async () => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -207,6 +208,8 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
     }
         , []);
 
+    // admin fetch RSO activity documents
+    // probably not used anymore
     const fetchRSOActivity = async (activityId) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -236,6 +239,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         };
     };
 
+    // admin fetch activity with parameters
     const fetchAdminActivity = async ({
         pageParam = 1,
         query = "",
@@ -248,7 +252,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         console.log("Stored token:", token);
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
 
-        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/`);
+        const url = new URL(`${process.env.REACT_APP_BASE_URL}/api/admin/activities/fetch-activities`);
         url.searchParams.set("page", pageParam);
         url.searchParams.set("limit", 12);
         if (query) url.searchParams.set("search", query);
@@ -279,6 +283,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
 
     }
 
+    // no role - for fetching activity documents
     const fetchActivityDocument = async (activityId) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -294,6 +299,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         return response.json();
     }
 
+    // rso - for creating activity document
     const createActivityDocument = async ({ activityId, formData }) => {
         const token = localStorage.getItem("token");
         setLoading(true);
@@ -318,6 +324,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
 
     }
 
+    // no role - for deleting activity document
     const deleteActivityDocument = async ({ activityId, documentId }) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -337,6 +344,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         return response.json();
     }
 
+    // fetch created activities for RSO representative
     const fetchLocalActivity = async () => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -372,6 +380,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         return json.activities || []
     }
 
+    // for viewing activity details - two roles
     const viewActivity = async ({ activityId }) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -390,6 +399,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
 
         switch (role) {
             case 'admin':
+            case 'coordinator':
                 url = `${process.env.REACT_APP_BASE_URL}/api/admin/activities/${activityId}`;
                 console.log("Admin URL:", url);
                 break;
@@ -420,6 +430,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         }
     }
 
+    // admin accepting activity
     const acceptActivity = async ({ activityId, remarks }) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;
@@ -449,6 +460,7 @@ function useActivities(activityId, debouncedQuery, sorted, RSO, RSOType, college
         }
     }
 
+    // admin declining activity
     const declineActivity = async ({ activityId, remarks }) => {
         const token = localStorage.getItem("token");
         const formattedToken = token?.startsWith("Bearer ") ? token.slice(7) : token;

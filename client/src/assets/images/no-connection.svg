@@ -1,0 +1,29 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">No Internet Connection Illustration</title>
+  <desc id="desc">A stylized broken wifi signal with a slash indicating no connectivity.</desc>
+  <defs>
+    <linearGradient id="gradA" x1="0" y1="0" x2="400" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1" stop-opacity="0.15" />
+      <stop offset="1" stop-color="#818CF8" stop-opacity="0.05" />
+    </linearGradient>
+    <linearGradient id="gradArc" x1="200" y1="60" x2="200" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1" />
+      <stop offset="1" stop-color="#8B5CF6" />
+    </linearGradient>
+    <filter id="blurGlow" x="-50" y="-50" width="500" height="400" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="35" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="400" height="300" rx="24" fill="url(#gradA)" />
+  <g filter="url(#blurGlow)">
+    <circle cx="200" cy="210" r="16" fill="#6366F1" />
+    <path d="M128 170c20-20 48-32 72-32s52 12 72 32" stroke="url(#gradArc)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    <path d="M96 138c28-28 68-46 104-46s76 18 104 46" stroke="url(#gradArc)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.6" />
+    <path d="M64 106c36-36 88-60 136-60s100 24 136 60" stroke="url(#gradArc)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.35" />
+    <line x1="90" y1="240" x2="310" y2="40" stroke="#F43F5E" stroke-width="14" stroke-linecap="round" />
+  </g>
+</svg>
