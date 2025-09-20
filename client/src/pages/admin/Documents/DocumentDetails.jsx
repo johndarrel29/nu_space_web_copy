@@ -57,7 +57,9 @@ export default function DocumentDetails() {
     console.log("Document Details:", documentDetail?.document);
     console.log("specificDocument:", specificDocument, "and id of ", documentId);
 
-    const nullWatermarkImage = signatureData?.data?.signedUrl === null;
+    const nullWatermarkImage = signatureData?.data === null;
+
+    console.log("signature ", signatureData);
 
 
     // add: derived doc + helpers

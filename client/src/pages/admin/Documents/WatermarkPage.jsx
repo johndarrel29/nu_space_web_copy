@@ -3,7 +3,8 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, CloseButton, DraggableSandbox, PDFViewer } from '../../../components';
-import { useCoordinatorDocuments } from '../../../hooks';
+import { useAVPDocuments, useCoordinatorDocuments, useDirectorDocuments } from '../../../hooks';
+import { useUserStoreWithAuth } from '../../../store';
 // import watermarkImage from '../../../assets/images/NUSpace_blue.png';
 import { useAdminUser, useModal, useSignature } from '../../../hooks';
 
@@ -27,6 +28,21 @@ export default function WaterMarkPage() {
         isApproveDocumentError,
         isApproveDocumentSuccess,
     } = useCoordinatorDocuments();
+
+    const {
+        // Approve document functionality
+        approveDirectorDocumentMutate,
+        isDirectorApprovingDocument,
+        isDirectorApproveDocumentError,
+        isDirectorApproveDocumentSuccess,
+    } = useDirectorDocuments();
+
+    const {
+        approveAVPDocumentMutate,
+        isAVPApprovingDocument,
+        isAVPApproveDocumentError,
+        isAVPApproveDocumentSuccess,
+    } = useAVPDocuments();
     const [targetPage, setTargetPage] = useState(1);
     const [applyToAllPages, setApplyToAllPages] = useState(false);
     const navigate = useNavigate();
@@ -42,7 +58,7 @@ export default function WaterMarkPage() {
     const [watermarkPreviewUrl, setWatermarkPreviewUrl] = useState(null);
     const { isOpen, openModal, closeModal } = useModal();
     const [directorModalOpen, setDirectorModalOpen] = useState(false);
-
+    const { isCoordinator, isAVP, isDirector } = useUserStoreWithAuth();
 
 
     const {
@@ -393,14 +409,22 @@ export default function WaterMarkPage() {
     const handleSendToDirector = async (confirm) => {
         let formData = new FormData();
 
+        const approveOnRole = isCoordinator ? approveDocumentMutate : isDirector ? approveDirectorDocumentMutate : isAVP ? approveAVPDocumentMutate : null;
+
         if (generatedPdfUrl) {
             formData.append("file", generatedPdfUrl);
         }
-        formData.set("toDirector", confirm ? true : false);
-        formData.set("watermark", true);
-        formData.set("approve", true);
+        if (isCoordinator) {
+            // Send string values in multipart form-data for widest backend compatibility
+            formData.set("toDirector", confirm ? "true" : "false");
+        }
+        formData.set("watermark", "true");
+        formData.set("approve", "true");
 
-        approveDocumentMutate({ documentId, formData }, {
+        console.log("formdata before submit", formData);
+
+
+        approveOnRole({ documentId, formData }, {
             onSuccess: () => {
                 toast.success('Document approved successfully.');
                 // navigate to home documents page
